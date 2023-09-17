@@ -2,6 +2,15 @@
 	import Counter from './Counter.svelte';
 	import welcome from '$lib/images/svelte-welcome.webp';
 	import welcome_fallback from '$lib/images/svelte-welcome.png';
+
+	let data;
+
+	async function fetchData() {
+		console.log("running fetchdata")
+		const response = await fetch('https://dog.ceo/api/breeds/list/all');
+		data = await response.json();
+		console.log({data});
+	}
 </script>
 
 <svelte:head>
@@ -20,11 +29,12 @@
 
 		to your new<br />SvelteKit app
 	</h1>
+	
+	<button on:click={fetchData}>Fetch Data</button>
 
-	<h2>
-		try editing <strong>src/routes/+page.svelte</strong>
-	</h2>
-
+	{#if data}
+		<pre>{JSON.stringify(data, null, 2)}</pre>
+	{/if}
 	<Counter />
 </section>
 
