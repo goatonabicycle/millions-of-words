@@ -23,4 +23,8 @@
 		The <a href="/sverdle">Sverdle</a> page illustrates SvelteKit's data loading and form handling. Try
 		using it with JavaScript disabled!
 	</p>
+
+	<p>
+		Also, this is how I'm planning on learning SvelteKit. I'm going to build a silly app that gets words and looks at them. 
+	</p>
 </div>

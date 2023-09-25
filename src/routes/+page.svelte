@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import Counter from './Counter.svelte';
 	import welcome from '$lib/images/svelte-welcome.webp';
 	import welcome_fallback from '$lib/images/svelte-welcome.png';
@@ -35,6 +35,7 @@
 	{#if data}
 		<pre>{JSON.stringify(data, null, 2)}</pre>
 	{/if}
+	
 	<Counter />
 </section>
 
