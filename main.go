@@ -1,43 +1,44 @@
 package main
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
-	"millions-of-words/geniusapi"
-
-	"github.com/joho/godotenv"
+	"millions-of-words/app"
+	"millions-of-words/config"
+	spotifyclient "millions-of-words/spotify"
 )
 
-func main() {	
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+func main() {
+	if len(os.Args) < 2 {
+		log.Fatal("Usage: go run main.go <artist name>")
 	}
+	artistName := os.Args[1]
 
-	apiKey := os.Getenv("GENIUS_API_KEY")
-	if apiKey == "" {
-		log.Fatal("GENIUS_API_KEY must be set")
-	}
-	
-	api := geniusapi.NewGeniusAPI(apiKey)
+	config.LoadEnv()
+	clientID, clientSecret := config.GetSpotifyCredentials()
+	client := spotifyclient.NewSpotifyClient(clientID, clientSecret)
 
-	ctx := context.Background()
-	artistName := "Aesop Rock" 
-	
-	artistID, err := api.SearchArtists(ctx, artistName)
+	fmt.Printf("Fetching albums for %s...\n", artistName)
+	albumsData := app.FetchAlbumsData(client, artistName)
+	jsonData, err := json.MarshalIndent(albumsData, "", "    ")
 	if err != nil {
-		log.Fatalf("Failed to search for artist %s: %v", artistName, err)
-	}
-	
-	songs, err := api.GetSongsByArtist(ctx, artistID)
-	if err != nil {
-		log.Fatalf("Failed to get songs for artist ID %d: %v", artistID, err)
+		log.Fatalf("Error marshaling data to JSON: %v", err)
 	}
 
-	fmt.Printf("Songs by %s:\n", artistName)
-	for _, song := range songs {
-		fmt.Println(song)
+	artistDir := filepath.Join("data", artistName)
+	if err := os.MkdirAll(artistDir, os.ModePerm); err != nil {
+		log.Fatalf("Error creating directory: %v", err)
 	}
+
+	fileName := fmt.Sprintf("%s_albums_data.json", artistName)
+	filePath := filepath.Join(artistDir, fileName)
+	if err := os.WriteFile(filePath, jsonData, 0644); err != nil {
+		log.Fatalf("Error writing JSON data to file: %v", err)
+	}
+
+	fmt.Printf("Album data for %s successfully written to %s\n", artistName, filePath)
 }
