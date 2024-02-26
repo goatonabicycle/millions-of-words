@@ -9,6 +9,8 @@ type AlbumData struct {
 }
 
 type TrackData struct {
-	Name   string `json:"name"`
-	Length string `json:"length"`
+	Name      string `json:"name"`
+	Length    string `json:"length"`
+	LyricsURL string `json:"lyrics_url,omitempty"`
+	Lyrics    string `json:"lyrics,omitempty"`
 }
