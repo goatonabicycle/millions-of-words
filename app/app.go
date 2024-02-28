@@ -6,8 +6,10 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
+	"sort"
+	"strings"
 
+	"millions-of-words/config"
 	"millions-of-words/models"
 
 	"github.com/PuerkitoBio/goquery"
@@ -26,7 +28,6 @@ func FetchAlbumsData(client spotify.Client, artistName string) []models.AlbumDat
 	if len(results.Artists.Artists) == 0 {
 		log.Fatal("Artist not found")
 	}
-	fmt.Println("Artist found, fetching albums...")
 
 	artistID := results.Artists.Artists[0].ID
 	albums, err := client.GetArtistAlbums(artistID)
@@ -35,61 +36,66 @@ func FetchAlbumsData(client spotify.Client, artistName string) []models.AlbumDat
 	}
 
 	for _, simpleAlbum := range albums.Albums {
-		fmt.Printf("Fetching details for album: %s\n", simpleAlbum.Name)
-		fullAlbum, err := client.GetAlbum(simpleAlbum.ID)
-		if err != nil {
-			log.Fatalf("Error getting album details: %v", err)
-		}
-
-		var album models.AlbumData
-		album.Name = fullAlbum.Name
-		album.ReleaseYear = fullAlbum.ReleaseDate[0:4]
-		album.AlbumType = fullAlbum.AlbumType
-
-		for _, artist := range fullAlbum.Artists {
-			album.Artists = append(album.Artists, artist.Name)
-		}
-
-		for _, track := range fullAlbum.Tracks.Tracks {
-			durationSeconds := track.Duration / 1000
-			lyricsURL, err := fetchSongURLFromGenius(artistName, track.Name)
+		// I'll care about other types later.
+		if simpleAlbum.AlbumType == "album" {
+			fmt.Printf("Fetching details for album: %s\n", simpleAlbum.Name)
+			fullAlbum, err := client.GetAlbum(simpleAlbum.ID)
 			if err != nil {
-				fmt.Printf("Fetching lyrics for '%s' - %s: Not found or error occurred\n", fullAlbum.Name, track.Name)
-			} else {
-				fmt.Printf("Fetching lyrics for '%s' - %s: Saved\n", fullAlbum.Name, track.Name)
-			}
-
-			trackData := models.TrackData{
-				Name:   track.Name,
-				Length: fmt.Sprintf("%d:%02d", durationSeconds/60, durationSeconds%60),
-			}
-			if err == nil && lyricsURL != "" {
-				trackData.LyricsURL = lyricsURL
-			}
-
-			lyrics, err := ScrapeLyrics(lyricsURL)
-			if err != nil {
-				fmt.Printf("Error scraping lyrics for track %s: %v\n", track.Name, err)
+				log.Fatalf("Error getting album details: %v", err)
 				continue
 			}
-			if err == nil && lyrics != "" {
-				trackData.Lyrics = lyrics
+
+			var album models.AlbumData
+			album.Name = fullAlbum.Name
+			album.ReleaseYear = fullAlbum.ReleaseDate[0:4]
+			album.AlbumType = fullAlbum.AlbumType
+
+			for _, artist := range fullAlbum.Artists {
+				album.Artists = append(album.Artists, artist.Name)
 			}
 
-			album.Tracks = append(album.Tracks, trackData)
-		}
+			albumWordCounts := make(map[string]int)
+			for _, track := range fullAlbum.Tracks.Tracks {
+				durationSeconds := track.Duration / 1000
+				lyricsURL, err := fetchSongURLFromGenius(artistName, track.Name)
+				if err != nil {
+					fmt.Printf("Error fetching lyrics URL for '%s' - '%s': %v\n", fullAlbum.Name, track.Name, err)
+					continue
+				}
 
-		albumsData = append(albumsData, album)
+				trackData := models.TrackData{
+					Name:      track.Name,
+					Length:    fmt.Sprintf("%d:%02d", durationSeconds/60, durationSeconds%60),
+					LyricsURL: lyricsURL,
+				}
+
+				lyrics, err := ScrapeLyricsFromGenius(lyricsURL)
+				if err != nil {
+					fmt.Printf("Error scraping lyrics for track '%s': %v\n", track.Name, err)
+				} else {
+					trackData.Lyrics = lyrics
+					trackWordCounts := calculateAndSortWordFrequencies(lyrics)
+					trackData.SortedWordCounts = trackWordCounts
+
+					for _, wCount := range trackWordCounts {
+						albumWordCounts[wCount.Word] += wCount.Count
+					}
+				}
+
+				album.Tracks = append(album.Tracks, trackData)
+			}
+
+			// Sort the album-level word counts
+			album.SortedWordCounts = calculateAndSortWordFrequencies(mapToString(albumWordCounts))
+			albumsData = append(albumsData, album)
+		}
 	}
 
 	return albumsData
 }
 
 func fetchSongURLFromGenius(artistName, songTitle string) (string, error) {
-	geniusAPIKey := os.Getenv("GENIUS_API_KEY")
-	if geniusAPIKey == "" {
-		return "", fmt.Errorf("GENIUS_API_KEY must be set")
-	}
+	geniusAPIKey := config.GetGeniusKey()
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "https://api.genius.com/search", nil)
@@ -122,7 +128,11 @@ func fetchSongURLFromGenius(artistName, songTitle string) (string, error) {
 		Response struct {
 			Hits []struct {
 				Result struct {
-					URL string `json:"url"`
+					URL           string `json:"url"`
+					PrimaryArtist struct {
+						Name string `json:"name"`
+					} `json:"primary_artist"`
+					Title string `json:"title"`
 				} `json:"result"`
 			} `json:"hits"`
 		} `json:"response"`
@@ -132,14 +142,25 @@ func fetchSongURLFromGenius(artistName, songTitle string) (string, error) {
 		return "", err
 	}
 
-	if len(result.Response.Hits) > 0 {
-		return result.Response.Hits[0].Result.URL, nil
+	for _, hit := range result.Response.Hits {
+		cleanArtistName := strings.ToLower(strings.TrimSpace(artistName))
+		cleanSongTitle := strings.ToLower(strings.TrimSpace(songTitle))
+		hitArtistName := strings.ToLower(strings.TrimSpace(hit.Result.PrimaryArtist.Name))
+		hitSongTitle := strings.ToLower(strings.TrimSpace(hit.Result.Title))
+
+		if strings.Contains(hitArtistName, cleanArtistName) && strings.Contains(hitSongTitle, cleanSongTitle) {
+			return hit.Result.URL, nil
+		}
 	}
 
-	return "", fmt.Errorf("no lyrics found")
+	return "", fmt.Errorf("no accurate match found for artist: %s, song: %s", artistName, songTitle)
 }
 
-func ScrapeLyrics(url string) (string, error) {
+func ScrapeLyricsFromGenius(url string) (string, error) {
+	if url == "" {
+		return "", fmt.Errorf("URL is empty")
+	}
+
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", fmt.Errorf("error fetching song page: %w", err)
@@ -156,20 +177,57 @@ func ScrapeLyrics(url string) (string, error) {
 	}
 
 	var lyrics string
-	doc.Find(".lyrics").Each(func(i int, s *goquery.Selection) {
-		lyrics = s.Text()
-	})
-
-	if lyrics == "" {
-		doc.Find("div[class^=\"Lyrics__Container\"]").Each(func(i int, s *goquery.Selection) {
-			lyrics += s.Text() + "\n\n"
+	lyricsContainer := doc.Find("div[class^='Lyrics__Container'], .lyrics")
+	lyricsContainer.Each(func(i int, s *goquery.Selection) {
+		s.Contents().Each(func(index int, item *goquery.Selection) {
+			if item.Is("br") {
+				lyrics += "\n"
+			} else if goquery.NodeName(item) == "#text" {
+				text := strings.TrimSpace(item.Text())
+				if text != "" {
+					lyrics += text + "\n"
+				}
+			}
 		})
-	}
+		lyrics += "\n"
+	})
 
 	if lyrics == "" {
 		return "", fmt.Errorf("lyrics not found")
 	}
 
-	return lyrics,
-		nil
+	return strings.TrimSpace(lyrics), nil
+}
+
+func ScrapeLyricsFromBandCamp(url string) (string, error) {
+	return "", fmt.Errorf("not implemented, soon")
+}
+
+func mapToString(wordCounts map[string]int) string {
+	var lyricsBuilder strings.Builder
+	for word, count := range wordCounts {
+		for i := 0; i < count; i++ {
+			lyricsBuilder.WriteString(word + " ")
+		}
+	}
+	return lyricsBuilder.String()
+}
+
+func calculateAndSortWordFrequencies(lyrics string) []models.WordCount {
+	wordCounts := make(map[string]int)
+	words := strings.Fields(strings.ToLower(lyrics))
+	for _, word := range words {
+		cleanedWord := strings.Trim(word, ",.!?\"'")
+		wordCounts[cleanedWord]++
+	}
+
+	var sortedWordCounts []models.WordCount
+	for word, count := range wordCounts {
+		sortedWordCounts = append(sortedWordCounts, models.WordCount{Word: word, Count: count})
+	}
+	sort.Slice(sortedWordCounts, func(i, j int) bool {
+		return sortedWordCounts[i].Count > sortedWordCounts[j].Count
+	})
+
+	return sortedWordCounts
 }

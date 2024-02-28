@@ -21,3 +21,11 @@ func GetSpotifyCredentials() (string, string) {
 	}
 	return clientId, clientSecret
 }
+
+func GetGeniusKey() string {
+	geniusKey := os.Getenv("GENIUS_API_KEY")
+	if geniusKey == "" {
+		log.Fatal("GENIUS_API_KEY must be set")
+	}
+	return geniusKey
+}
