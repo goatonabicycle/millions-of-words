@@ -8,13 +8,13 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 
 	"millions-of-words/config"
+	"millions-of-words/files"
 	"millions-of-words/models"
 	"millions-of-words/words"
 
@@ -33,33 +33,9 @@ func main() {
 	clientID, clientSecret := config.GetSpotifyCredentials()
 	client := NewSpotifyClient(clientID, clientSecret)
 
-	fetchAlbumsForArtist(client, artistName)
-}
-
-func fetchAlbumsForArtist(client spotify.Client, artistName string) {
 	fmt.Printf("Fetching albums for %s from Spotify...\n", artistName)
 	albumsData := FetchAlbumsData(client, artistName)
-	jsonData, err := json.MarshalIndent(albumsData, "", "    ")
-	if err != nil {
-		log.Fatalf("Error marshaling data to JSON: %v", err)
-	}
-
-	saveDataToFile(artistName, jsonData)
-}
-
-func saveDataToFile(artistName string, jsonData []byte) {
-	artistDir := filepath.Join("data", artistName)
-	if err := os.MkdirAll(artistDir, os.ModePerm); err != nil {
-		log.Fatalf("Error creating directory: %v", err)
-	}
-
-	fileName := fmt.Sprintf("%s_albums_data.json", artistName)
-	filePath := filepath.Join(artistDir, fileName)
-	if err := os.WriteFile(filePath, jsonData, 0644); err != nil {
-		log.Fatalf("Error writing JSON data to file: %v", err)
-	}
-
-	fmt.Printf("Album data for %s successfully written to %s\n", artistName, filePath)
+	files.SaveAlbumDataToFile("spotify_"+artistName, albumsData)
 }
 
 func NewSpotifyClient(clientID, clientSecret string) spotify.Client {
@@ -77,8 +53,8 @@ func NewSpotifyClient(clientID, clientSecret string) spotify.Client {
 	return client
 }
 
-func FetchAlbumsData(client spotify.Client, artistName string) []models.AlbumData {
-	var albumsData []models.AlbumData
+func FetchAlbumsData(client spotify.Client, artistName string) []models.SpotifyAlbumData {
+	var albumsData []models.SpotifyAlbumData
 
 	fmt.Println("Searching for artist...")
 	results, err := client.Search(artistName, spotify.SearchTypeArtist)
@@ -106,7 +82,7 @@ func FetchAlbumsData(client spotify.Client, artistName string) []models.AlbumDat
 				continue
 			}
 
-			var album models.AlbumData
+			var album models.SpotifyAlbumData
 			album.Name = fullAlbum.Name
 			album.ReleaseYear = fullAlbum.ReleaseDate[0:4]
 			album.AlbumType = fullAlbum.AlbumType
@@ -124,7 +100,7 @@ func FetchAlbumsData(client spotify.Client, artistName string) []models.AlbumDat
 					continue
 				}
 
-				trackData := models.TrackData{
+				trackData := models.SpotifyTrackData{
 					Name:      track.Name,
 					Length:    fmt.Sprintf("%d:%02d", durationSeconds/60, durationSeconds%60),
 					LyricsURL: lyricsURL,

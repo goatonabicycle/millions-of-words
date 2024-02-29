@@ -3,7 +3,14 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
+
+	"millions-of-words/files"
+	"millions-of-words/models"
+	"millions-of-words/words"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 func main() {
@@ -13,9 +20,40 @@ func main() {
 
 	bandcampURL := os.Args[1]
 
-	fetchLyricsFromBandcamp(bandcampURL)
+	albumData := fetchAlbumDataFromBandcamp(bandcampURL)
+	files.SaveAlbumDataToFile("bandcamp_Woe", albumData)
+
 }
 
-func fetchLyricsFromBandcamp(bandcampURL string) {
-	fmt.Printf("Fetching lyrics from Bandcamp for URL: %s\n", bandcampURL)
+func fetchAlbumDataFromBandcamp(url string) models.BandcampAlbumData {
+	fmt.Printf("Fetching album data from Bandcamp for URL: %s\n", url)
+
+	album := models.BandcampAlbumData{
+		// There's lots more to scrape here.
+		// Artist name, album name, whatever else could be cool.
+	}
+
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Fatalf("Error fetching Bandcamp page: %v", err)
+	}
+	defer resp.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		log.Fatalf("Error parsing HTML: %v", err)
+	}
+
+	doc.Find("tr.lyricsRow").Each(func(i int, s *goquery.Selection) {
+		lyrics := s.Find("div").Text()
+		track := models.BandcampTrackData{
+			Name:             fmt.Sprintf("Track %d", i+1), // Do this properly!
+			Lyrics:           lyrics,
+			SortedWordCounts: words.CalculateAndSortWordFrequencies(lyrics),
+		}
+
+		album.Tracks = append(album.Tracks, track)
+	})
+
+	return album
 }
