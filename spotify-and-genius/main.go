@@ -1,20 +1,81 @@
-package app
+package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"sort"
+	"os"
+	"path/filepath"
 	"strings"
+
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
 
 	"millions-of-words/config"
 	"millions-of-words/models"
+	"millions-of-words/words"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/zmb3/spotify"
 )
+
+func main() {
+	if len(os.Args) < 2 {
+		log.Fatal("Usage: go run spotify-and-genius/main.go <artist name>")
+	}
+
+	artistName := os.Args[1]
+
+	config.LoadEnv()
+	clientID, clientSecret := config.GetSpotifyCredentials()
+	client := NewSpotifyClient(clientID, clientSecret)
+
+	fetchAlbumsForArtist(client, artistName)
+}
+
+func fetchAlbumsForArtist(client spotify.Client, artistName string) {
+	fmt.Printf("Fetching albums for %s from Spotify...\n", artistName)
+	albumsData := FetchAlbumsData(client, artistName)
+	jsonData, err := json.MarshalIndent(albumsData, "", "    ")
+	if err != nil {
+		log.Fatalf("Error marshaling data to JSON: %v", err)
+	}
+
+	saveDataToFile(artistName, jsonData)
+}
+
+func saveDataToFile(artistName string, jsonData []byte) {
+	artistDir := filepath.Join("data", artistName)
+	if err := os.MkdirAll(artistDir, os.ModePerm); err != nil {
+		log.Fatalf("Error creating directory: %v", err)
+	}
+
+	fileName := fmt.Sprintf("%s_albums_data.json", artistName)
+	filePath := filepath.Join(artistDir, fileName)
+	if err := os.WriteFile(filePath, jsonData, 0644); err != nil {
+		log.Fatalf("Error writing JSON data to file: %v", err)
+	}
+
+	fmt.Printf("Album data for %s successfully written to %s\n", artistName, filePath)
+}
+
+func NewSpotifyClient(clientID, clientSecret string) spotify.Client {
+	config := &clientcredentials.Config{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		TokenURL:     spotify.TokenURL,
+	}
+	httpClient := &http.Client{
+		Transport: &oauth2.Transport{
+			Source: config.TokenSource(context.Background()),
+		},
+	}
+	client := spotify.NewClient(httpClient)
+	return client
+}
 
 func FetchAlbumsData(client spotify.Client, artistName string) []models.AlbumData {
 	var albumsData []models.AlbumData
@@ -74,7 +135,7 @@ func FetchAlbumsData(client spotify.Client, artistName string) []models.AlbumDat
 					fmt.Printf("Error scraping lyrics for track '%s': %v\n", track.Name, err)
 				} else {
 					trackData.Lyrics = lyrics
-					trackWordCounts := calculateAndSortWordFrequencies(lyrics)
+					trackWordCounts := words.CalculateAndSortWordFrequencies(lyrics)
 					trackData.SortedWordCounts = trackWordCounts
 
 					for _, wCount := range trackWordCounts {
@@ -86,7 +147,7 @@ func FetchAlbumsData(client spotify.Client, artistName string) []models.AlbumDat
 			}
 
 			// Sort the album-level word counts
-			album.SortedWordCounts = calculateAndSortWordFrequencies(mapToString(albumWordCounts))
+			album.SortedWordCounts = words.CalculateAndSortWordFrequencies(words.MapToString(albumWordCounts))
 			albumsData = append(albumsData, album)
 		}
 	}
@@ -197,37 +258,4 @@ func ScrapeLyricsFromGenius(url string) (string, error) {
 	}
 
 	return strings.TrimSpace(lyrics), nil
-}
-
-func ScrapeLyricsFromBandCamp(url string) (string, error) {
-	return "", fmt.Errorf("not implemented, soon")
-}
-
-func mapToString(wordCounts map[string]int) string {
-	var lyricsBuilder strings.Builder
-	for word, count := range wordCounts {
-		for i := 0; i < count; i++ {
-			lyricsBuilder.WriteString(word + " ")
-		}
-	}
-	return lyricsBuilder.String()
-}
-
-func calculateAndSortWordFrequencies(lyrics string) []models.WordCount {
-	wordCounts := make(map[string]int)
-	words := strings.Fields(strings.ToLower(lyrics))
-	for _, word := range words {
-		cleanedWord := strings.Trim(word, ",.!?\"'")
-		wordCounts[cleanedWord]++
-	}
-
-	var sortedWordCounts []models.WordCount
-	for word, count := range wordCounts {
-		sortedWordCounts = append(sortedWordCounts, models.WordCount{Word: word, Count: count})
-	}
-	sort.Slice(sortedWordCounts, func(i, j int) bool {
-		return sortedWordCounts[i].Count > sortedWordCounts[j].Count
-	})
-
-	return sortedWordCounts
 }
