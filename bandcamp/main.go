@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"millions-of-words/files"
 	"millions-of-words/models"
@@ -19,19 +20,12 @@ func main() {
 	}
 
 	bandcampURL := os.Args[1]
-
 	albumData := fetchAlbumDataFromBandcamp(bandcampURL)
-	files.SaveAlbumDataToFile("bandcamp_Woe", albumData)
-
+	files.SaveAlbumDataToFile("bandcamp_album", albumData) // Consider a dynamic name based on the album
 }
 
 func fetchAlbumDataFromBandcamp(url string) models.BandcampAlbumData {
 	fmt.Printf("Fetching album data from Bandcamp for URL: %s\n", url)
-
-	album := models.BandcampAlbumData{
-		// There's lots more to scrape here.
-		// Artist name, album name, whatever else could be cool.
-	}
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -44,16 +38,36 @@ func fetchAlbumDataFromBandcamp(url string) models.BandcampAlbumData {
 		log.Fatalf("Error parsing HTML: %v", err)
 	}
 
+	artistName := doc.Find("#name-section h3 span a").Text()
+	albumName := doc.Find(".trackTitle").First().Text()
+	description := doc.Find(".tralbumData.tralbum-about").Text()
+	imageUrl := doc.Find("a.popupImage").AttrOr("href", "")
+
+	tags := make([]string, 0)
+	doc.Find(".tralbumData.tralbum-tags a.tag").Each(func(i int, s *goquery.Selection) {
+		tags = append(tags, s.Text())
+	})
+
+	var tracklist []models.BandcampTrackData
 	doc.Find("tr.lyricsRow").Each(func(i int, s *goquery.Selection) {
 		lyrics := s.Find("div").Text()
+		trackTitle := doc.Find(".title-col .track-title").Eq(i).Text() // Matching track titles with lyrics
+
 		track := models.BandcampTrackData{
-			Name:             fmt.Sprintf("Track %d", i+1), // Do this properly!
+			Name:             strings.TrimSpace(trackTitle),
 			Lyrics:           lyrics,
 			SortedWordCounts: words.CalculateAndSortWordFrequencies(lyrics),
 		}
 
-		album.Tracks = append(album.Tracks, track)
+		tracklist = append(tracklist, track)
 	})
 
-	return album
+	return models.BandcampAlbumData{
+		ArtistName:  strings.TrimSpace(artistName),
+		AlbumName:   strings.TrimSpace(albumName),
+		Description: strings.TrimSpace(description),
+		ImageUrl:    imageUrl,
+		Tags:        tags,
+		Tracks:      tracklist,
+	}
 }
