@@ -10,7 +10,7 @@ import (
 
 func SaveAlbumDataToFile(albumName string, albumData interface{}) {
 
-	artistDir := filepath.Join("data", albumName)
+	artistDir := filepath.Join("./../data", albumName)
 	if err := os.MkdirAll(artistDir, os.ModePerm); err != nil {
 		log.Fatalf("Error creating directory: %v", err)
 	}

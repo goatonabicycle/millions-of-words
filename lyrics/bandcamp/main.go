@@ -21,7 +21,7 @@ func main() {
 
 	bandcampURL := os.Args[1]
 	albumData := fetchAlbumDataFromBandcamp(bandcampURL)
-	files.SaveAlbumDataToFile("bandcamp_album", albumData) // Consider a dynamic name based on the album
+	files.SaveAlbumDataToFile(albumData.ArtistName+"_bandcamp_album", albumData) // Consider a dynamic name based on the album
 }
 
 func fetchAlbumDataFromBandcamp(url string) models.BandcampAlbumData {
