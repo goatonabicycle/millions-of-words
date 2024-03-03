@@ -1,0 +1,12 @@
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  {{ range . }}
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <a href="/album/{{ .ID }}" hx-get="/album/{{ .ID }}" hx-target="#album-details" hx-swap="outerHTML">
+        <img src="{{ .ImageUrl }}" alt="Album cover" class="w-full h-48 object-cover">
+        <div class="p-4">
+          <h5 class="text-lg font-semibold">{{ .ArtistName }} - {{ .AlbumName }}</h5>
+        </div>
+      </a>
+    </div>
+  {{ end }}
+</div>

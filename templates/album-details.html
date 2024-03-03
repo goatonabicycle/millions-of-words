@@ -1,0 +1,63 @@
+<div
+  id="album-details"
+  class="mt-4 dark:bg-gray-800 dark:text-gray-200 p-4 rounded-lg"
+>
+  <h2 class="text-2xl font-bold">{{ .ArtistName }} - {{ .AlbumName }}</h2>
+  {{ range $index, $track := .Tracks }}
+    <div class="track mb-3">
+      <button
+        class="block w-full text-left p-2 bg-gray-100 dark:bg-gray-700 rounded-md text-lg font-medium"
+        onclick="toggleDetails('{{ $index }}')"
+      >
+        {{ $track.Name }}
+      </button>
+      <div id="trackDetails{{ $index }}" class="hidden lg:flex mt-2">
+        <div class="lyrics pr-4 flex-1" id="lyricsText{{ $index }}">
+          {{ $track.Lyrics }}
+        </div>
+        <div class="word-counts flex-1">
+          <h4 class="font-semibold">Word Counts</h4>
+          <div class="flex flex-wrap">
+            {{ range $wordIndex, $wordCount := $track.SortedWordCounts }}
+              <div
+                class="inline-flex items-center mr-2 mb-2 bg-gray-700 text-gray-200 rounded-full px-3 py-1 text-sm font-medium cursor-pointer"
+                onmouseover="highlightWord('{{ js $wordCount.Word }}', {{ $index }})"
+                onmouseout="unhighlightWord('{{ js $wordCount.Word }}', {{ $index }})"
+              >
+                {{ $wordCount.Word }}:
+                {{ $wordCount.Count }}
+              </div>
+            {{ end }}
+          </div>
+        </div>
+      </div>
+    </div>
+  {{ end }}
+</div>
+
+<script>
+  function toggleDetails(index) {
+    const detailsElement = document.getElementById("trackDetails" + index);
+    detailsElement.classList.toggle("hidden");
+  }
+
+  function highlightWord(word, index) {
+    const lyricsElement = document.getElementById("lyricsText" + index);
+    const regex = new RegExp(`(${word})`, "gi");
+    const highlightedText = lyricsElement.innerHTML.replace(
+      regex,
+      `<mark class="bg-yellow-400">$1</mark>`,
+    );
+    lyricsElement.innerHTML = highlightedText;
+  }
+
+  function unhighlightWord(word, index) {
+    const lyricsElement = document.getElementById("lyricsText" + index);
+    const regex = new RegExp(
+      `<mark class="bg-yellow-400">(${word})</mark>`,
+      "gi",
+    );
+    const unhighlightedText = lyricsElement.innerHTML.replace(regex, "$1");
+    lyricsElement.innerHTML = unhighlightedText;
+  }
+</script>

@@ -1,0 +1,9 @@
+.env
+/data
+tmp
+
+# I only have this for prettier configuration in go-html templating.
+.prettierrc
+node_modules
+package.json 
+package-lock.json
