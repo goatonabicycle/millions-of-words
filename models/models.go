@@ -6,7 +6,7 @@ type WordCount struct {
 }
 
 type BandcampAlbumData struct {
-	ID          int64               `json:"id"`
+	ID          string              `json:"id"`
 	ArtistName  string              `json:"artist_name"`
 	AlbumName   string              `json:"album_name"`
 	Description string              `json:"description"`

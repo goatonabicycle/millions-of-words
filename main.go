@@ -1,14 +1,16 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
+	"os"
+	"path/filepath"
 	"strings"
-	"sync/atomic"
 
 	"millions-of-words/models"
 	"millions-of-words/words"
@@ -38,20 +40,23 @@ func main() {
 	e.Use(middleware.Recover())
 
 	renderer := &TemplateRenderer{
-		templates: template.Must(template.ParseFiles("templates/index.html", "templates/albums.html", "templates/album-details.html")),
+		templates: template.Must(template.ParseFiles("templates/index.html", "templates/album-details.html")),
 	}
 	e.Renderer = renderer
 
+	loadAlbumsDataFromJsonFiles()
+
 	e.GET("/", indexHandler)
 	e.POST("/fetch-album", fetchAlbumHandler)
-	e.GET("/albums", albumsHandler)
-	e.GET("/album/:id", albumDetailsHandler)
+	e.GET("/:id", albumDetailsHandler)
 
 	e.Logger.Fatal(e.Start(":8000"))
 }
 
 func indexHandler(c echo.Context) error {
-	return c.Render(http.StatusOK, "index.html", nil)
+	return c.Render(http.StatusOK, "index.html", map[string]interface{}{
+		"albums": albums,
+	})
 }
 
 func fetchAlbumHandler(c echo.Context) error {
@@ -61,22 +66,19 @@ func fetchAlbumHandler(c echo.Context) error {
 	}
 
 	albumData := fetchAlbumDataFromBandcamp(url)
-	albumData.ID = getNextAlbumID()
+	albumData.ID = albumData.ArtistName + " - " + albumData.AlbumName
 
 	albums = append(albums, albumData)
-	return c.Redirect(http.StatusSeeOther, "/albums")
-}
 
-func albumsHandler(c echo.Context) error {
-	return c.Render(http.StatusOK, "albums.html", albums)
+	for _, album := range albums {
+		writeAlbumsDataToJsonFile(album)
+	}
+
+	return c.Redirect(http.StatusSeeOther, "/index")
 }
 
 func albumDetailsHandler(c echo.Context) error {
-	idStr := c.Param("id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid album ID.")
-	}
+	id := c.Param("id")
 
 	var albumData *models.BandcampAlbumData
 	for _, album := range albums {
@@ -91,10 +93,6 @@ func albumDetailsHandler(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "album-details.html", albumData)
-}
-
-func getNextAlbumID() int64 {
-	return atomic.AddInt64(&albumID, 1)
 }
 
 func fetchAlbumDataFromBandcamp(url string) models.BandcampAlbumData {
@@ -135,5 +133,54 @@ func fetchAlbumDataFromBandcamp(url string) models.BandcampAlbumData {
 		Description: strings.TrimSpace(description),
 		ImageUrl:    imageUrl,
 		Tracks:      tracklist,
+	}
+}
+
+func writeAlbumsDataToJsonFile(album models.BandcampAlbumData) {
+	dir := "data"
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			log.Fatalf("Error creating directory: %v", err)
+		}
+	}
+
+	filename := filepath.Join(dir, fmt.Sprintf("%s - %s.json", sanitizeFilename(album.ArtistName), sanitizeFilename(album.AlbumName)))
+	file, err := json.MarshalIndent(album, "", " ")
+	if err != nil {
+		log.Fatalf("Error marshalling album data to JSON: %v", err)
+	}
+
+	err = ioutil.WriteFile(filename, file, 0644)
+	if err != nil {
+		log.Fatalf("Error writing album data to file: %v", err)
+	}
+}
+func sanitizeFilename(name string) string {
+	return strings.Join(strings.Fields(strings.TrimSpace(name)), "_")
+}
+
+func loadAlbumsDataFromJsonFiles() {
+	albums = []models.BandcampAlbumData{}
+	files, err := os.ReadDir("data")
+	if err != nil {
+		log.Fatalf("Error reading album data directory: %v", err)
+	}
+
+	for _, f := range files {
+		file, err := os.ReadFile(filepath.Join("data", f.Name()))
+		if err != nil {
+			log.Printf("Error reading file %s: %v", f.Name(), err)
+			continue
+		}
+
+		var album models.BandcampAlbumData
+		if err := json.Unmarshal(file, &album); err != nil {
+			log.Printf("Error unmarshalling file %s: %v", f.Name(), err)
+			continue
+		}
+
+		albums = append(albums, album)
+		// Log albums:
+		fmt.Printf("Loaded album data from JSON file: %s\n", f.Name())
 	}
 }
