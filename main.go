@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -34,13 +33,20 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 }
 
 func main() {
+	templatesDir := os.Getenv("TEMPLATES_DIR")
+	if templatesDir == "" {
+		templatesDir = "./templates"
+	}
+
 	e := echo.New()
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
 	renderer := &TemplateRenderer{
-		templates: template.Must(template.ParseFiles("templates/index.html", "templates/album-details.html")),
+		templates: template.Must(template.ParseFiles(
+			filepath.Join(templatesDir, "index.html"),
+			filepath.Join(templatesDir, "album-details.html"))),
 	}
 	e.Renderer = renderer
 
@@ -50,7 +56,7 @@ func main() {
 	e.POST("/fetch-album", fetchAlbumHandler)
 	e.GET("/:id", albumDetailsHandler)
 
-	e.Logger.Fatal(e.Start(":8000"))
+	e.Logger.Fatal(e.Start("0.0.0.0:8080"))
 }
 
 func indexHandler(c echo.Context) error {
@@ -150,7 +156,7 @@ func writeAlbumsDataToJsonFile(album models.BandcampAlbumData) {
 		log.Fatalf("Error marshalling album data to JSON: %v", err)
 	}
 
-	err = ioutil.WriteFile(filename, file, 0644)
+	err = os.WriteFile(filename, file, 0644)
 	if err != nil {
 		log.Fatalf("Error writing album data to file: %v", err)
 	}
