@@ -4,13 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bandcamp Album Fetcher - Go</title>
-
     <script src="https://unpkg.com/htmx.org"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
-
-    <style></style>
   </head>
-  <body class="mx-auto my-8 dark:bg-gray-900 dark:text-gray-200 ">
+  <body class="mx-auto my-8 dark:bg-gray-900 dark:text-gray-200">
     <div class="text-center">
       <h1 class="text-4xl font-bold mb-8">Grug look lyrics</h1>
       <form
@@ -39,14 +36,14 @@
         </button>
       </form>
     </div>
-    <div id="album-grid" class="grid grid-cols-1 md:grid-cols-12 gap-4">
+    <div id="album-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
       {{ range .albums }}
-        <div class="rounded-lg shadow overflow-hidden">
+        <div class="rounded-lg shadow overflow-hidden cursor-pointer">
           <a
             href="/{{ .ID }}"
             hx-get="/{{ .ID }}"
             hx-target="#album-grid"
-            hx-swap="innerHTML"
+            hx-swap="outerHTML"
           >
             <img
               src="{{ .ImageUrl }}"
@@ -63,7 +60,5 @@
         </div>
       {{ end }}
     </div>
-
-    <div id="album-details" class="mt-8"></div>
   </body>
 </html>

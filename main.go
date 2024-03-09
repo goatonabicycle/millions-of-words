@@ -44,9 +44,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	renderer := &TemplateRenderer{
-		templates: template.Must(template.ParseFiles(
-			filepath.Join(templatesDir, "index.html"),
-			filepath.Join(templatesDir, "album-details.html"))),
+		templates: template.Must(template.ParseGlob(filepath.Join(templatesDir, "*.html"))),
 	}
 	e.Renderer = renderer
 
@@ -72,33 +70,24 @@ func fetchAlbumHandler(c echo.Context) error {
 	}
 
 	albumData := fetchAlbumDataFromBandcamp(url)
-	albumData.ID = albumData.ArtistName + " - " + albumData.AlbumName
+	albumData.ID = fmt.Sprintf("%d", albumID) // Use a unique identifier
+	albumID++
 
 	albums = append(albums, albumData)
+	writeAlbumsDataToJsonFile(albumData)
 
-	for _, album := range albums {
-		writeAlbumsDataToJsonFile(album)
-	}
-
-	return c.Redirect(http.StatusSeeOther, "/index")
+	return c.Redirect(http.StatusSeeOther, "/")
 }
 
 func albumDetailsHandler(c echo.Context) error {
 	id := c.Param("id")
 
-	var albumData *models.BandcampAlbumData
 	for _, album := range albums {
 		if album.ID == id {
-			albumData = &album
-			break
+			return c.Render(http.StatusOK, "album-details.html", album)
 		}
 	}
-
-	if albumData == nil {
-		return c.String(http.StatusNotFound, "Album not found.")
-	}
-
-	return c.Render(http.StatusOK, "album-details.html", albumData)
+	return c.String(http.StatusNotFound, "Album not found.")
 }
 
 func fetchAlbumDataFromBandcamp(url string) models.BandcampAlbumData {
@@ -161,6 +150,7 @@ func writeAlbumsDataToJsonFile(album models.BandcampAlbumData) {
 		log.Fatalf("Error writing album data to file: %v", err)
 	}
 }
+
 func sanitizeFilename(name string) string {
 	return strings.Join(strings.Fields(strings.TrimSpace(name)), "_")
 }
