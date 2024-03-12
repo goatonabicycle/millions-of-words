@@ -70,13 +70,13 @@ func fetchAlbumHandler(c echo.Context) error {
 	}
 
 	albumData := fetchAlbumDataFromBandcamp(url)
-	albumData.ID = fmt.Sprintf("%d", albumID) // Use a unique identifier
+	albumData.ID = albumData.ArtistName + " - " + albumData.AlbumName
 	albumID++
 
 	albums = append(albums, albumData)
 	writeAlbumsDataToJsonFile(albumData)
 
-	return c.Redirect(http.StatusSeeOther, "/")
+	return c.Redirect(http.StatusSeeOther, "/index")
 }
 
 func albumDetailsHandler(c echo.Context) error {

@@ -42,8 +42,8 @@
           <a
             href="/{{ .ID }}"
             hx-get="/{{ .ID }}"
-            hx-target="#album-grid"
-            hx-swap="outerHTML"
+            hx-target="#album-details"
+            hx-swap="innerHTML"
           >
             <img
               src="{{ .ImageUrl }}"
@@ -60,5 +60,7 @@
         </div>
       {{ end }}
     </div>
+
+    <div id="album-details" class="mt-8"></div>
   </body>
 </html>
