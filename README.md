@@ -16,6 +16,7 @@ This is me learning Go and htmx. Ultimately, this will be a mechanism to explore
   - Have a way of counting and sorting word usage. 
   - Sentiment stuff.
   - I might be able to create some interesting visualisations based on word length
+  - Each page could have a unique style based on the album cover?
 
 
 - Turns out hosting this is a bit of a pain. I could go full serverless with a database.
