@@ -4,14 +4,8 @@
 This is me learning Go and htmx. Ultimately, this will be a mechanism to explore the lyrics of albums in a couple of interesting ways.
 
 ## What's the thinking?
+Using lyrics and info from Bandcamp, I should be able to start using it in interesting ways.
 
-- Get all the data.
-  - Have a mechanism of getting the information from Bandcamp. 
-  - Only bandcamp? The music I care about is currently mostly on Bandcamp. This had a mechanism
-    where I'd get all the albums from Spotify and then get the lyrics from Genius. That worked but it's only 
-    consistent if you're looking for "popular" music. Genius seems to be hip hop focused. 
-- Clean the data
-  - Sometimes people have [This person's part:] mixed into the actual lyrics.
 - Show the data
   - Have a way of counting and sorting word usage. 
   - Sentiment stuff.
