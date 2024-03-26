@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"millions-of-words/models"
@@ -21,7 +22,7 @@ import (
 
 var (
 	albums  []models.BandcampAlbumData
-	albumID int64
+	dataDir = "data"
 )
 
 type TemplateRenderer struct {
@@ -71,7 +72,6 @@ func fetchAlbumHandler(c echo.Context) error {
 
 	albumData := fetchAlbumDataFromBandcamp(url)
 	albumData.ID = albumData.ArtistName + " - " + albumData.AlbumName
-	albumID++
 
 	albums = append(albums, albumData)
 	writeAlbumsDataToJsonFile(albumData)
@@ -152,31 +152,34 @@ func writeAlbumsDataToJsonFile(album models.BandcampAlbumData) {
 }
 
 func sanitizeFilename(name string) string {
-	return strings.Join(strings.Fields(strings.TrimSpace(name)), "_")
+	trimmedName := strings.TrimSpace(name)
+	reg := regexp.MustCompile(`[^a-zA-Z0-9]+`)
+	sanitized := reg.ReplaceAllString(trimmedName, "_")
+
+	return strings.Trim(sanitized, "_")
 }
 
 func loadAlbumsDataFromJsonFiles() {
-	albums = []models.BandcampAlbumData{}
-	files, err := os.ReadDir("data")
+	albums = []models.BandcampAlbumData{} // Reset or initialize the albums slice
+	files, err := os.ReadDir(dataDir)
 	if err != nil {
 		log.Fatalf("Error reading album data directory: %v", err)
 	}
 
 	for _, f := range files {
-		file, err := os.ReadFile(filepath.Join("data", f.Name()))
+		filePath := filepath.Join(dataDir, f.Name()) // Use dataDir
+		file, err := os.ReadFile(filePath)
 		if err != nil {
-			log.Printf("Error reading file %s: %v", f.Name(), err)
+			log.Printf("Error reading file %s: %v", filePath, err)
 			continue
 		}
 
 		var album models.BandcampAlbumData
 		if err := json.Unmarshal(file, &album); err != nil {
-			log.Printf("Error unmarshalling file %s: %v", f.Name(), err)
+			log.Printf("Error unmarshalling file %s: %v", filePath, err)
 			continue
 		}
 
 		albums = append(albums, album)
-		// Log albums:
-		fmt.Printf("Loaded album data from JSON file: %s\n", f.Name())
 	}
 }
