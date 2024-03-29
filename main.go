@@ -160,14 +160,14 @@ func sanitizeFilename(name string) string {
 }
 
 func loadAlbumsDataFromJsonFiles() {
-	albums = []models.BandcampAlbumData{} // Reset or initialize the albums slice
+	albums = []models.BandcampAlbumData{}
 	files, err := os.ReadDir(dataDir)
 	if err != nil {
 		log.Fatalf("Error reading album data directory: %v", err)
 	}
 
 	for _, f := range files {
-		filePath := filepath.Join(dataDir, f.Name()) // Use dataDir
+		filePath := filepath.Join(dataDir, f.Name())
 		file, err := os.ReadFile(filePath)
 		if err != nil {
 			log.Printf("Error reading file %s: %v", filePath, err)
