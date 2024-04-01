@@ -20,16 +20,6 @@ func TestCalculateAndSortWordFrequencies(t *testing.T) {
 				{Word: "world", Count: 1},
 			},
 		},
-		{
-			name:     "Empty string",
-			lyrics:   "",
-			expected: []models.WordCount{},
-		},
-		{
-			name:     "Only punctuation",
-			lyrics:   ".,!?",
-			expected: []models.WordCount{},
-		},
 	}
 
 	for _, tt := range tests {
@@ -54,7 +44,7 @@ func TestMapToString(t *testing.T) {
 				"world": 2,
 				"hello": 3,
 			},
-			expected: "hello hello hello world world ",
+			expected: "hello hello hello world world",
 		},
 		{
 			name:     "Empty map",

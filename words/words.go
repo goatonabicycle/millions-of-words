@@ -11,7 +11,9 @@ func CalculateAndSortWordFrequencies(lyrics string) []models.WordCount {
 	words := strings.Fields(strings.ToLower(lyrics))
 	for _, word := range words {
 		cleanedWord := strings.Trim(word, ",.!?\"'")
-		wordCounts[cleanedWord]++
+		if cleanedWord != "" {
+			wordCounts[cleanedWord]++
+		}
 	}
 
 	var sortedWordCounts []models.WordCount
@@ -26,11 +28,17 @@ func CalculateAndSortWordFrequencies(lyrics string) []models.WordCount {
 }
 
 func MapToString(wordCounts map[string]int) string {
+	var words []string
+	for word := range wordCounts {
+		words = append(words, word)
+	}
+	sort.Strings(words)
+
 	var lyricsBuilder strings.Builder
-	for word, count := range wordCounts {
-		for i := 0; i < count; i++ {
+	for _, word := range words {
+		for i := 0; i < wordCounts[word]; i++ {
 			lyricsBuilder.WriteString(word + " ")
 		}
 	}
-	return lyricsBuilder.String()
+	return strings.TrimSpace(lyricsBuilder.String())
 }
