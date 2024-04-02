@@ -3,6 +3,28 @@
   class="mt-4 dark:bg-gray-800 dark:text-gray-200 p-4 rounded-lg"
 >
   <h2 class="text-4xl font-bold">{{ .ArtistName }} - {{ .AlbumName }}</h2>
+
+  <button
+    id="toggleWordFreqsBtn"
+    class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 transition duration-300 ease-in-out"
+  >
+    Show Full Album Words
+  </button>
+
+  <div id="albumWordFreqs" class="album-word-frequencies mt-4 hidden">
+    <h3 class="text-2xl font-bold">Album Word Frequencies</h3>
+    <div class="flex flex-wrap">
+      {{ range .AlbumWordFrequencies }}
+        <div
+          class="inline-flex items-center mr-2 mb-2 bg-gray-700 text-gray-200 rounded-full px-3 py-1 text-sm font-medium"
+        >
+          {{ .Word }}:
+          {{ .Count }}
+        </div>
+      {{ end }}
+    </div>
+  </div>
+
   {{ range $index, $track := .Tracks }}
     <div class="track mb-3">
       <button
@@ -59,4 +81,17 @@
     const unhighlightedText = lyricsElement.innerHTML.replace(regex, "$1");
     lyricsElement.innerHTML = unhighlightedText;
   }
+
+  document
+    .getElementById("toggleWordFreqsBtn")
+    .addEventListener("click", function () {
+      var wordFreqsSection = document.getElementById("albumWordFreqs");
+      if (wordFreqsSection.classList.contains("hidden")) {
+        wordFreqsSection.classList.remove("hidden");
+        this.textContent = "Hide Full Album Words";
+      } else {
+        wordFreqsSection.classList.add("hidden");
+        this.textContent = "Show Full Album Words";
+      }
+    });
 </script>

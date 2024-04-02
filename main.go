@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 
 	"millions-of-words/models"
@@ -84,10 +85,31 @@ func albumDetailsHandler(c echo.Context) error {
 
 	for _, album := range albums {
 		if album.ID == id {
+			album.AlbumWordFrequencies = aggregateWordFrequencies(album)
 			return c.Render(http.StatusOK, "album-details.html", album)
 		}
 	}
 	return c.String(http.StatusNotFound, "Album not found.")
+}
+
+func aggregateWordFrequencies(album models.BandcampAlbumData) []models.WordCount {
+	wordFreqMap := make(map[string]int)
+	for _, track := range album.Tracks {
+		for _, wc := range track.SortedWordCounts {
+			wordFreqMap[wc.Word] += wc.Count
+		}
+	}
+
+	var totalWordFrequencies []models.WordCount
+	for word, count := range wordFreqMap {
+		totalWordFrequencies = append(totalWordFrequencies, models.WordCount{Word: word, Count: count})
+	}
+
+	sort.Slice(totalWordFrequencies, func(i, j int) bool {
+		return totalWordFrequencies[i].Count > totalWordFrequencies[j].Count
+	})
+
+	return totalWordFrequencies
 }
 
 func fetchAlbumDataFromBandcamp(url string) models.BandcampAlbumData {

@@ -6,12 +6,13 @@ type WordCount struct {
 }
 
 type BandcampAlbumData struct {
-	ID          string              `json:"id"`
-	ArtistName  string              `json:"artist_name"`
-	AlbumName   string              `json:"album_name"`
-	Description string              `json:"description"`
-	ImageUrl    string              `json:"image_url"`
-	Tracks      []BandcampTrackData `json:"tracks"`
+	ID                   string              `json:"id"`
+	ArtistName           string              `json:"artist_name"`
+	AlbumName            string              `json:"album_name"`
+	Description          string              `json:"description"`
+	ImageUrl             string              `json:"image_url"`
+	Tracks               []BandcampTrackData `json:"tracks"`
+	AlbumWordFrequencies []WordCount
 }
 
 type BandcampTrackData struct {
