@@ -106,8 +106,15 @@ func aggregateWordFrequencies(album models.BandcampAlbumData) []models.WordCount
 	}
 
 	sort.Slice(totalWordFrequencies, func(i, j int) bool {
+		if totalWordFrequencies[i].Count == totalWordFrequencies[j].Count {
+			return totalWordFrequencies[i].Word < totalWordFrequencies[j].Word
+		}
 		return totalWordFrequencies[i].Count > totalWordFrequencies[j].Count
 	})
+
+	if len(totalWordFrequencies) > 20 {
+		return totalWordFrequencies[:20]
+	}
 
 	return totalWordFrequencies
 }
