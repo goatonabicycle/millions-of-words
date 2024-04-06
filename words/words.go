@@ -4,11 +4,19 @@ import (
 	"millions-of-words/models"
 	"sort"
 	"strings"
+	"unicode"
 )
 
 func CalculateAndSortWordFrequencies(lyrics string) []models.WordCount {
+	if lyrics == "" {
+		return nil
+	}
+
 	wordCounts := make(map[string]int)
-	words := strings.Fields(strings.ToLower(lyrics))
+	words := strings.FieldsFunc(strings.ToLower(lyrics), func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsNumber(r)
+	})
+
 	for _, word := range words {
 		cleanedWord := strings.Trim(word, ",.!?\"'")
 		if cleanedWord != "" {
@@ -21,7 +29,9 @@ func CalculateAndSortWordFrequencies(lyrics string) []models.WordCount {
 		sortedWordCounts = append(sortedWordCounts, models.WordCount{Word: word, Count: count})
 	}
 	sort.Slice(sortedWordCounts, func(i, j int) bool {
-		return sortedWordCounts[i].Count > sortedWordCounts[j].Count
+		return sortedWordCounts[i].Count > sortedWordCounts[j].Count ||
+			(sortedWordCounts[i].Count == sortedWordCounts[j].Count &&
+				sortedWordCounts[i].Word < sortedWordCounts[j].Word)
 	})
 
 	return sortedWordCounts

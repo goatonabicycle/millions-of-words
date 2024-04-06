@@ -20,6 +20,20 @@ func TestCalculateAndSortWordFrequencies(t *testing.T) {
 				{Word: "world", Count: 1},
 			},
 		},
+		{
+			name:   "Case with numbers and punctuation",
+			lyrics: "123, hello! 123... Hello, world?",
+			expected: []models.WordCount{
+				{Word: "123", Count: 2},
+				{Word: "hello", Count: 2},
+				{Word: "world", Count: 1},
+			},
+		},
+		{
+			name:     "Empty string",
+			lyrics:   "",
+			expected: nil,
+		},
 	}
 
 	for _, tt := range tests {
@@ -56,7 +70,7 @@ func TestMapToString(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := MapToString(tt.input)
-			if !reflect.DeepEqual(result, tt.expected) {
+			if result != tt.expected {
 				t.Errorf("MapToString() = %q, want %q", result, tt.expected)
 			}
 		})
