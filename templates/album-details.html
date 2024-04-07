@@ -26,7 +26,10 @@
       >
         {{ $track.Name }}
       </button>
-      <div id="trackDetails{{ $index }}" class="hidden lg:flex mt-2">
+      <div
+        id="trackDetails{{ $index }}"
+        class="hidden lg:flex mt-2 text-center"
+      >
         <div class="lyrics pr-4 flex-1" id="lyricsText{{ $index }}">
           {{ $track.Lyrics }}
         </div>
