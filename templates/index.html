@@ -49,6 +49,7 @@
               hx-get="/{{ .ID }}"
               hx-target="#album-details"
               hx-swap="innerHTML"
+              hx-push-url="/{{ .ID }}"
             >
               <img
                 src="{{ .ImageUrl }}"
