@@ -55,6 +55,7 @@ func main() {
 	e.GET("/", indexHandler)
 	e.POST("/fetch-album", fetchAlbumHandler)
 	e.GET("/:id", albumDetailsHandler)
+	e.GET("/search-albums", searchAlbumsHandler)
 
 	e.Logger.Fatal(e.Start("0.0.0.0:8080"))
 }
@@ -90,6 +91,26 @@ func albumDetailsHandler(c echo.Context) error {
 		}
 	}
 	return c.String(http.StatusNotFound, "Album not found.")
+}
+
+func searchAlbumsHandler(c echo.Context) error {
+	searchQuery := c.QueryParam("search")
+	fmt.Fprintln(os.Stdout, "Search query:", searchQuery)
+	filteredAlbums := filterAlbumsByQuery(searchQuery)
+	return c.Render(http.StatusOK, "album-grid.html", map[string]interface{}{
+		"albums": filteredAlbums,
+	})
+}
+
+func filterAlbumsByQuery(query string) []models.BandcampAlbumData {
+	var filtered []models.BandcampAlbumData
+	query = strings.ToLower(query)
+	for _, album := range albums {
+		if strings.Contains(strings.ToLower(album.ArtistName), query) || strings.Contains(strings.ToLower(album.AlbumName), query) {
+			filtered = append(filtered, album)
+		}
+	}
+	return filtered
 }
 
 func aggregateWordFrequencies(album models.BandcampAlbumData) []models.WordCount {
