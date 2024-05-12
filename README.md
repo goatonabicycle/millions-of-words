@@ -11,7 +11,8 @@ Just Go at the moment.
 
 ## How do I run this? 
 
-`go run main.go`
+`air`
+
 
 ## Deploy: 
 

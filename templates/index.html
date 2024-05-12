@@ -16,7 +16,6 @@
         <input
           type="text"
           id="album-search"
-          name="search"
           placeholder="Search albums"
           hx-get="/search-albums"
           hx-params="search"
@@ -25,29 +24,8 @@
           class="mt-1 px-3 py-2 border shadow-sm border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full"
         />
       </div>
-      <div id="album-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {{ range .albums }}
-          <div class="rounded-lg shadow overflow-hidden cursor-pointer">
-            <a
-              href="/{{ .ID }}"
-              hx-get="/{{ .ID }}"
-              hx-target="#album-details"
-              hx-swap="innerHTML"
-            >
-              <img
-                src="{{ .ImageUrl }}"
-                alt="Album cover"
-                class="w-full object-cover"
-              />
-              <div class="p-4">
-                <h5 class="text-lg font-semibold text-center">
-                  {{ .ArtistName }} -
-                  {{ .AlbumName }}
-                </h5>
-              </div>
-            </a>
-          </div>
-        {{ end }}
+      <div id="album-grid" class="grid md:grid-cols-3">
+        {{ template "album-grid.html" . }}
       </div>
     </div>
 

@@ -57,6 +57,18 @@ func main() {
 }
 
 func indexHandler(c echo.Context) error {
+	partial := c.QueryParam("partial")
+	if partial == "true" {
+		searchQuery := c.QueryParam("search")
+		fmt.Fprintln(os.Stdout, "Search query:", searchQuery)
+		filteredAlbums := filterAlbumsByQuery(searchQuery)
+
+		// Render only the album grid part
+		return c.Render(http.StatusOK, "album-grid.html", map[string]interface{}{
+			"albums": filteredAlbums,
+		})
+	}
+	// Render the full page
 	return c.Render(http.StatusOK, "index.html", map[string]interface{}{
 		"albums": albums,
 	})
@@ -76,7 +88,6 @@ func albumDetailsHandler(c echo.Context) error {
 
 func searchAlbumsHandler(c echo.Context) error {
 	searchQuery := c.QueryParam("search")
-	fmt.Fprintln(os.Stdout, "Search query:", searchQuery)
 	filteredAlbums := filterAlbumsByQuery(searchQuery)
 	return c.Render(http.StatusOK, "album-grid.html", map[string]interface{}{
 		"albums": filteredAlbums,
