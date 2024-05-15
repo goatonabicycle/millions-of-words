@@ -89,6 +89,9 @@ func albumDetailsHandler(c echo.Context) error {
 func searchAlbumsHandler(c echo.Context) error {
 	searchQuery := c.QueryParam("search")
 	filteredAlbums := filterAlbumsByQuery(searchQuery)
+
+	log.Printf("Searching for %s:", searchQuery)
+
 	return c.Render(http.StatusOK, "album-grid.html", map[string]interface{}{
 		"albums": filteredAlbums,
 	})
