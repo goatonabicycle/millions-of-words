@@ -3,7 +3,6 @@
   class="mt-4 dark:bg-gray-800 dark:text-gray-200 p-4 rounded-lg"
 >
   <h2 class="text-4xl font-bold">{{ .ArtistName }} - {{ .AlbumName }}</h2>
-
   <div id="albumWordFreqs" class="album-word-frequencies mt-4">
     <h3 class="text-2xl font-bold">Album Word Frequencies</h3>
     <div class="flex flex-wrap">
@@ -17,7 +16,6 @@
       {{ end }}
     </div>
   </div>
-
   {{ range $index, $track := .Tracks }}
     <div class="track mb-3">
       <button
