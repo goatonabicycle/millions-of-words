@@ -1,0 +1,30 @@
+name: Deploy to Fly.io
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.22.0"
+
+      - name: Install Flyctl
+        uses: superfly/flyctl-actions@1.1
+        with:
+          version: "latest"
+
+      - name: Authenticate Flyctl
+        run: flyctl auth login --token ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Deploy to Fly.io
+        run: flyctl deploy
