@@ -1,17 +1,19 @@
 <div
   id="album-details"
-  class="mt-4 dark:bg-gray-800 dark:text-gray-200 p-4 rounded-lg"
+  class="mt-4 dark:bg-gray-800 dark:text-gray-200 p-6 rounded-lg shadow-lg"
 >
-  <h2 class="text-4xl font-bold sticky top-0 bg-gray-800 p-4 rounded-t-lg z-10">
+  <h2
+    class="text-4xl font-bold sticky top-0 bg-gray-800 p-4 rounded-t-lg z-10 shadow-md"
+  >
     {{ .ArtistName }} -
     {{ .AlbumName }}
   </h2>
-  <div id="albumWordFreqs" class="album-word-frequencies mt-4">
-    <h3 class="text-2xl font-bold">Album Word Frequencies</h3>
-    <div class="flex flex-wrap">
+  <div id="albumWordFreqs" class="album-word-frequencies mt-6">
+    <h3 class="text-2xl font-bold mb-4">Album Word Frequencies</h3>
+    <div class="flex flex-wrap gap-2">
       {{ range .AlbumWordFrequencies }}
         <div
-          class="inline-flex items-center mr-2 mb-2 bg-gray-700 text-gray-200 rounded-full px-3 py-1 text-sm font-medium"
+          class="inline-flex items-center bg-gray-700 text-gray-200 rounded-full px-4 py-2 text-sm font-medium shadow-md"
         >
           {{ .Word }}:
           {{ .Count }}
@@ -19,40 +21,48 @@
       {{ end }}
     </div>
   </div>
-  {{ range $index, $track := .Tracks }}
-    <div class="track mb-3">
-      <button
-        class="block w-full text-left p-2 bg-gray-100 dark:bg-gray-700 rounded-md text-lg font-medium"
-        onclick="toggleDetails('{{ $index }}')"
-      >
-        {{ $track.Name }}
-      </button>
-      <div
-        id="trackDetails{{ $index }}"
-        class="hidden lg:flex mt-2 text-center"
-      >
-        <div class="lyrics pr-4 flex-1" id="lyricsText{{ $index }}">
-          {{ $track.Lyrics }}
-        </div>
-        <div class="word-counts flex-1">
-          <h4 class="font-semibold">Word Counts</h4>
-          <div class="flex flex-wrap">
-            {{ range $wordIndex, $wordCount := $track.SortedWordCounts }}
-              <div
-                class="inline-flex items-center mr-2 mb-2 bg-gray-700 text-gray-200 rounded-full px-3 py-1 text-sm font-medium cursor-pointer"
-                onmouseover="highlightWord('{{ js $wordCount.Word }}', {{ $index }})"
-                onmouseout="unhighlightWord('{{ js $wordCount.Word }}', {{ $index }})"
-              >
-                {{ $wordCount.Word }}:
-                {{ $wordCount.Count }}
-              </div>
-            {{ end }}
+  <div class="mt-8">
+    {{ range $index, $track := .Tracks }}
+      <div class="track mb-4">
+        <button
+          class="block w-full text-left p-3 bg-gray-200 dark:bg-gray-700 rounded-md text-lg font-medium shadow-md transition-colors hover:bg-gray-300 dark:hover:bg-gray-600"
+          onclick="toggleDetails('{{ $index }}')"
+        >
+          {{ $track.Name }}
+        </button>
+        <div
+          id="trackDetails{{ $index }}"
+          class="hidden lg:flex mt-4 text-left"
+        >
+          <div
+            class="lyrics pr-4 flex-1 bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md"
+            id="lyricsText{{ $index }}"
+          >
+            {{ $track.Lyrics }}
+          </div>
+          <div
+            class="word-counts flex-1 bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md"
+          >
+            <h4 class="font-semibold mb-2">Word Counts</h4>
+            <div class="flex flex-wrap gap-2">
+              {{ range $wordIndex, $wordCount := $track.SortedWordCounts }}
+                <div
+                  class="inline-flex items-center bg-gray-700 text-gray-200 rounded-full px-3 py-1 text-sm font-medium cursor-pointer shadow-md transition-colors hover:bg-gray-600"
+                  onmouseover="highlightWord('{{ js $wordCount.Word }}', {{ $index }})"
+                  onmouseout="unhighlightWord('{{ js $wordCount.Word }}', {{ $index }})"
+                >
+                  {{ $wordCount.Word }}:
+                  {{ $wordCount.Count }}
+                </div>
+              {{ end }}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  {{ end }}
+    {{ end }}
+  </div>
 </div>
+
 <script>
   function toggleDetails(index) {
     const detailsElement = document.getElementById("trackDetails" + index);
