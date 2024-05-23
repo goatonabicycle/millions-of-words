@@ -1,0 +1,21 @@
+html {
+  scroll-behavior: smooth;
+}
+
+input::placeholder {
+  color: #a0aec0;
+}
+
+input:focus::placeholder {
+  color: transparent;
+}
+
+.transition-all {
+  transition: all 0.3s ease-in-out;
+}
+
+input:focus {
+  transition:
+    border-color 0.3s ease-in-out,
+    box-shadow 0.3s ease-in-out;
+}
