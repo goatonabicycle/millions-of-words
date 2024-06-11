@@ -3,8 +3,8 @@
     class="rounded-lg shadow overflow-hidden cursor-pointer bg-gray-800 hover:bg-gray-700 transform hover:-translate-y-1 hover:scale-105 transition-all duration-300"
   >
     <a
-      href="/{{ .ID }}"
-      hx-get="/{{ .ID }}"
+      href="/album/{{ .ID }}"
+      hx-get="/album/{{ .ID }}"
       hx-target="#album-details"
       hx-swap="innerHTML"
     >
@@ -15,7 +15,8 @@
       />
       <div class="p-4">
         <h5 class="text-lg font-semibold text-center">
-          {{ .ArtistName }} - {{ .AlbumName }}
+          {{ .ArtistName }} -
+          {{ .AlbumName }}
         </h5>
       </div>
     </a>

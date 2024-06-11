@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 func CalculateAndSortWordFrequencies(lyrics string) []models.WordCount {
@@ -14,11 +15,11 @@ func CalculateAndSortWordFrequencies(lyrics string) []models.WordCount {
 
 	wordCounts := make(map[string]int)
 	words := strings.FieldsFunc(strings.ToLower(lyrics), func(r rune) bool {
-		return !unicode.IsLetter(r) && !unicode.IsNumber(r)
+		return unicode.IsSpace(r) || (unicode.IsPunct(r) && r != '\'' && r != '-')
 	})
 
 	for _, word := range words {
-		cleanedWord := strings.Trim(word, ",.!?\"'")
+		cleanedWord := cleanWord(word)
 		if cleanedWord != "" {
 			wordCounts[cleanedWord]++
 		}
@@ -37,18 +38,37 @@ func CalculateAndSortWordFrequencies(lyrics string) []models.WordCount {
 	return sortedWordCounts
 }
 
-func MapToString(wordCounts map[string]int) string {
-	var words []string
-	for word := range wordCounts {
-		words = append(words, word)
-	}
-	sort.Strings(words)
-
-	var lyricsBuilder strings.Builder
-	for _, word := range words {
-		for i := 0; i < wordCounts[word]; i++ {
-			lyricsBuilder.WriteString(word + " ")
+func cleanWord(word string) string {
+	// Remove leading punctuation
+	for {
+		r, size := utf8.DecodeRuneInString(word)
+		if !unicode.IsLetter(r) && !unicode.IsNumber(r) && r != '\'' && r != '-' {
+			word = word[size:]
+		} else {
+			break
 		}
 	}
-	return strings.TrimSpace(lyricsBuilder.String())
+	// Remove trailing punctuation
+	for {
+		r, size := utf8.DecodeLastRuneInString(word)
+		if !unicode.IsLetter(r) && !unicode.IsNumber(r) && r != '\'' && r != '-' {
+			word = word[:len(word)-size]
+		} else {
+			break
+		}
+	}
+	return word
+}
+
+func MapToSortedList(wordCounts map[string]int) []models.WordCount {
+	var wordFrequencies []models.WordCount
+	for word, count := range wordCounts {
+		wordFrequencies = append(wordFrequencies, models.WordCount{Word: word, Count: count})
+	}
+	sort.Slice(wordFrequencies, func(i, j int) bool {
+		return wordFrequencies[i].Count > wordFrequencies[j].Count ||
+			(wordFrequencies[i].Count == wordFrequencies[j].Count &&
+				wordFrequencies[i].Word < wordFrequencies[j].Word)
+	})
+	return wordFrequencies
 }
