@@ -54,7 +54,6 @@ func main() {
 	e.GET("/all-words", allWordsHandler)
 	e.GET("/album/:id", albumDetailsHandler)
 	e.GET("/search-albums", searchAlbumsHandler)
-	e.GET("/full", fullHandler)
 
 	e.Logger.Fatal(e.Start("0.0.0.0:8080"))
 }
@@ -95,20 +94,6 @@ func searchAlbumsHandler(c echo.Context) error {
 
 	return c.Render(http.StatusOK, "album-grid.html", map[string]interface{}{
 		"albums": filteredAlbums,
-	})
-}
-
-func fullHandler(c echo.Context) error {
-	allWords := []models.WordCount{}
-
-	for _, album := range albums {
-		for _, track := range album.Tracks {
-			allWords = append(allWords, track.SortedWordCounts...)
-		}
-	}
-
-	return c.Render(http.StatusOK, "all.html", map[string]interface{}{
-		"allWords": allWords,
 	})
 }
 
