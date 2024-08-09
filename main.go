@@ -82,8 +82,8 @@ func albumDetailsHandler(c echo.Context) error {
 			album.AverageWordsPerTrack = totalWords / len(album.Tracks)
 			album.TotalUniqueWords = len(uniqueWordsMap)
 
-			if len(album.AlbumWordFrequencies) > 20 {
-				album.AlbumWordFrequencies = album.AlbumWordFrequencies[:20]
+			if len(album.AlbumWordFrequencies) > 10 {
+				album.AlbumWordFrequencies = album.AlbumWordFrequencies[:10]
 			}
 
 			return c.Render(http.StatusOK, "album-details.html", album)

@@ -8,9 +8,9 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
     <style>
       .sticky-container {
-        position: -webkit-sticky; /* For Safari */
+        position: -webkit-sticky;
         position: sticky;
-        top: 100px; /* Adjust as needed */
+        top: 100px;
       }
     </style>
   </head>
@@ -23,7 +23,7 @@
         {{ .AlbumName }}
       </h2>
 
-      <div id="albumWordFreqs" class="album-word-frequencies mt-6">
+      <div id="albumWordFreqs" class="album-word-frequencies mt-6 text-center">
         <h3 class="text-xl font-bold mb-4">Album Word Frequencies</h3>
         <div class="mb-4 md:mb-0">
           <p>
@@ -40,7 +40,7 @@
           </p>
         </div>
 
-        <div class="gap-2">
+        <div class="gap-2 ">
           <strong>Most used words:</strong><br />
           {{ range .AlbumWordFrequencies }}
             <div
@@ -73,7 +73,9 @@
                 class="lyrics pr-4 flex-1 bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md overflow-y-auto"
                 id="lyricsText{{ $index }}"
               >
-                <pre class="whitespace-pre-wrap">{{ $track.Lyrics }}</pre>
+                <pre class="whitespace-pre-wrap text-xs leading-4">
+{{ $track.Lyrics }}</pre
+                >
               </div>
               <div
                 class="word-counts flex-1 bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md "
