@@ -59,18 +59,6 @@ func main() {
 }
 
 func indexHandler(c echo.Context) error {
-	partial := c.QueryParam("partial")
-	if partial == "true" {
-		searchQuery := c.QueryParam("search")
-		fmt.Fprintln(os.Stdout, "Search query:", searchQuery)
-		filteredAlbums := filterAlbumsByQuery(searchQuery)
-
-		// Render only the album grid part
-		return c.Render(http.StatusOK, "album-grid.html", map[string]interface{}{
-			"albums": filteredAlbums,
-		})
-	}
-	// Render the full page
 	return c.Render(http.StatusOK, "index.html", map[string]interface{}{
 		"albums": albums,
 	})
@@ -82,6 +70,22 @@ func albumDetailsHandler(c echo.Context) error {
 	for _, album := range albums {
 		if album.ID == id {
 			album.AlbumWordFrequencies = aggregateWordFrequencies(album)
+			totalWords := 0
+			uniqueWordsMap := make(map[string]struct{})
+
+			for _, wc := range album.AlbumWordFrequencies {
+				totalWords += wc.Count
+				uniqueWordsMap[wc.Word] = struct{}{}
+			}
+
+			album.TotalWords = totalWords
+			album.AverageWordsPerTrack = totalWords / len(album.Tracks)
+			album.TotalUniqueWords = len(uniqueWordsMap)
+
+			if len(album.AlbumWordFrequencies) > 20 {
+				album.AlbumWordFrequencies = album.AlbumWordFrequencies[:20]
+			}
+
 			return c.Render(http.StatusOK, "album-details.html", album)
 		}
 	}
@@ -188,10 +192,6 @@ func aggregateWordFrequencies(album models.BandcampAlbumData) []models.WordCount
 		}
 		return totalWordFrequencies[i].Count > totalWordFrequencies[j].Count
 	})
-
-	if len(totalWordFrequencies) > 20 {
-		return totalWordFrequencies[:20]
-	}
 
 	return totalWordFrequencies
 }

@@ -2,12 +2,7 @@
   <div
     class="rounded-lg shadow overflow-hidden cursor-pointer bg-gray-800 hover:bg-gray-700 transform hover:-translate-y-1 hover:scale-105 transition-all duration-300"
   >
-    <a
-      href="/album/{{ .ID }}"
-      hx-get="/album/{{ .ID }}"
-      hx-target="#album-details"
-      hx-swap="innerHTML"
-    >
+    <a href="/album/{{ .ID }}">
       <img
         src="{{ .ImageUrl }}"
         alt="Album cover"

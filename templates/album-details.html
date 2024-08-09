@@ -1,104 +1,132 @@
-<div
-  id="album-details"
-  class="mt-4 dark:bg-gray-800 dark:text-gray-200 p-6 rounded-lg shadow-lg"
->
-  <h2
-    class="text-4xl font-bold sticky top-0 bg-gray-800 p-4 rounded-t-lg z-10 shadow-md"
-  >
-    {{ .ArtistName }} -
-    {{ .AlbumName }}
-  </h2>
-  <div id="albumWordFreqs" class="album-word-frequencies mt-6">
-    <h3 class="text-xl font-bold mb-4">Album Word Frequencies</h3>
-    <div class="flex flex-wrap gap-2">
-      {{ range .AlbumWordFrequencies }}
-        <div
-          class="inline-flex items-center bg-gray-700 text-gray-200 rounded-full px-4 py-2 text-sm font-medium shadow-md"
-        >
-          {{ .Word }}:
-          {{ .Count }}
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ .ArtistName }} - {{ .AlbumName }}</title>
+    <script src="https://unpkg.com/htmx.org"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+    <style>
+      .sticky-container {
+        position: -webkit-sticky; /* For Safari */
+        position: sticky;
+        top: 100px; /* Adjust as needed */
+      }
+    </style>
+  </head>
+  <body class="">
+    <div id="album-details" class="dark:bg-gray-800 dark:text-gray-200 p-6 ">
+      <h2
+        class="text-4xl font-bold sticky top-0 bg-gray-800 p-4 rounded-t-lg z-10 shadow-md text-center"
+      >
+        {{ .ArtistName }} -
+        {{ .AlbumName }}
+      </h2>
+
+      <div id="albumWordFreqs" class="album-word-frequencies mt-6">
+        <h3 class="text-xl font-bold mb-4">Album Word Frequencies</h3>
+        <div class="mb-4 md:mb-0">
+          <p>
+            <strong>Total number of words for this album:</strong>
+            {{ .TotalWords }}
+          </p>
+          <p>
+            <strong>Average number of words per track:</strong>
+            {{ .AverageWordsPerTrack }}
+          </p>
+          <p>
+            <strong>Total number of unique words for this album:</strong>
+            {{ .TotalUniqueWords }}
+          </p>
         </div>
-      {{ end }}
-    </div>
-  </div>
-  <div class="mt-8">
-    {{ range $index, $track := .Tracks }}
-      <div class="track mb-4">
-        <button
-          class="block w-full text-left p-3 bg-gray-200 dark:bg-gray-700 rounded-md text-lg font-medium shadow-md transition-colors hover:bg-gray-300 dark:hover:bg-gray-600"
-          onclick="toggleDetails('{{ $index }}')"
-        >
-          {{ $track.Name }}
-        </button>
-        <div
-          id="trackDetails{{ $index }}"
-          class="hidden lg:flex mt-4 text-left"
-        >
-          <div
-            class="lyrics pr-4 flex-1 bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md"
-            id="lyricsText{{ $index }}"
-          >
-            {{ $track.Lyrics }}
-          </div>
-          <div
-            class="word-counts flex-1 bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md"
-          >
-            <h4 class="font-semibold mb-2">Word Counts</h4>
-            <div class="flex flex-wrap gap-2">
-              {{ range $wordIndex, $wordCount := $track.SortedWordCounts }}
-                <div
-                  class="inline-flex items-center bg-gray-700 text-gray-200 rounded-full px-1 py-1 text-sm font-medium cursor-pointer shadow-md transition-colors hover:bg-gray-600"
-                  onmouseover="highlightWord('{{ js $wordCount.Word }}', {{ $index }})"
-                  onmouseout="unhighlightWord('{{ js $wordCount.Word }}', {{ $index }})"
-                >
-                  {{ $wordCount.Word }}:
-                  {{ $wordCount.Count }}
-                </div>
-              {{ end }}
+
+        <div class="gap-2">
+          <strong>Most used words:</strong><br />
+          {{ range .AlbumWordFrequencies }}
+            <div
+              class="inline-flex items-center bg-gray-700 text-gray-200 rounded-full px-4 py-2 text-sm font-medium shadow-md"
+            >
+              {{ .Word }}:
+              {{ .Count }}
             </div>
-          </div>
+          {{ end }}
         </div>
       </div>
-    {{ end }}
-  </div>
-</div>
 
-<script>
-  function toggleDetails(index) {
-    const detailsElement = document.getElementById("trackDetails" + index);
-    detailsElement.classList.toggle("hidden");
-  }
+      <div class="mt-8">
+        {{ range $index, $track := .Tracks }}
+          <div class="track mb-6">
+            <button
+              class="block w-full text-left p-4 bg-indigo-600 text-white rounded-md text-lg font-medium shadow-md transition-colors hover:bg-indigo-500"
+              onclick="toggleDetails('{{ $index }}')"
+            >
+              {{ $track.Name }}
+              <span class="float-right"
+                ><i class="fas fa-chevron-down"></i
+              ></span>
+            </button>
+            <div
+              id="trackDetails{{ $index }}"
+              class="hidden lg:flex mt-4 text-left gap-2"
+            >
+              <div
+                class="lyrics pr-4 flex-1 bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md overflow-y-auto"
+                id="lyricsText{{ $index }}"
+              >
+                <pre class="whitespace-pre-wrap">{{ $track.Lyrics }}</pre>
+              </div>
+              <div
+                class="word-counts flex-1 bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md "
+              >
+                <div class="sticky-container">
+                  <h4 class="font-semibold mb-2 text-indigo-600">
+                    Word Counts
+                  </h4>
+                  <div class="flex flex-wrap gap-2">
+                    {{ range $wordIndex, $wordCount := $track.SortedWordCounts }}
+                      <div
+                        class="inline-flex items-center bg-indigo-600 text-white rounded-full px-2 py-1 text-sm font-medium cursor-pointer shadow-md transition-colors hover:bg-indigo-500"
+                        onmouseover="highlightWord('{{ js $wordCount.Word }}', {{ $index }})"
+                        onmouseout="unhighlightWord('{{ js $wordCount.Word }}', {{ $index }})"
+                      >
+                        {{ $wordCount.Word }}:
+                        {{ $wordCount.Count }}
+                      </div>
+                    {{ end }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {{ end }}
+      </div>
+    </div>
 
-  function highlightWord(word, index) {
-    const lyricsElement = document.getElementById("lyricsText" + index);
-    const regex = new RegExp(`\\b(${word})\\b`, "gi");
-    const highlightedText = lyricsElement.innerHTML.replace(
-      regex,
-      `<mark class="bg-yellow-400">$1</mark>`,
-    );
-    lyricsElement.innerHTML = highlightedText;
-  }
-
-  function unhighlightWord(word, index) {
-    const lyricsElement = document.getElementById("lyricsText" + index);
-    const regex = new RegExp(
-      `<mark class="bg-yellow-400">\\b(${word})\\b</mark>`,
-      "gi",
-    );
-    const unhighlightedText = lyricsElement.innerHTML.replace(regex, "$1");
-    lyricsElement.innerHTML = unhighlightedText;
-  }
-
-  document
-    .getElementById("toggleWordFreqsBtn")
-    .addEventListener("click", function () {
-      var wordFreqsSection = document.getElementById("albumWordFreqs");
-      if (wordFreqsSection.classList.contains("hidden")) {
-        wordFreqsSection.classList.remove("hidden");
-        this.textContent = "Hide Full Album Words";
-      } else {
-        wordFreqsSection.classList.add("hidden");
-        this.textContent = "Show Full Album Words";
+    <script>
+      function toggleDetails(index) {
+        const detailsElement = document.getElementById("trackDetails" + index);
+        detailsElement.classList.toggle("hidden");
       }
-    });
-</script>
+
+      function highlightWord(word, index) {
+        const lyricsElement = document.getElementById("lyricsText" + index);
+        const regex = new RegExp(`\\b(${word})\\b`, "gi");
+        const highlightedText = lyricsElement.innerHTML.replace(
+          regex,
+          `<mark class="bg-yellow-400">$1</mark>`,
+        );
+        lyricsElement.innerHTML = highlightedText;
+      }
+
+      function unhighlightWord(word, index) {
+        const lyricsElement = document.getElementById("lyricsText" + index);
+        const regex = new RegExp(
+          `<mark class="bg-yellow-400">\\b(${word})\\b</mark>`,
+          "gi",
+        );
+        const unhighlightedText = lyricsElement.innerHTML.replace(regex, "$1");
+        lyricsElement.innerHTML = unhighlightedText;
+      }
+    </script>
+  </body>
+</html>
