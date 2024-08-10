@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"millions-of-words/models"
 	"millions-of-words/words"
@@ -44,7 +45,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	renderer := &TemplateRenderer{
-		templates: template.Must(template.ParseGlob(filepath.Join(templatesDir, "*.html"))),
+		templates: template.Must(template.New("").ParseGlob(filepath.Join(templatesDir, "*.html"))),
 	}
 	e.Renderer = renderer
 
@@ -70,26 +71,101 @@ func albumDetailsHandler(c echo.Context) error {
 	for _, album := range albums {
 		if album.ID == id {
 			album.AlbumWordFrequencies = aggregateWordFrequencies(album)
+			if len(album.AlbumWordFrequencies) > 20 {
+				album.AlbumWordFrequencies = album.AlbumWordFrequencies[:20]
+			}
+
 			totalWords := 0
 			uniqueWordsMap := make(map[string]struct{})
 
-			for _, wc := range album.AlbumWordFrequencies {
-				totalWords += wc.Count
-				uniqueWordsMap[wc.Word] = struct{}{}
+			type TrackWithDetails struct {
+				Track            models.BandcampTrackData
+				LyricsWords      template.HTML
+				SortedWordCounts []models.WordCount
+				WordsPerMinute   float64
+				TotalWords       int
+				UniqueWords      int
+			}
+			tracksWithDetails := []TrackWithDetails{}
+
+			var totalAlbumDuration time.Duration
+
+			for trackIndex, track := range album.Tracks {
+				sortedWordCounts := words.CalculateAndSortWordFrequencies(track.Lyrics)
+				wordCount := len(strings.Fields(track.Lyrics))
+				totalWords += wordCount
+				trackUniqueWordsMap := make(map[string]struct{})
+
+				for _, wc := range sortedWordCounts {
+					uniqueWordsMap[wc.Word] = struct{}{}
+					trackUniqueWordsMap[wc.Word] = struct{}{}
+				}
+
+				trackDuration, err := time.ParseDuration(track.Duration)
+				if err != nil {
+					log.Printf("Error parsing track duration for track %s: %v", track.Name, err)
+				}
+				totalAlbumDuration += trackDuration
+				wpm := 0.0
+				if trackDuration.Minutes() > 0 {
+					wpm = float64(wordCount) / trackDuration.Minutes()
+				}
+
+				lyricsWords := wrapWordsInSpan(track.Lyrics, trackIndex)
+
+				tracksWithDetails = append(tracksWithDetails, TrackWithDetails{
+					Track:            track,
+					LyricsWords:      lyricsWords,
+					SortedWordCounts: sortedWordCounts,
+					WordsPerMinute:   wpm,
+					TotalWords:       wordCount,
+					UniqueWords:      len(trackUniqueWordsMap),
+				})
 			}
 
 			album.TotalWords = totalWords
 			album.AverageWordsPerTrack = totalWords / len(album.Tracks)
 			album.TotalUniqueWords = len(uniqueWordsMap)
+			album.TotalAlbumLength = totalAlbumDuration.String()
 
-			if len(album.AlbumWordFrequencies) > 10 {
-				album.AlbumWordFrequencies = album.AlbumWordFrequencies[:10]
+			albumWPM := 0.0
+			if totalAlbumDuration.Minutes() > 0 {
+				albumWPM = float64(totalWords) / totalAlbumDuration.Minutes()
 			}
 
-			return c.Render(http.StatusOK, "album-details.html", album)
+			data := struct {
+				Album             models.BandcampAlbumData
+				TracksWithDetails []TrackWithDetails
+				AlbumWPM          float64
+			}{
+				Album:             album,
+				TracksWithDetails: tracksWithDetails,
+				AlbumWPM:          albumWPM,
+			}
+
+			return c.Render(http.StatusOK, "album-details.html", data)
 		}
 	}
 	return c.String(http.StatusNotFound, "Album not found.")
+}
+
+func wrapWordsInSpan(lyrics string, trackIndex int) template.HTML {
+	lines := strings.Split(lyrics, "\n")
+	wrappedLines := make([]string, len(lines))
+
+	for i, line := range lines {
+		words := strings.Fields(line)
+		wrappedWords := make([]string, len(words))
+
+		for j, word := range words {
+			escapedWord := template.JSEscapeString(word)
+			wrappedWords[j] = fmt.Sprintf(`<span onmouseover="highlightWord('%s', %d)" onmouseout="unhighlightWord('%s', %d)">%s</span>`, escapedWord, trackIndex, escapedWord, trackIndex, word)
+		}
+
+		wrappedLines[i] = strings.Join(wrappedWords, " ")
+	}
+
+	return template.HTML(strings.Join(wrappedLines, "\n"))
 }
 
 func searchAlbumsHandler(c echo.Context) error {
@@ -176,7 +252,8 @@ func filterAlbumsByQuery(query string) []models.BandcampAlbumData {
 func aggregateWordFrequencies(album models.BandcampAlbumData) []models.WordCount {
 	wordFreqMap := make(map[string]int)
 	for _, track := range album.Tracks {
-		for _, wc := range track.SortedWordCounts {
+		wordCounts := words.CalculateAndSortWordFrequencies(track.Lyrics)
+		for _, wc := range wordCounts {
 			wordFreqMap[wc.Word] += wc.Count
 		}
 	}

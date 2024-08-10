@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -10,27 +12,74 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"millions-of-words/models"
-	"millions-of-words/words"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		log.Fatal("Usage: go run albumfetcher.go <bandcamp_url>")
+	textfileFlag := flag.String("textfile", "", "Path to a text file containing Bandcamp URLs (one per line)")
+	flag.Parse()
+
+	if *textfileFlag != "" {
+		processTextFile(*textfileFlag)
+	} else if len(os.Args) >= 2 {
+		url := os.Args[1]
+		processSingleURL(url)
+	} else {
+		log.Fatal("Usage: go run main.go <bandcamp_url> OR go run main.go --textfile=<file_with_links.txt>")
 	}
-	url := os.Args[1]
+}
+
+func processTextFile(filePath string) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		log.Fatalf("Failed to open file: %v", err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		url := strings.TrimSpace(scanner.Text())
+		if url == "" {
+			continue
+		}
+		processSingleURL(url)
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatalf("Error reading file: %v", err)
+	}
+}
+
+func processSingleURL(url string) {
+	fmt.Println("=========================================")
+	fmt.Printf("Processing album data for URL: %s\n", url)
+
+	filename := filepath.Join("../data", fmt.Sprintf("%s - %s.json", sanitizeFilenameFromURL(url)))
+
+	if _, err := os.Stat(filename); err == nil {
+		fmt.Printf("File already exists for URL: %s. Skipping download.\n", url)
+		fmt.Println("=========================================")
+		return
+	}
 
 	albumData, err := fetchAlbumDataFromBandcamp(url)
 	if err != nil {
-		log.Fatalf("Failed to fetch album data: %v", err)
+		log.Printf("Failed to fetch album data for URL %s: %v", url, err)
+		fmt.Println("=========================================")
+		return
 	}
+
 	err = writeAlbumsDataToJsonFile(albumData)
 	if err != nil {
-		log.Fatalf("Failed to write album data to JSON: %v", err)
+		log.Printf("Failed to write album data to JSON for URL %s: %v", url, err)
 	}
+
+	fmt.Println("Finished processing.")
+	fmt.Println("=========================================")
 }
 
 func fetchAlbumDataFromBandcamp(url string) (models.BandcampAlbumData, error) {
@@ -52,30 +101,66 @@ func fetchAlbumDataFromBandcamp(url string) (models.BandcampAlbumData, error) {
 	imageUrl := doc.Find("a.popupImage").AttrOr("href", "")
 
 	var tracklist []models.BandcampTrackData
-	doc.Find("tr.lyricsRow").Each(func(i int, s *goquery.Selection) {
-		lyrics := s.Find("div").Text()
-		trackTitle := doc.Find(".title-col .track-title").Eq(i).Text() // Matching track titles with lyrics
+	var totalAlbumDuration time.Duration
+
+	doc.Find("tr.track_row_view").Each(func(i int, s *goquery.Selection) {
+		trackTitle := s.Find(".title-col .track-title").Text()
+		trackDurationStr := strings.TrimSpace(s.Find(".title-col .time").Text())
+
+		fmt.Printf("  - Processing track: '%s', Duration: '%s'\n", trackTitle, trackDurationStr)
+
+		if strings.TrimSpace(trackTitle) == "" || trackDurationStr == "" {
+			log.Printf("Warning: Missing essential data for track %d (%s). Skipping this track.", i+1, trackTitle)
+			return
+		}
+
+		trackDuration, err := parseTrackDuration(trackDurationStr)
+		if err != nil {
+			log.Printf("Error parsing track duration for track %s: %v", trackTitle, err)
+		}
+
+		totalAlbumDuration += trackDuration
+
+		lyrics := strings.TrimSpace(s.Next().Find("div").Text())
+		if strings.HasPrefix(lyrics, "lyrics") || strings.Contains(lyrics, "buy track") {
+			lyrics = ""
+		}
 
 		track := models.BandcampTrackData{
-			Name:             strings.TrimSpace(trackTitle),
-			Lyrics:           lyrics,
-			SortedWordCounts: words.CalculateAndSortWordFrequencies(lyrics),
+			Name:     strings.TrimSpace(trackTitle),
+			Duration: trackDuration.String(),
+			Lyrics:   lyrics,
 		}
 
 		tracklist = append(tracklist, track)
 	})
 
 	return models.BandcampAlbumData{
-		ArtistName:  strings.TrimSpace(artistName),
-		AlbumName:   strings.TrimSpace(albumName),
-		Description: strings.TrimSpace(description),
-		ImageUrl:    imageUrl,
-		Tracks:      tracklist,
+		ID:               strings.TrimSpace(artistName) + " - " + strings.TrimSpace(albumName),
+		ArtistName:       strings.TrimSpace(artistName),
+		AlbumName:        strings.TrimSpace(albumName),
+		Description:      strings.TrimSpace(description),
+		ImageUrl:         imageUrl,
+		Tracks:           tracklist,
+		TotalAlbumLength: totalAlbumDuration.String(),
+		BandcampUrl:      url,
 	}, nil
 }
 
+func parseTrackDuration(durationStr string) (time.Duration, error) {
+	parts := strings.Split(durationStr, ":")
+	if len(parts) != 2 {
+		return 0, fmt.Errorf("invalid track duration format: %s", durationStr)
+	}
+
+	minutes := strings.TrimSpace(parts[0])
+	seconds := strings.TrimSpace(parts[1])
+
+	return time.ParseDuration(fmt.Sprintf("%sm%ss", minutes, seconds))
+}
+
 func writeAlbumsDataToJsonFile(album models.BandcampAlbumData) error {
-	dir := "data"
+	dir := "../data"
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			return fmt.Errorf("error creating directory: %w", err)
@@ -101,4 +186,11 @@ func sanitizeFilename(name string) string {
 	sanitized := reg.ReplaceAllString(trimmedName, "_")
 
 	return strings.Trim(sanitized, "_")
+}
+
+func sanitizeFilenameFromURL(url string) string {
+	parts := strings.Split(url, "/")
+	artist := parts[2]
+	album := parts[len(parts)-1]
+	return sanitizeFilename(artist + " - " + album)
 }

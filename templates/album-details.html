@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{ .ArtistName }} - {{ .AlbumName }}</title>
+    <title>{{ .Album.ArtistName }} - {{ .Album.AlbumName }}</title>
     <script src="https://unpkg.com/htmx.org"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
     <style>
@@ -12,84 +12,146 @@
         position: sticky;
         top: 100px;
       }
+
+      .track-info {
+        max-width: 200px;
+        font-size: 0.85rem;
+        line-height: 1.2;
+      }
+
+      .album-cover {
+        max-width: 350px;
+        height: auto;
+      }
+
+      .lyrics {
+        column-count: 2;
+        column-gap: 20px;
+      }
+
+      .highlighted {
+        background-color: #fcd34d !important;
+        color: black !important;
+      }
+
+      @media (max-width: 768px) {
+        .lyrics {
+          column-count: 1;
+        }
+      }
     </style>
   </head>
-  <body class="">
-    <div id="album-details" class="dark:bg-gray-800 dark:text-gray-200 p-6 ">
-      <h2
-        class="text-4xl font-bold sticky top-0 bg-gray-800 p-4 rounded-t-lg z-10 shadow-md text-center"
-      >
-        {{ .ArtistName }} -
-        {{ .AlbumName }}
+  <body class="dark:bg-gray-800 dark:text-gray-200 p-6">
+    <div id="album-details" class="p-6">
+      <h2 class="text-4xl font-bold p-4 text-center">
+        {{ .Album.ArtistName }} -
+        {{ .Album.AlbumName }}
       </h2>
 
-      <div id="albumWordFreqs" class="album-word-frequencies mt-6 text-center">
-        <h3 class="text-xl font-bold mb-4">Album Word Frequencies</h3>
-        <div class="mb-4 md:mb-0">
-          <p>
-            <strong>Total number of words for this album:</strong>
-            {{ .TotalWords }}
-          </p>
-          <p>
-            <strong>Average number of words per track:</strong>
-            {{ .AverageWordsPerTrack }}
-          </p>
-          <p>
-            <strong>Total number of unique words for this album:</strong>
-            {{ .TotalUniqueWords }}
-          </p>
+      <div class="flex justify-between items-start mt-6">
+        <div class="flex-1">
+          <div id="albumWordFreqs" class="album-word-frequencies">
+            <h3 class="text-xl font-bold mb-4">Album Details</h3>
+            <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
+              <p>
+                <strong>Total album duration:</strong>
+                {{ .Album.TotalAlbumLength }}
+              </p>
+              <p>
+                <strong>Total number of words for this album:</strong>
+                {{ .Album.TotalWords }}
+              </p>
+              <p>
+                <strong>Average number of words per track:</strong>
+                {{ .Album.AverageWordsPerTrack }}
+              </p>
+              <p>
+                <strong>Total number of unique words for this album:</strong>
+                {{ .Album.TotalUniqueWords }}
+              </p>
+              <p>
+                <strong>Words per minute (WPM) for the album:</strong>
+                {{ printf "%.2f" .AlbumWPM }}
+              </p>
+            </div>
+
+            <div class="mt-4">
+              <strong>Top 20 words:</strong><br />
+              <div class="flex flex-wrap gap-2">
+                {{ range $index, $wordCount := .Album.AlbumWordFrequencies }}
+                  <div
+                    class="inline-flex items-center bg-gray-700 text-gray-200 rounded-full px-3 py-1 text-sm font-medium shadow-md"
+                    id="wordCount{{ $index }}-{{ $wordCount.Word }}"
+                  >
+                    {{ $wordCount.Word }}
+                  </div>
+                {{ end }}
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="gap-2 ">
-          <strong>Most used words:</strong><br />
-          {{ range .AlbumWordFrequencies }}
-            <div
-              class="inline-flex items-center bg-gray-700 text-gray-200 rounded-full px-4 py-2 text-sm font-medium shadow-md"
-            >
-              {{ .Word }}:
-              {{ .Count }}
-            </div>
-          {{ end }}
+        <div class="ml-8">
+          <img
+            src="{{ .Album.ImageUrl }}"
+            alt="{{ .Album.AlbumName }} Cover"
+            class="album-cover rounded-md shadow-md"
+          />
         </div>
       </div>
 
       <div class="mt-8">
-        {{ range $index, $track := .Tracks }}
+        {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
           <div class="track mb-6">
-            <button
-              class="block w-full text-left p-4 bg-indigo-600 text-white rounded-md text-lg font-medium shadow-md transition-colors hover:bg-indigo-500"
-              onclick="toggleDetails('{{ $index }}')"
-            >
-              {{ $track.Name }}
-              <span class="float-right"
-                ><i class="fas fa-chevron-down"></i
-              ></span>
-            </button>
+            <h3 class="text-2xl font-semibold text-center text-white">
+              {{ $trackWithDetails.Track.Name }}
+            </h3>
             <div
-              id="trackDetails{{ $index }}"
-              class="hidden lg:flex mt-4 text-left gap-2"
+              class="track-info-card bg-blue-600 text-white p-4 rounded-md shadow-md mt-2"
             >
+              <p>
+                <strong>Length:</strong> {{ $trackWithDetails.Track.Duration }}
+              </p>
+              <p>
+                <strong>Total Words:</strong> {{ $trackWithDetails.TotalWords }}
+              </p>
+              <p>
+                <strong>Unique Words:</strong>
+                {{ $trackWithDetails.UniqueWords }}
+              </p>
+              <p>
+                <strong>WPM:</strong>
+                {{ printf "%.2f" $trackWithDetails.WordsPerMinute }}
+              </p>
+            </div>
+            <div id="trackDetails{{ $trackIndex }}" class="lg:flex mt-4 gap-2">
               <div
-                class="lyrics pr-4 flex-1 bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md overflow-y-auto"
-                id="lyricsText{{ $index }}"
+                class="lyrics bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1"
+                id="lyricsText{{ $trackIndex }}"
               >
-                <pre class="whitespace-pre-wrap text-xs leading-4">
-{{ $track.Lyrics }}</pre
-                >
+                {{ if $trackWithDetails.Track.Lyrics }}
+                  <pre class="whitespace-pre-wrap text-xs leading-4">
+{{ $trackWithDetails.LyricsWords }}</pre
+                  >
+                {{ else }}
+                  <p>This track has no lyrics.</p>
+                {{ end }}
               </div>
+
               <div
-                class="word-counts flex-1 bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md "
+                class="word-counts bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1"
               >
                 <div class="sticky-container">
                   <h4 class="font-semibold mb-2 text-indigo-600">
                     Word Counts
                   </h4>
                   <div class="flex flex-wrap gap-2">
-                    {{ range $wordIndex, $wordCount := $track.SortedWordCounts }}
+                    {{ range $wordIndex, $wordCount := $trackWithDetails.SortedWordCounts }}
                       <div
                         class="inline-flex items-center bg-indigo-600 text-white rounded-full px-2 py-1 text-sm font-medium cursor-pointer shadow-md transition-colors hover:bg-indigo-500"
-                        onmouseover="highlightWord('{{ js $wordCount.Word }}', {{ $index }})"
-                        onmouseout="unhighlightWord('{{ js $wordCount.Word }}', {{ $index }})"
+                        onmouseover="highlightWord('{{ js $wordCount.Word }}', {{ $trackIndex }})"
+                        onmouseout="unhighlightWord('{{ js $wordCount.Word }}', {{ $trackIndex }})"
+                        id="wordCount{{ $trackIndex }}-{{ $wordCount.Word }}"
                       >
                         {{ $wordCount.Word }}:
                         {{ $wordCount.Count }}
@@ -105,29 +167,40 @@
     </div>
 
     <script>
-      function toggleDetails(index) {
-        const detailsElement = document.getElementById("trackDetails" + index);
-        detailsElement.classList.toggle("hidden");
-      }
-
       function highlightWord(word, index) {
-        const lyricsElement = document.getElementById("lyricsText" + index);
-        const regex = new RegExp(`\\b(${word})\\b`, "gi");
-        const highlightedText = lyricsElement.innerHTML.replace(
-          regex,
-          `<mark class="bg-yellow-400">$1</mark>`,
+        const wordSpans = document.querySelectorAll(`#lyricsText${index} span`);
+        wordSpans.forEach((span) => {
+          if (
+            span.textContent.trim().toLowerCase() === word.trim().toLowerCase()
+          ) {
+            span.classList.add("highlighted");
+          }
+        });
+
+        const wordCountElement = document.getElementById(
+          `wordCount${index}-${word.toLowerCase()}`,
         );
-        lyricsElement.innerHTML = highlightedText;
+        if (wordCountElement) {
+          wordCountElement.classList.add("highlighted");
+        }
       }
 
       function unhighlightWord(word, index) {
-        const lyricsElement = document.getElementById("lyricsText" + index);
-        const regex = new RegExp(
-          `<mark class="bg-yellow-400">\\b(${word})\\b</mark>`,
-          "gi",
+        const wordSpans = document.querySelectorAll(`#lyricsText${index} span`);
+        wordSpans.forEach((span) => {
+          if (
+            span.textContent.trim().toLowerCase() === word.trim().toLowerCase()
+          ) {
+            span.classList.remove("highlighted");
+          }
+        });
+
+        const wordCountElement = document.getElementById(
+          `wordCount${index}-${word.toLowerCase()}`,
         );
-        const unhighlightedText = lyricsElement.innerHTML.replace(regex, "$1");
-        lyricsElement.innerHTML = unhighlightedText;
+        if (wordCountElement) {
+          wordCountElement.classList.remove("highlighted");
+        }
       }
     </script>
   </body>

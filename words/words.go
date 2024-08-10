@@ -14,8 +14,9 @@ func CalculateAndSortWordFrequencies(lyrics string) []models.WordCount {
 	}
 
 	wordCounts := make(map[string]int)
+
 	words := strings.FieldsFunc(strings.ToLower(lyrics), func(r rune) bool {
-		return unicode.IsSpace(r) || (unicode.IsPunct(r) && r != '\'' && r != '-')
+		return unicode.IsSpace(r) || (unicode.IsPunct(r) && r != '\'')
 	})
 
 	for _, word := range words {
@@ -39,24 +40,23 @@ func CalculateAndSortWordFrequencies(lyrics string) []models.WordCount {
 }
 
 func cleanWord(word string) string {
-	// Remove leading punctuation
-	for {
+	for len(word) > 0 {
 		r, size := utf8.DecodeRuneInString(word)
-		if !unicode.IsLetter(r) && !unicode.IsNumber(r) && r != '\'' && r != '-' {
-			word = word[size:]
-		} else {
+		if unicode.IsLetter(r) || unicode.IsNumber(r) || r == '\'' {
 			break
 		}
+		word = word[size:]
 	}
-	// Remove trailing punctuation
-	for {
+
+	for len(word) > 0 {
 		r, size := utf8.DecodeLastRuneInString(word)
-		if !unicode.IsLetter(r) && !unicode.IsNumber(r) && r != '\'' && r != '-' {
-			word = word[:len(word)-size]
-		} else {
+		if unicode.IsLetter(r) || unicode.IsNumber(r) || r == '\'' {
 			break
 		}
+		word = word[:len(word)-size]
 	}
+
+	word = strings.ReplaceAll(word, "--", "")
 	return word
 }
 
