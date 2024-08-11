@@ -5,7 +5,6 @@ import (
 	"sort"
 	"strings"
 	"unicode"
-	"unicode/utf8"
 )
 
 func CalculateAndSortWordFrequencies(lyrics string) []models.WordCount {
@@ -15,9 +14,7 @@ func CalculateAndSortWordFrequencies(lyrics string) []models.WordCount {
 
 	wordCounts := make(map[string]int)
 
-	words := strings.FieldsFunc(strings.ToLower(lyrics), func(r rune) bool {
-		return unicode.IsSpace(r) || (unicode.IsPunct(r) && r != '\'')
-	})
+	words := splitLyricsIntoWords(lyrics)
 
 	for _, word := range words {
 		cleanedWord := cleanWord(word)
@@ -39,24 +36,24 @@ func CalculateAndSortWordFrequencies(lyrics string) []models.WordCount {
 	return sortedWordCounts
 }
 
+func splitLyricsIntoWords(lyrics string) []string {
+	words := strings.FieldsFunc(lyrics, func(r rune) bool {
+		return unicode.IsSpace(r) || (unicode.IsPunct(r) && r != '\'' && r != '’' && r != '-')
+	})
+	return words
+}
+
 func cleanWord(word string) string {
-	for len(word) > 0 {
-		r, size := utf8.DecodeRuneInString(word)
-		if unicode.IsLetter(r) || unicode.IsNumber(r) || r == '\'' {
-			break
-		}
-		word = word[size:]
+	word = strings.TrimFunc(word, func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsNumber(r) && r != '\'' && r != '’' && r != '-'
+	})
+
+	word = strings.ToLower(word)
+
+	if strings.ContainsRune(word, '\'') || strings.ContainsRune(word, '’') || strings.ContainsRune(word, '-') {
+		return word
 	}
 
-	for len(word) > 0 {
-		r, size := utf8.DecodeLastRuneInString(word)
-		if unicode.IsLetter(r) || unicode.IsNumber(r) || r == '\'' {
-			break
-		}
-		word = word[:len(word)-size]
-	}
-
-	word = strings.ReplaceAll(word, "--", "")
 	return word
 }
 

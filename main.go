@@ -80,7 +80,7 @@ func albumDetailsHandler(c echo.Context) error {
 
 			type TrackWithDetails struct {
 				Track            models.BandcampTrackData
-				LyricsWords      template.HTML
+				FormattedLyrics  template.HTML
 				SortedWordCounts []models.WordCount
 				WordsPerMinute   float64
 				TotalWords       int
@@ -90,7 +90,7 @@ func albumDetailsHandler(c echo.Context) error {
 
 			var totalAlbumDuration time.Duration
 
-			for trackIndex, track := range album.Tracks {
+			for _, track := range album.Tracks {
 				sortedWordCounts := words.CalculateAndSortWordFrequencies(track.Lyrics)
 				wordCount := len(strings.Fields(track.Lyrics))
 				totalWords += wordCount
@@ -111,11 +111,11 @@ func albumDetailsHandler(c echo.Context) error {
 					wpm = float64(wordCount) / trackDuration.Minutes()
 				}
 
-				lyricsWords := wrapWordsInSpan(track.Lyrics, trackIndex)
+				lyrics := template.HTML(track.Lyrics)
 
 				tracksWithDetails = append(tracksWithDetails, TrackWithDetails{
 					Track:            track,
-					LyricsWords:      lyricsWords,
+					FormattedLyrics:  lyrics,
 					SortedWordCounts: sortedWordCounts,
 					WordsPerMinute:   wpm,
 					TotalWords:       wordCount,
@@ -147,25 +147,6 @@ func albumDetailsHandler(c echo.Context) error {
 		}
 	}
 	return c.String(http.StatusNotFound, "Album not found.")
-}
-
-func wrapWordsInSpan(lyrics string, trackIndex int) template.HTML {
-	lines := strings.Split(lyrics, "\n")
-	wrappedLines := make([]string, len(lines))
-
-	for i, line := range lines {
-		words := strings.Fields(line)
-		wrappedWords := make([]string, len(words))
-
-		for j, word := range words {
-			escapedWord := template.JSEscapeString(word)
-			wrappedWords[j] = fmt.Sprintf(`<span onmouseover="highlightWord('%s', %d)" onmouseout="unhighlightWord('%s', %d)">%s</span>`, escapedWord, trackIndex, escapedWord, trackIndex, word)
-		}
-
-		wrappedLines[i] = strings.Join(wrappedWords, " ")
-	}
-
-	return template.HTML(strings.Join(wrappedLines, "\n"))
 }
 
 func searchAlbumsHandler(c echo.Context) error {

@@ -29,9 +29,11 @@
         column-gap: 20px;
       }
 
-      .highlighted {
-        background-color: #fcd34d !important;
-        color: black !important;
+      .lyrics .highlighted,
+      .word-counts .highlighted {
+        background-color: #fcd34d;
+        color: #000;
+        text-decoration: underline;
       }
 
       @media (max-width: 768px) {
@@ -82,6 +84,8 @@
                   <div
                     class="inline-flex items-center bg-gray-700 text-gray-200 rounded-full px-3 py-1 text-sm font-medium shadow-md"
                     id="wordCount{{ $index }}-{{ $wordCount.Word }}"
+                    data-word="{{ $wordCount.Word }}"
+                    data-track="{{ $index }}"
                   >
                     {{ $wordCount.Word }}
                   </div>
@@ -130,8 +134,12 @@
                 id="lyricsText{{ $trackIndex }}"
               >
                 {{ if $trackWithDetails.Track.Lyrics }}
-                  <pre class="whitespace-pre-wrap text-xs leading-4">
-{{ $trackWithDetails.LyricsWords }}</pre
+                  <pre
+                    class="whitespace-pre-wrap text-xs leading-4"
+                    id="lyrics{{ $trackIndex }}"
+                  >
+                    {{ $trackWithDetails.FormattedLyrics }}
+                  </pre
                   >
                 {{ else }}
                   <p>This track has no lyrics.</p>
@@ -149,9 +157,11 @@
                     {{ range $wordIndex, $wordCount := $trackWithDetails.SortedWordCounts }}
                       <div
                         class="inline-flex items-center bg-indigo-600 text-white rounded-full px-2 py-1 text-sm font-medium cursor-pointer shadow-md transition-colors hover:bg-indigo-500"
-                        onmouseover="highlightWord('{{ js $wordCount.Word }}', {{ $trackIndex }})"
-                        onmouseout="unhighlightWord('{{ js $wordCount.Word }}', {{ $trackIndex }})"
                         id="wordCount{{ $trackIndex }}-{{ $wordCount.Word }}"
+                        data-word="{{ $wordCount.Word }}"
+                        data-track="{{ $trackIndex }}"
+                        onmouseover="highlightRelatedWords(this)"
+                        onmouseout="unhighlightRelatedWords(this)"
                       >
                         {{ $wordCount.Word }}:
                         {{ $wordCount.Count }}
@@ -166,42 +176,56 @@
       </div>
     </div>
 
-    <script>
-      function highlightWord(word, index) {
-        const wordSpans = document.querySelectorAll(`#lyricsText${index} span`);
-        wordSpans.forEach((span) => {
-          if (
-            span.textContent.trim().toLowerCase() === word.trim().toLowerCase()
-          ) {
-            span.classList.add("highlighted");
-          }
-        });
+  <script>
+    function escapeSelector(word) {
+        return word.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+    }
 
-        const wordCountElement = document.getElementById(
-          `wordCount${index}-${word.toLowerCase()}`,
-        );
-        if (wordCountElement) {
-          wordCountElement.classList.add("highlighted");
+    function highlightRelatedWords(element) {
+        const word = escapeSelector(element.dataset.word);
+        const trackIndex = element.dataset.track;
+        const selector = `[data-word="${word}"][data-track="${trackIndex}"]`;
+        const relatedWords = document.querySelectorAll(selector);
+        relatedWords.forEach(el => el.classList.add('highlighted'));
+    }
+
+    function unhighlightRelatedWords(element) {
+        const word = escapeSelector(element.dataset.word);
+        const trackIndex = element.dataset.track;
+        const selector = `[data-word="${word}"][data-track="${trackIndex}"]`;
+
+        console.log(`Unhighlight selector: "${selector}"`);
+        const relatedWords = document.querySelectorAll(selector);
+        relatedWords.forEach(el => el.classList.remove('highlighted'));
+    }
+
+    function wrapLyricsWordsWithSpans(trackIndex) {
+        const lyricsElement = document.getElementById(`lyrics${trackIndex}`);
+        if (lyricsElement) {
+            const lines = lyricsElement.innerHTML.split(/\n/);
+            lyricsElement.innerHTML = lines.map(line => {
+                const words = line.trim().split(/(\s+)/);
+                return words.map(word => {
+                    const cleanedWord = cleanWord(word);
+                    return cleanedWord.length > 0
+                        ? `<span data-word="${cleanedWord}" data-track="${trackIndex}" onmouseover="highlightRelatedWords(this)" onmouseout="unhighlightRelatedWords(this)">${word}</span>`
+                        : word;
+                }).join('');
+            }).join('\n');
         }
-      }
+    }
 
-      function unhighlightWord(word, index) {
-        const wordSpans = document.querySelectorAll(`#lyricsText${index} span`);
-        wordSpans.forEach((span) => {
-          if (
-            span.textContent.trim().toLowerCase() === word.trim().toLowerCase()
-          ) {
-            span.classList.remove("highlighted");
-          }
-        });
+    function cleanWord(word) {
+        // Normalize the word by removing leading/trailing non-alphanumeric characters
+        word = word.toLowerCase().replace(/^[^a-zA-Z0-9À-ž'-]+|[^a-zA-Z0-9À-ž'-]+$/g, '');
+        return word;
+    }
 
-        const wordCountElement = document.getElementById(
-          `wordCount${index}-${word.toLowerCase()}`,
-        );
-        if (wordCountElement) {
-          wordCountElement.classList.remove("highlighted");
-        }
-      }
+    document.addEventListener("DOMContentLoaded", function() {
+        {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
+            wrapLyricsWordsWithSpans({{ $trackIndex }});
+        {{ end }}
+    });
     </script>
   </body>
 </html>
