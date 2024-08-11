@@ -67,7 +67,7 @@ func TestCalculateAndSortWordFrequencies(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := CalculateAndSortWordFrequencies(tt.lyrics)
+			result, _, _, _ := CalculateAndSortWordFrequencies(tt.lyrics)
 			if !reflect.DeepEqual(result, tt.expected) {
 				t.Errorf("CalculateAndSortWordFrequencies(%q) = %v, want %v", tt.lyrics, result, tt.expected)
 			}

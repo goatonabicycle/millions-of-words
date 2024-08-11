@@ -6,18 +6,21 @@ type WordCount struct {
 }
 
 type BandcampAlbumData struct {
-	ID                   string              `json:"id"`
-	ArtistName           string              `json:"artist_name"`
-	AlbumName            string              `json:"album_name"`
-	Description          string              `json:"description"`
-	ImageUrl             string              `json:"image_url"`
-	BandcampUrl          string              `json:"bandcamp_url"`
-	Tracks               []BandcampTrackData `json:"tracks"`
-	TotalAlbumLength     string              `json:"total_album_length"`
-	AlbumWordFrequencies []WordCount         `json:"-"`
-	TotalWords           int                 `json:"-"`
-	AverageWordsPerTrack int                 `json:"-"`
-	TotalUniqueWords     int                 `json:"-"`
+	ID                     string              `json:"id"`
+	ArtistName             string              `json:"artist_name"`
+	AlbumName              string              `json:"album_name"`
+	Description            string              `json:"description"`
+	ImageUrl               string              `json:"image_url"`
+	BandcampUrl            string              `json:"bandcamp_url"`
+	Tracks                 []BandcampTrackData `json:"tracks"`
+	TotalAlbumLength       string              `json:"total_album_length"`
+	AlbumWordFrequencies   []WordCount         `json:"-"`
+	TotalWords             int                 `json:"-"`
+	AverageWordsPerTrack   int                 `json:"-"`
+	TotalUniqueWords       int                 `json:"-"`
+	TotalVowelCount        int                 `json:"-"`
+	TotalConsonantCount    int                 `json:"-"`
+	WordLengthDistribution map[int]int         `json:"-"`
 }
 
 type BandcampTrackData struct {

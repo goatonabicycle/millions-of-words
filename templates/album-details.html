@@ -22,6 +22,8 @@
       .album-cover {
         max-width: 350px;
         height: auto;
+        margin: 0 auto;
+        display: block;
       }
 
       .lyrics {
@@ -41,61 +43,156 @@
           column-count: 1;
         }
       }
+
+      .album-details-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      @media (max-width: 1024px) {
+        .album-details-container {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .album-details-container {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .album-details-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .album-details-grid div {
+        background-color: #2d3748;
+        color: #e2e8f0;
+        padding: 8px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .details-section {
+        background-color: #1e293b;
+        border-radius: 8px;
+        padding: 10px;
+        font-size: 0.8rem;
+      }
+
+      .details-section h3 {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #e2e8f0;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      .flex-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+        gap: 10px;
+      }
+
+      .flex-grid div {
+        background-color: #2d3748;
+        color: #e2e8f0;
+        padding: 8px;
+        border-radius: 6px;
+        text-align: left;
+        font-size: 0.8rem;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .album-cover-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      @media (max-width: 768px) {
+        .album-cover {
+          max-width: 100%;
+        }
+      }
     </style>
   </head>
-  <body class="dark:bg-gray-800 dark:text-gray-200 p-6">
-    <div id="album-details" class="p-6">
-      <h2 class="text-4xl font-bold p-4 text-center">
-        {{ .Album.ArtistName }} -
-        {{ .Album.AlbumName }}
+  <body class="dark:bg-gray-800 dark:text-gray-200 p-4">
+    <div id="album-details">
+      <h2 class="text-4xl font-bold text-center">
+        {{ .Album.ArtistName }} - {{ .Album.AlbumName }} <br />
+        <a
+          href="{{ .Album.BandcampUrl }}"
+          target="_blank"
+          class="text-sm underline"
+          >See on Bandcamp</a
+        >
       </h2>
 
-      <div class="flex justify-between items-start mt-6">
-        <div class="flex-1">
-          <div id="albumWordFreqs" class="album-word-frequencies">
-            <h3 class="text-xl font-bold mb-4">Album Details</h3>
-            <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
-              <p>
-                <strong>Total album duration:</strong>
-                {{ .Album.TotalAlbumLength }}
-              </p>
-              <p>
-                <strong>Total number of words for this album:</strong>
-                {{ .Album.TotalWords }}
-              </p>
-              <p>
-                <strong>Average number of words per track:</strong>
-                {{ .Album.AverageWordsPerTrack }}
-              </p>
-              <p>
-                <strong>Total number of unique words for this album:</strong>
-                {{ .Album.TotalUniqueWords }}
-              </p>
-              <p>
-                <strong>Words per minute (WPM) for the album:</strong>
-                {{ printf "%.2f" .AlbumWPM }}
-              </p>
+      <div class="album-details-container">
+        <div class="details-section">
+          <h3>Album Details</h3>
+          <div class="album-details-grid">
+            <div>
+              <span>Total Duration:</span>
+              <span>{{ .Album.TotalAlbumLength }}</span>
             </div>
-
-            <div class="mt-4">
-              <strong>Top 20 words:</strong><br />
-              <div class="flex flex-wrap gap-2">
-                {{ range $index, $wordCount := .Album.AlbumWordFrequencies }}
-                  <div
-                    class="inline-flex items-center bg-gray-700 text-gray-200 rounded-full px-3 py-1 text-sm font-medium shadow-md"
-                    id="wordCount{{ $index }}-{{ $wordCount.Word }}"
-                    data-word="{{ $wordCount.Word }}"
-                    data-track="{{ $index }}"
-                  >
-                    {{ $wordCount.Word }}
-                  </div>
-                {{ end }}
-              </div>
+            <div>
+              <span>Total Words:</span>
+              <span>{{ .Album.TotalWords }}</span>
+            </div>
+            <div>
+              <span>Avg Words/Track:</span>
+              <span>{{ .Album.AverageWordsPerTrack }}</span>
+            </div>
+            <div>
+              <span>Unique Words:</span>
+              <span>{{ .Album.TotalUniqueWords }}</span>
+            </div>
+            <div>
+              <span>Vowel Count:</span>
+              <span>{{ .Album.TotalVowelCount }}</span>
+            </div>
+            <div>
+              <span>Consonant Count:</span>
+              <span>{{ .Album.TotalConsonantCount }}</span>
+            </div>
+            <div>
+              <span>WPM:</span>
+              <span>{{ printf "%.2f" .AlbumWPM }}</span>
             </div>
           </div>
         </div>
 
-        <div class="ml-8">
+        <div class="details-section">
+          <h3>Top 20 Words</h3>
+          <div class="flex-grid">
+            {{ range $index, $wordCount := .Album.AlbumWordFrequencies }}
+              <div>
+                <span>{{ $wordCount.Word }}:</span>
+                <span>{{ $wordCount.Count }}</span>
+              </div>
+            {{ end }}
+          </div>
+          <h3 class="mt-4">Word Length Distribution</h3>
+          <div class="flex-grid">
+            {{ range $length, $count := .Album.WordLengthDistribution }}
+              <div>
+                <span>{{ $length }} :</span>
+                <span>{{ $count }}</span>
+              </div>
+            {{ end }}
+          </div>
+        </div>
+
+        <div class="album-cover-container">
           <img
             src="{{ .Album.ImageUrl }}"
             alt="{{ .Album.AlbumName }} Cover"
@@ -176,30 +273,28 @@
       </div>
     </div>
 
-  <script>
-    function escapeSelector(word) {
+    <script>
+      function escapeSelector(word) {
         return word.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, '\\$1');
-    }
+      }
 
-    function highlightRelatedWords(element) {
+      function highlightRelatedWords(element) {
         const word = escapeSelector(element.dataset.word);
         const trackIndex = element.dataset.track;
         const selector = `[data-word="${word}"][data-track="${trackIndex}"]`;
         const relatedWords = document.querySelectorAll(selector);
         relatedWords.forEach(el => el.classList.add('highlighted'));
-    }
+      }
 
-    function unhighlightRelatedWords(element) {
+      function unhighlightRelatedWords(element) {
         const word = escapeSelector(element.dataset.word);
         const trackIndex = element.dataset.track;
         const selector = `[data-word="${word}"][data-track="${trackIndex}"]`;
-
-        console.log(`Unhighlight selector: "${selector}"`);
         const relatedWords = document.querySelectorAll(selector);
         relatedWords.forEach(el => el.classList.remove('highlighted'));
-    }
+      }
 
-    function wrapLyricsWordsWithSpans(trackIndex) {
+      function wrapLyricsWordsWithSpans(trackIndex) {
         const lyricsElement = document.getElementById(`lyrics${trackIndex}`);
         if (lyricsElement) {
             const lines = lyricsElement.innerHTML.split(/\n/);
