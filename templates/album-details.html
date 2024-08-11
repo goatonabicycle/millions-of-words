@@ -4,6 +4,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ .Album.ArtistName }} - {{ .Album.AlbumName }}</title>
+
+    <meta
+      property="og:title"
+      content="{{ .Album.ArtistName }} - {{ .Album.AlbumName }}"
+    />
+    <meta property="og:type" content="music.album" />
+    <meta property="og:url" content="{{ .Album.PageUrl }}" />
+    <meta property="og:image" content="{{ .Album.ImageUrl }}" />
+    <meta property="og:description" content="{{ .Album.Description }}" />
+    <meta property="og:site_name" content="My Music Website" />
+    <meta property="og:locale" content="en_US" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="{{ .Album.ArtistName }} - {{ .Album.AlbumName }}"
+    />
+    <meta name="twitter:description" content="{{ .Album.Description }}" />
+    <meta name="twitter:image" content="{{ .Album.ImageUrl }}" />
+    <meta name="twitter:site" content="@YourTwitterHandle" />
+    <meta name="twitter:creator" content="@ArtistTwitterHandle" />
+
+    <meta name="description" content="{{ .Album.Description }}" />
+
     <script src="https://unpkg.com/htmx.org"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
     <style>
