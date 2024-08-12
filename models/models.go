@@ -12,6 +12,7 @@ type BandcampAlbumData struct {
 	Description            string              `json:"description"`
 	ImageUrl               string              `json:"image_url"`
 	BandcampUrl            string              `json:"bandcamp_url"`
+	AmpwallUrl             string              `json:"ampwall_url"`
 	Tracks                 []BandcampTrackData `json:"tracks"`
 	TotalAlbumLength       string              `json:"total_album_length"`
 	AlbumWordFrequencies   []WordCount         `json:"-"`
