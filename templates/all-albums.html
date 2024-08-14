@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Millions of Words</title>
+
+    <meta property="og:title" content="Millions of Words - Explore Albums" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://millionsofwords.com" />
+
+    <meta
+      property="og:description"
+      content="Discover albums and explore detailed word analysis for your favorite music."
+    />
+    <meta property="og:site_name" content="Millions of Words" />
+    <meta property="og:locale" content="en_US" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Millions of Words - Explore Albums" />
+    <meta
+      name="twitter:description"
+      content="Discover albums and explore detailed word analysis for your favorite music."
+    />
+
+    <meta name="twitter:site" content="@gruglistenmusic" />
+    <meta name="twitter:creator" content="@gruglistenmusic" />
+
+    <meta
+      name="description"
+      content="Discover albums and explore detailed word analysis for your favorite music."
+    />
+
+    <script src="https://unpkg.com/htmx.org"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css"
+    />
+
+    <script>
+      $(document).ready(function () {
+        $("#albums-table").DataTable({
+          paging: false,
+          ordering: true,
+          info: false,
+          searching: false,
+          columnDefs: [{ orderable: false, targets: 0 }],
+        });
+      });
+    </script>
+  </head>
+  <body class="mx-auto my-8 dark:bg-gray-900 dark:text-gray-200">
+    <div class="overflow-x-auto">
+      <table id="albums-table" class="min-w-full table-auto border-collapse">
+        <thead>
+          <tr class="bg-gray-700 text-gray-200">
+            <th class="p-4 text-left">Cover</th>
+            <th class="p-4 text-left">Artist</th>
+            <th class="p-4 text-left">Album</th>
+            <th class="p-4 text-left">Total Length</th>
+            <th class="p-4 text-left">Total Words</th>
+            <th class="p-4 text-left">Avg. Words/Track</th>
+            <th class="p-4 text-left">Unique Words</th>
+            <th class="p-4 text-left">Vowel Count</th>
+            <th class="p-4 text-left">Consonant Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{ range .albums }}
+            <tr class="bg-gray-800 hover:bg-gray-700">
+              <td class="p-4">
+                <a href="/album/{{ .ID }}">
+                  <img
+                    src="{{ .ImageUrl }}"
+                    alt="Album cover"
+                    class="w-16 h-16 rounded-lg object-cover"
+                  />
+                </a>
+              </td>
+              <td class="p-4">{{ .ArtistName }}</td>
+              <td class="p-4">{{ .AlbumName }}</td>
+              <td class="p-4">{{ .TotalAlbumLength }}</td>
+              <td class="p-4">{{ .TotalWords }}</td>
+              <td class="p-4">{{ .AverageWordsPerTrack }}</td>
+              <td class="p-4">{{ .TotalUniqueWords }}</td>
+              <td class="p-4">{{ .TotalVowelCount }}</td>
+              <td class="p-4">{{ .TotalConsonantCount }}</td>
+            </tr>
+          {{ end }}
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

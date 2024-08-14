@@ -53,6 +53,7 @@ func main() {
 
 	e.GET("/", indexHandler)
 	e.GET("/all-words", allWordsHandler)
+	e.GET("/all-albums", allAlbumsHandler)
 	e.GET("/album/:id", albumDetailsHandler)
 	e.GET("/search-albums", searchAlbumsHandler)
 
@@ -61,6 +62,12 @@ func main() {
 
 func indexHandler(c echo.Context) error {
 	return c.Render(http.StatusOK, "index.html", map[string]interface{}{
+		"albums": albums,
+	})
+}
+
+func allAlbumsHandler(c echo.Context) error {
+	return c.Render(http.StatusOK, "all-albums.html", map[string]interface{}{
 		"albums": albums,
 	})
 }
@@ -292,6 +299,52 @@ func loadAlbumsDataFromJsonFiles() {
 			continue
 		}
 
+		calculateAlbumMetrics(&album)
+
 		albums = append(albums, album)
 	}
+}
+
+func calculateAlbumMetrics(album *models.BandcampAlbumData) {
+	totalWords := 0
+	totalVowelCount := 0
+	totalConsonantCount := 0
+	wordLengthDistribution := make(map[int]int)
+	uniqueWordsMap := make(map[string]struct{})
+
+	var totalAlbumDuration time.Duration
+
+	for _, track := range album.Tracks {
+		sortedWordCounts, vowels, consonants, wordLengths := words.CalculateAndSortWordFrequencies(track.Lyrics)
+		wordCount := len(strings.Fields(track.Lyrics))
+		totalWords += wordCount
+		totalVowelCount += vowels
+		totalConsonantCount += consonants
+
+		trackDuration, err := time.ParseDuration(track.Duration)
+		if err != nil {
+			log.Printf("Error parsing track duration for track %s: %v", track.Name, err)
+		}
+		totalAlbumDuration += trackDuration
+
+		for length, count := range wordLengths {
+			wordLengthDistribution[length] += count
+		}
+
+		for _, wc := range sortedWordCounts {
+			uniqueWordsMap[wc.Word] = struct{}{}
+		}
+	}
+
+	album.TotalWords = totalWords
+	if len(album.Tracks) > 0 {
+		album.AverageWordsPerTrack = totalWords / len(album.Tracks)
+	} else {
+		album.AverageWordsPerTrack = 0
+	}
+	album.TotalUniqueWords = len(uniqueWordsMap)
+	album.TotalVowelCount = totalVowelCount
+	album.TotalConsonantCount = totalConsonantCount
+	album.WordLengthDistribution = wordLengthDistribution
+	album.TotalAlbumLength = totalAlbumDuration.String()
 }
