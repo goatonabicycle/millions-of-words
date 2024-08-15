@@ -33,65 +33,98 @@
 
     <script src="https://unpkg.com/htmx.org"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <link
+      href="https://unpkg.com/tabulator-tables@5.2.7/dist/css/tabulator.min.css"
       rel="stylesheet"
-      href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css"
     />
+    <style>
+      .tabulator .tabulator-header {
+        background-color: #1f2937;
+        color: #e5e7eb;
+      }
+
+      .tabulator .tabulator-header .tabulator-col {
+        background-color: #1f2937;
+        color: #e5e7eb;
+        border-right: 1px solid #374151;
+      }
+
+      .tabulator .tabulator-row {
+        background-color: #111827;
+        color: #d1d5db;
+        border-bottom: 2px solid #374151;
+      }
+
+      .tabulator .tabulator-row:hover {
+        background-color: #374151;
+      }
+
+      .tabulator-cell {
+        padding: 12px;
+        font-size: 16px;
+        white-space: normal;
+        word-wrap: break-word;
+      }
+
+      .tabulator-cell img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
+
+      .tabulator-cell img:hover {
+        transform: scale(1.2);
+      }
+    </style>
+    <script src="https://unpkg.com/tabulator-tables@5.2.7/dist/js/tabulator.min.js"></script>
+  </head>
+  <body class="mx-auto my-8 dark:bg-gray-900 dark:text-gray-200">
+    <div id="albums-table" class="overflow-x-auto"></div>
 
     <script>
-      $(document).ready(function () {
-        $("#albums-table").DataTable({
-          paging: false,
-          ordering: true,
-          info: false,
-          searching: false,
-          columnDefs: [{ orderable: false, targets: 0 }],
+      document.addEventListener('DOMContentLoaded', function () {
+        var tableData = [
+          {{ range .albums }}
+          {
+            id: "{{ .ID }}",
+            cover: "<a href='/album/{{ .ID }}'><img src='{{ .ImageUrl }}' alt='Album cover' class='rounded-lg w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 transition-transform duration-300 ease-in-out hover:scale-110'/></a>",
+            album: "{{ .ArtistName }} - {{ .AlbumName }}",
+            totalLength: "{{ .TotalAlbumLength }}",
+            totalWords: "{{ .TotalWords }}",
+            avgWordsTrack: "{{ .AverageWordsPerTrack }}",
+            uniqueWords: "{{ .TotalUniqueWords }}",
+            vowelCount: "{{ .TotalVowelCount }}",
+            consonantCount: "{{ .TotalConsonantCount }}"
+          },
+          {{ end }}
+        ];
+
+        var table = new Tabulator("#albums-table", {
+          data: tableData,
+          layout: "fitColumns",
+          responsiveLayout: "collapse",
+          tooltips: true,
+          history: true,
+          pagination: "local",
+          paginationSize: 100,
+          movableColumns: true,
+          resizableRows: true,
+          initialSort: [
+            { column: "album", dir: "asc" },
+          ],
+          columns: [
+            { title: "Cover", field: "cover", formatter: "html", width: 120, responsive: 0 },
+            { title: "Album", field: "album", headerSort: true, widthGrow: 2, minWidth: 250, responsive: 0 },
+            { title: "Total Length", field: "totalLength", headerSort: true, widthGrow: 1, responsive: 2 },
+            { title: "Total Words", field: "totalWords", headerSort: true, widthGrow: 1, responsive: 2 },
+            { title: "Avg. Words/Track", field: "avgWordsTrack", headerSort: true, widthGrow: 1, responsive: 3 },
+            { title: "Unique Words", field: "uniqueWords", headerSort: true, widthGrow: 1, responsive: 3 },
+            { title: "Vowel Count", field: "vowelCount", headerSort: true, widthGrow: 1, responsive: 3 },
+            { title: "Consonant Count", field: "consonantCount", headerSort: true, widthGrow: 1, responsive: 3 },
+          ],
         });
       });
     </script>
-  </head>
-  <body class="mx-auto my-8 dark:bg-gray-900 dark:text-gray-200">
-    <div class="overflow-x-auto">
-      <table id="albums-table" class="min-w-full table-auto border-collapse">
-        <thead>
-          <tr class="bg-gray-700 text-gray-200">
-            <th class="p-4 text-left">Cover</th>
-            <th class="p-4 text-left">Artist</th>
-            <th class="p-4 text-left">Album</th>
-            <th class="p-4 text-left">Total Length</th>
-            <th class="p-4 text-left">Total Words</th>
-            <th class="p-4 text-left">Avg. Words/Track</th>
-            <th class="p-4 text-left">Unique Words</th>
-            <th class="p-4 text-left">Vowel Count</th>
-            <th class="p-4 text-left">Consonant Count</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{ range .albums }}
-            <tr class="bg-gray-800 hover:bg-gray-700">
-              <td class="p-4">
-                <a href="/album/{{ .ID }}">
-                  <img
-                    src="{{ .ImageUrl }}"
-                    alt="Album cover"
-                    class="w-16 h-16 rounded-lg object-cover"
-                  />
-                </a>
-              </td>
-              <td class="p-4">{{ .ArtistName }}</td>
-              <td class="p-4">{{ .AlbumName }}</td>
-              <td class="p-4">{{ .TotalAlbumLength }}</td>
-              <td class="p-4">{{ .TotalWords }}</td>
-              <td class="p-4">{{ .AverageWordsPerTrack }}</td>
-              <td class="p-4">{{ .TotalUniqueWords }}</td>
-              <td class="p-4">{{ .TotalVowelCount }}</td>
-              <td class="p-4">{{ .TotalConsonantCount }}</td>
-            </tr>
-          {{ end }}
-        </tbody>
-      </table>
-    </div>
   </body>
 </html>
