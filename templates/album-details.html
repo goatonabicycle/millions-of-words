@@ -1,135 +1,20 @@
-<!doctype html>
-<html lang="en" class="dark">
-   {{ template "album-details-header.html" . }}
-    <style>
-      .sticky-container {
-        position: -webkit-sticky;
-        position: sticky;
-        top: 100px;
-      }
+<!DOCTYPE html>
+<html
+  lang="en"
+  class="dark">
+  {{ template "album-details-header.html" . }}
 
-      .track-info {
-        max-width: 200px;
-        font-size: 0.85rem;
-        line-height: 1.2;
-      }
-
-      .album-cover {
-        max-width: 350px;
-        height: auto;
-        margin: 0 auto;
-        display: block;
-      }
-
-      .lyrics {
-        column-count: 2;
-        column-gap: 20px;
-      }
-
-      .lyrics .highlighted,
-      .word-counts .highlighted {
-        background-color: #fcd34d;
-        color: #000;
-        text-decoration: underline;
-      }
-
-      @media (max-width: 768px) {
-        .lyrics {
-          column-count: 1;
-        }
-      }
-
-      .album-details-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 20px;
-        margin-top: 20px;
-      }
-
-      @media (max-width: 1024px) {
-        .album-details-container {
-          grid-template-columns: 1fr 1fr;
-        }
-      }
-
-      @media (max-width: 768px) {
-        .album-details-container {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      .album-details-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-
-      .album-details-grid div {
-        background-color: #2d3748;
-        color: #e2e8f0;
-        padding: 8px;
-        border-radius: 6px;
-        font-size: 0.8rem;
-        display: flex;
-        justify-content: space-between;
-      }
-
-      .details-section {
-        background-color: #1e293b;
-        border-radius: 8px;
-        padding: 10px;
-        font-size: 0.8rem;
-      }
-
-      .details-section h3 {
-        font-size: 1.1rem;
-        font-weight: bold;
-        color: #e2e8f0;
-        margin-bottom: 10px;
-        text-align: center;
-      }
-
-      .flex-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-        gap: 10px;
-      }
-
-      .flex-grid div {
-        background-color: #2d3748;
-        color: #e2e8f0;
-        padding: 8px;
-        border-radius: 6px;
-        text-align: left;
-        font-size: 0.8rem;
-        display: flex;
-        justify-content: space-between;
-      }
-
-      .album-cover-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      @media (max-width: 768px) {
-        .album-cover {
-          max-width: 100%;
-        }
-      }
-    </style>
-  </head>
   <body class="dark:bg-gray-800 dark:text-gray-200 p-4">
     <div id="album-details">
       <h2 class="text-4xl font-bold text-center">
         {{ .Album.ArtistName }} - {{ .Album.AlbumName }} <br />
         {{ if .Album.AmpwallUrl }}
-          <a
-            href="{{ .Album.AmpwallUrl }}"
-            target="_blank"
-            class="text-sm underline"
-            >See on Ampwall</a
-          >
+        <a
+          href="{{ .Album.AmpwallUrl }}"
+          target="_blank"
+          class="text-sm underline"
+          >See on Ampwall</a
+        >
         {{ end }}
         <a
           href="{{ .Album.BandcampUrl }}"
@@ -178,19 +63,19 @@
           <h3>Top 20 Words</h3>
           <div class="flex-grid">
             {{ range $index, $wordCount := .Album.AlbumWordFrequencies }}
-              <div>
-                <span>{{ $wordCount.Word }}:</span>
-                <span>{{ $wordCount.Count }}</span>
-              </div>
+            <div>
+              <span>{{ $wordCount.Word }}:</span>
+              <span>{{ $wordCount.Count }}</span>
+            </div>
             {{ end }}
           </div>
           <h3 class="mt-4">Word Length Distribution</h3>
           <div class="flex-grid">
             {{ range $length, $count := .Album.WordLengthDistribution }}
-              <div>
-                <span>{{ $length }} :</span>
-                <span>{{ $count }}</span>
-              </div>
+            <div>
+              <span>{{ $length }} :</span>
+              <span>{{ $count }}</span>
+            </div>
             {{ end }}
           </div>
         </div>
@@ -199,139 +84,133 @@
           <img
             src="{{ .Album.ImageUrl }}"
             alt="{{ .Album.AlbumName }} Cover"
-            class="album-cover rounded-md shadow-md"
-          />
+            class="album-cover rounded-md shadow-md" />
         </div>
       </div>
 
       <div class="mt-8">
         {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
-          <div class="track mb-6">
-            <h3 class="text-2xl font-semibold text-center text-white">
-              {{ $trackWithDetails.Track.Name }}
-            </h3>
+        <div class="track mb-6">
+          <h3 class="text-2xl font-semibold text-center text-white">
+            {{ $trackWithDetails.Track.Name }}
+          </h3>
+          <div
+            class="track-info-card bg-blue-600 text-white p-4 rounded-md shadow-md mt-2">
+            <p>
+              <strong>Length:</strong> {{ $trackWithDetails.Track.Duration }}
+            </p>
+            <p>
+              <strong>Total Words:</strong> {{ $trackWithDetails.TotalWords }}
+            </p>
+            <p>
+              <strong>Unique Words:</strong>
+              {{ $trackWithDetails.UniqueWords }}
+            </p>
+            <p>
+              <strong>WPM:</strong>
+              {{ printf "%.2f" $trackWithDetails.WordsPerMinute }}
+            </p>
+          </div>
+          <div
+            id="trackDetails{{ $trackIndex }}"
+            class="lg:flex mt-4 gap-2">
             <div
-              class="track-info-card bg-blue-600 text-white p-4 rounded-md shadow-md mt-2"
-            >
-              <p>
-                <strong>Length:</strong> {{ $trackWithDetails.Track.Duration }}
-              </p>
-              <p>
-                <strong>Total Words:</strong> {{ $trackWithDetails.TotalWords }}
-              </p>
-              <p>
-                <strong>Unique Words:</strong>
-                {{ $trackWithDetails.UniqueWords }}
-              </p>
-              <p>
-                <strong>WPM:</strong>
-                {{ printf "%.2f" $trackWithDetails.WordsPerMinute }}
-              </p>
-            </div>
-            <div id="trackDetails{{ $trackIndex }}" class="lg:flex mt-4 gap-2">
-              <div
-                class="lyrics bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1"
-                id="lyricsText{{ $trackIndex }}"
-              >
-                {{ if $trackWithDetails.Track.Lyrics }}
-                  <pre
-                    class="whitespace-pre-wrap text-xs leading-4"
-                    id="lyrics{{ $trackIndex }}"
-                  >
+              class="lyrics bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1"
+              id="lyricsText{{ $trackIndex }}">
+              {{ if $trackWithDetails.Track.Lyrics }}
+              <pre
+                class="whitespace-pre-wrap text-xs leading-4"
+                id="lyrics{{ $trackIndex }}">
                     {{ $trackWithDetails.FormattedLyrics }}
                   </pre
-                  >
-                {{ else }}
-                  <p>This track has no lyrics.</p>
-                {{ end }}
-              </div>
-
-              <div
-                class="word-counts bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1"
               >
-                <div class="sticky-container">
-                  <h4 class="font-semibold mb-2 text-indigo-600">
-                    Word Counts
-                  </h4>
-                  <div class="flex flex-wrap gap-2">
-                    {{ range $wordIndex, $wordCount := $trackWithDetails.SortedWordCounts }}
-                      <div
-                        class="inline-flex items-center bg-indigo-600 text-white rounded-full px-2 py-1 text-sm font-medium cursor-pointer shadow-md transition-colors hover:bg-indigo-500"
-                        id="wordCount{{ $trackIndex }}-{{ $wordCount.Word }}"
-                        data-word="{{ $wordCount.Word }}"
-                        data-track="{{ $trackIndex }}"
-                        onmouseover="highlightRelatedWords(this)"
-                        onmouseout="unhighlightRelatedWords(this)"
-                      >
-                        {{ $wordCount.Word }}:
-                        {{ $wordCount.Count }}
-                      </div>
-                    {{ end }}
+              {{ else }}
+              <p>This track has no lyrics.</p>
+              {{ end }}
+            </div>
+
+            <div
+              class="word-counts bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1">
+              <div class="sticky-container">
+                <h4 class="font-semibold mb-2 text-indigo-600">Word Counts</h4>
+                <div class="flex flex-wrap gap-2">
+                  {{ range $wordIndex, $wordCount :=
+                  $trackWithDetails.SortedWordCounts }}
+                  <div
+                    class="inline-flex items-center bg-indigo-600 text-white rounded-full px-2 py-1 text-sm font-medium cursor-pointer shadow-md transition-colors hover:bg-indigo-500"
+                    id="wordCount{{ $trackIndex }}-{{ $wordCount.Word }}"
+                    data-word="{{ $wordCount.Word }}"
+                    data-track="{{ $trackIndex }}"
+                    onmouseover="highlightRelatedWords(this)"
+                    onmouseout="unhighlightRelatedWords(this)">
+                    {{ $wordCount.Word }}: {{ $wordCount.Count }}
                   </div>
+                  {{ end }}
                 </div>
               </div>
             </div>
           </div>
+        </div>
         {{ end }}
       </div>
     </div>
 
     <script>
-      function escapeSelector(word) {
-        return word.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, '\\$1');
-      }
-
-      function highlightRelatedWords(element) {
-        const word = escapeSelector(element.dataset.word);
-        const trackIndex = element.dataset.track;
-        const selector = `[data-word="${word}"][data-track="${trackIndex}"]`;
-        const relatedWords = document.querySelectorAll(selector);
-        relatedWords.forEach(el => el.classList.add('highlighted'));
-      }
-
-      function unhighlightRelatedWords(element) {
-        const word = escapeSelector(element.dataset.word);
-        const trackIndex = element.dataset.track;
-        const selector = `[data-word="${word}"][data-track="${trackIndex}"]`;
-        const relatedWords = document.querySelectorAll(selector);
-        relatedWords.forEach(el => el.classList.remove('highlighted'));
-      }
-
-      function wrapLyricsWordsWithSpans(trackIndex) {
-        const lyricsElement = document.getElementById(`lyrics${trackIndex}`);
-        if (lyricsElement) {
-            const lines = lyricsElement.innerHTML.split(/\n/);
-            lyricsElement.innerHTML = lines.map(line => {
-                const words = line.trim().split(/(\s+)/);
-                return words.map(word => {
-                    const cleanedWord = cleanWord(word);
-                    return cleanedWord.length > 0
-                        ? `<span data-word="${cleanedWord}" data-track="${trackIndex}" onmouseover="highlightRelatedWords(this)" onmouseout="unhighlightRelatedWords(this)">${word}</span>`
-                        : word;
-                }).join('');
-            }).join('\n');
+        function escapeSelector(word) {
+          return word.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, '\\$1');
         }
-    }
 
-    function cleanWord(word) {
-        // Normalize the word by removing leading/trailing non-alphanumeric characters
-        word = word.toLowerCase().replace(/^[^a-zA-Z0-9À-ž'-]+|[^a-zA-Z0-9À-ž'-]+$/g, '');
-        return word;
-    }
+        function highlightRelatedWords(element) {
+          const word = escapeSelector(element.dataset.word);
+          const trackIndex = element.dataset.track;
+          const selector = `[data-word="${word}"][data-track="${trackIndex}"]`;
+          const relatedWords = document.querySelectorAll(selector);
+          relatedWords.forEach(el => el.classList.add('highlighted'));
+        }
 
-    document.addEventListener("DOMContentLoaded", function() {
-        {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
-            wrapLyricsWordsWithSpans({{ $trackIndex }});
-        {{ end }}
-    });
+        function unhighlightRelatedWords(element) {
+          const word = escapeSelector(element.dataset.word);
+          const trackIndex = element.dataset.track;
+          const selector = `[data-word="${word}"][data-track="${trackIndex}"]`;
+          const relatedWords = document.querySelectorAll(selector);
+          relatedWords.forEach(el => el.classList.remove('highlighted'));
+        }
+
+        function wrapLyricsWordsWithSpans(trackIndex) {
+          const lyricsElement = document.getElementById(`lyrics${trackIndex}`);
+          if (lyricsElement) {
+              const lines = lyricsElement.innerHTML.split(/\n/);
+              lyricsElement.innerHTML = lines.map(line => {
+                  const words = line.trim().split(/(\s+)/);
+                  return words.map(word => {
+                      const cleanedWord = cleanWord(word);
+                      return cleanedWord.length > 0
+                          ? `<span data-word="${cleanedWord}" data-track="${trackIndex}" onmouseover="highlightRelatedWords(this)" onmouseout="unhighlightRelatedWords(this)">${word}</span>`
+                          : word;
+                  }).join('');
+              }).join('\n');
+          }
+      }
+
+      function cleanWord(word) {
+          // Normalize the word by removing leading/trailing non-alphanumeric characters
+          word = word.toLowerCase().replace(/^[^a-zA-Z0-9À-ž'-]+|[^a-zA-Z0-9À-ž'-]+$/g, '');
+          return word;
+      }
 
       document.addEventListener("DOMContentLoaded", function() {
-            const url = window.location.href;
-            const ogUrlMeta = document.createElement('meta');
-            ogUrlMeta.setAttribute('property', 'og:url');
-            ogUrlMeta.setAttribute('content', url);
-            document.head.appendChild(ogUrlMeta);
-        });
+          {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
+              wrapLyricsWordsWithSpans({{ $trackIndex }});
+          {{ end }}
+      });
+
+        document.addEventListener("DOMContentLoaded", function() {
+              const url = window.location.href;
+              const ogUrlMeta = document.createElement('meta');
+              ogUrlMeta.setAttribute('property', 'og:url');
+              ogUrlMeta.setAttribute('content', url);
+              document.head.appendChild(ogUrlMeta);
+          });
     </script>
   </body>
 </html>

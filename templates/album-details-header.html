@@ -49,4 +49,122 @@
 
   <script src="https://unpkg.com/htmx.org"></script>
   <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+
+  <style>
+    .sticky-container {
+      position: -webkit-sticky;
+      position: sticky;
+      top: 100px;
+    }
+
+    .track-info {
+      max-width: 200px;
+      font-size: 0.85rem;
+      line-height: 1.2;
+    }
+
+    .album-cover {
+      max-width: 350px;
+      height: auto;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .lyrics {
+      column-count: 2;
+      column-gap: 20px;
+    }
+
+    .lyrics .highlighted,
+    .word-counts .highlighted {
+      background-color: #fcd34d;
+      color: #000;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .lyrics {
+        column-count: 1;
+      }
+    }
+
+    .album-details-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 1024px) {
+      .album-details-container {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .album-details-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .album-details-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .album-details-grid div {
+      background-color: #2d3748;
+      color: #e2e8f0;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .details-section {
+      background-color: #1e293b;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 0.8rem;
+    }
+
+    .details-section h3 {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #e2e8f0;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .flex-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+      gap: 10px;
+    }
+
+    .flex-grid div {
+      background-color: #2d3748;
+      color: #e2e8f0;
+      padding: 8px;
+      border-radius: 6px;
+      text-align: left;
+      font-size: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .album-cover-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    @media (max-width: 768px) {
+      .album-cover {
+        max-width: 100%;
+      }
+    }
+  </style>
 </head>
