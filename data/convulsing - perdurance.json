@@ -5,41 +5,50 @@
   "description": "",
   "image_url": "https://f4.bcbits.com/img/a3991786003_10.jpg",
   "bandcamp_url": "https://convulsing.bandcamp.com/album/perdurance",
+  "ampwall_url": "",
   "tracks": [
     {
       "name": "pentarch",
-      "duration": "5m31s",
+      "total_length": 331,
+      "formatted_length": "5m 31s",
       "lyrics": "as the years drag on\nburdensome accumulations\ntowing the yoke of history\ntilling arid soil\nonce defiant, honed and gleaming,\nmarred by regrets and defeats\nin private wars of little wider consequence\nthe blade now dull and heavy,\nfutile\n\nno closer than before\nthe end can never come\nonly a fool would seek\nrelease from his labours\nwithin my panopticon\nlashed with limbs outstretched\nfastened at the five points\ndislocated from the core\n\nwithering in stasis\nawaiting conclusion\n\nsearing heat of illumination\nceaseless pain of salvation\n\nsearing\nheat\nceaseless\npain"
     },
     {
       "name": "flayed",
-      "duration": "5m5s",
+      "total_length": 305,
+      "formatted_length": "5m 5s",
       "lyrics": "abuse cycles\nexpert cruelty\npunishment ritual\nthoughts piercing from within\n\ni know the way\nto cause the pain\nnecessary to know\nhurt my self\nagain\n\ni receive with anticipation\npeel away the mask\nwalk once more the pathway down\nfar beyond the threshold\n\nhurt my self\nhurt\n\nsuffering’s eternal gift\nre-open oldest wounds\nself-inflicted violence\n\nhurt my self\nagain\nagain\nagain\n\nflay me to the bone\ntear myself apart\nbeaten without mercy\n\nmind set upon itself\nrepeat the same mistakes\nritual punishment\nthis is all i know\n\nhurt my self\nagain\nagain\nagain\n\nhurt\n\nme\n\nagain"
     },
     {
       "name": "inner oceans",
-      "duration": "8m27s",
+      "total_length": 507,
+      "formatted_length": "8m 27s",
       "lyrics": "stranded in this vessel\nfar away from hope\ndrifting amid a restless calm \npersistent ache of body’s memory\n\ndull senses, phantom pain\nof struggles passed, of lonely deaths\nof painful rebirths\nfloating here abandoned\nawait the promised storms\n\ndrowning without warning\nmental tempest surge and swell\n\nsunburnt and exposed again\nat the mercy of the flood\nsmash me against eroded cliffs\npulverised to beads of sand\n\nonce more regain myself\nre-inhabiting the shell\ncorpse dredged up from ocean floor\nrinsed and ready\nto repeat\n\ndrowning without warning\nmental tempest surge and swell\novercome the boundaries\noverwhelming all defence\ntorrents of emotion swallow everything\nfrozen histories liquefied by prismatic hourglass\n\nset adrift on inner oceans"
     },
     {
       "name": "-",
-      "duration": "3m27s"
+      "total_length": 207,
+      "formatted_length": "3m 27s"
     },
     {
       "name": "gossamer pall",
-      "duration": "6m16s",
+      "total_length": 376,
+      "formatted_length": "6m 16s",
       "lyrics": "this veil lay upon me\nthin as spun gold\nheavier than all matter\ntransparent to all\nobscuring sight\n\nfalling within, gently bound\ntighten inescapable mantle\n\nin contemplation, still\nin languor, silent\ndwell here alone to consider it all\n\na gravelike serenity beneath misery’s shroud\n\ncaught in a web\nlacework of fear and doubt\nsmothering slowly\nuntil the flame is out"
     },
     {
       "name": "shattered temples",
-      "duration": "6m5s",
+      "total_length": 365,
+      "formatted_length": "6m 5s",
       "lyrics": "passenger to poisoned world\nruled by the whim of small men, piteous and shallow\nfalse heirs bold with facile prowess\nlamb in wolfskin, miserable and afraid\nstands upon a vale of blood and bone\nerecting monuments to vanity\nboot on the throat of humanity\n\nmanipulator, captor, oppressor \nhated circle of tyrants - feasting on suffering\ndrunk on grief\nfattened long on death’s bounty\n\ndethrone, banish, erase them all\nrender temples razed\nshatter icons and sweep them away\n\nnot a soul shall mourn the passing\nof a tyrant\n\nunder a stone with no inscription\nlay not even a fragment\nnot dust\nno trace\nno memory\n\nnothing at all"
     },
     {
       "name": "endurance",
-      "duration": "12m55s",
+      "total_length": 775,
+      "formatted_length": "12m 55s",
       "lyrics": "a sensation so familiar\nsubtle constriction, unrelenting\nlaboured breath\ni’ve grown old\ni’ve become so tired\nbut i go on\n\nfor the richness of life\nrevealed in small moments\nhow precious these things\nfor which to endure this world\n\nquickly forgotten\n\ndeep calls to deep\nin obsolete tongues\nseductive black speech\nlure souls to oblivion\npain and grief surround\nearth ablaze with hubris\nunceasing horrors yet unknown\nas serpent consumes itself\n\ncirca me ardet\net tenebrae nos vocat\nin terra pulchritudinis\nnutrio anima\n\nthe richness of life\nrevealed in all moments of patient reflection\nthe self is dissolved\na crystal logic connects all to the source\nhow precious the gift\nof breath\n\nthe eternal promise\nrevealed in brief kindness\nhow fragile the beauty\nfor which to resist all hells\nstrengthening my resolve\nto overcome old pain\ncast aside cloak of shadow\nand look upon the sun\n\nthe depth of a love\nrestores me in all moments\nhow precious you are\n\ni’ll endure a while longer"
     }
   ],
-  "total_album_length": "47m46s"
+  "total_length": 2866,
+  "formatted_length": "47m 46s"
 }

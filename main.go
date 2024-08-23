@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"time"
 
 	"millions-of-words/models"
 	"millions-of-words/words"
@@ -101,8 +100,6 @@ func albumDetailsHandler(c echo.Context) error {
 			}
 			tracksWithDetails := []TrackWithDetails{}
 
-			var totalAlbumDuration time.Duration
-
 			for _, track := range album.Tracks {
 				sortedWordCounts, vowels, consonants, wordLengths := words.CalculateAndSortWordFrequencies(track.Lyrics)
 				wordCount := len(strings.Fields(track.Lyrics))
@@ -120,14 +117,9 @@ func albumDetailsHandler(c echo.Context) error {
 					trackUniqueWordsMap[wc.Word] = struct{}{}
 				}
 
-				trackDuration, err := time.ParseDuration(track.Duration)
-				if err != nil {
-					log.Printf("Error parsing track duration for track %s: %v", track.Name, err)
-				}
-				totalAlbumDuration += trackDuration
 				wpm := 0.0
-				if trackDuration.Minutes() > 0 {
-					wpm = float64(wordCount) / trackDuration.Minutes()
+				if float64(track.TotalLength)/60 > 0 {
+					wpm = float64(wordCount) / (float64(track.TotalLength) / 60)
 				}
 
 				lyrics := template.HTML(track.Lyrics)
@@ -150,12 +142,10 @@ func albumDetailsHandler(c echo.Context) error {
 			album.TotalUniqueWords = len(uniqueWordsMap)
 			album.TotalVowelCount = totalVowelCount
 			album.TotalConsonantCount = totalConsonantCount
-			album.WordLengthDistribution = wordLengthDistribution
-			album.TotalAlbumLength = totalAlbumDuration.String()
 
 			albumWPM := 0.0
-			if totalAlbumDuration.Minutes() > 0 {
-				albumWPM = float64(totalWords) / totalAlbumDuration.Minutes()
+			if float64(album.TotalLength)/60 > 0 {
+				albumWPM = float64(totalWords) / (float64(album.TotalLength) / 60)
 			}
 
 			data := struct {
@@ -312,20 +302,12 @@ func calculateAlbumMetrics(album *models.BandcampAlbumData) {
 	wordLengthDistribution := make(map[int]int)
 	uniqueWordsMap := make(map[string]struct{})
 
-	var totalAlbumDuration time.Duration
-
 	for _, track := range album.Tracks {
 		sortedWordCounts, vowels, consonants, wordLengths := words.CalculateAndSortWordFrequencies(track.Lyrics)
 		wordCount := len(strings.Fields(track.Lyrics))
 		totalWords += wordCount
 		totalVowelCount += vowels
 		totalConsonantCount += consonants
-
-		trackDuration, err := time.ParseDuration(track.Duration)
-		if err != nil {
-			log.Printf("Error parsing track duration for track %s: %v", track.Name, err)
-		}
-		totalAlbumDuration += trackDuration
 
 		for length, count := range wordLengths {
 			wordLengthDistribution[length] += count
@@ -346,5 +328,5 @@ func calculateAlbumMetrics(album *models.BandcampAlbumData) {
 	album.TotalVowelCount = totalVowelCount
 	album.TotalConsonantCount = totalConsonantCount
 	album.WordLengthDistribution = wordLengthDistribution
-	album.TotalAlbumLength = totalAlbumDuration.String()
+	//album.TotalLength = totalAlbumDuration
 }

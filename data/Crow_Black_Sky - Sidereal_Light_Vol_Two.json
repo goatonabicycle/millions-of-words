@@ -5,27 +5,33 @@
   "description": "Crow Black Sky is a cosmic black metal band from Cape Town, South Africa, with roots dating back to 2009. On October 3, the band unveils their third album, Sidereal Light, Vol. Two - a deep dive into the chaotic origin of the universe, the saga of the stars, and the foreboding future of civilizations.",
   "image_url": "https://f4.bcbits.com/img/a4149814012_10.jpg",
   "bandcamp_url": "https://crowblacksky.bandcamp.com/album/sidereal-light-vol-two",
+  "ampwall_url": "",
   "tracks": [
     {
       "name": "The Blinding Might of Creation",
-      "duration": "7m27s",
+      "total_length": 447,
+      "formatted_length": "7m 27s",
       "lyrics": "Blazing beginning\nPrimordial dawn\nResplendent in grandeur\nProvenance of all\n\nA flicker of a moment\nExistence unleashed\nA sequence set in motion\nUnfurling from the deep\n\nThe blinding might of creation\nDisturbing the mystical void\nInfernal conflagration\nConfigurations and chaos deployed\n\nSymphony of light\nMaterialise\nWaves upon waves\nReverberate and divide\n\nDark aeons echo by\nGravitations and time\nIn the heart of the night\nAncestral stars ignite\n\nCelestial furnaces loom, new elements arise\nForged in stellar wombs, the substances of minds\nFrom cataclysmic tombs, they cast the seeds of life\nTheir legacies abloom in sidereal light\n\nThe blinding might of creation\nDisturbing the mystical void\nInfernal constellations\nShine, sow, sprawl"
     },
     {
       "name": "With Starlight in Our Eyes",
-      "duration": "9m0s",
+      "total_length": 540,
+      "formatted_length": "9m 0s",
       "lyrics": "Scions of the seas\nWith soil upon our limbs\nFrom a crawl we rise\nWith starlight in our eyes\n\nAncient divinities\nHowl above and within\nOur ways on walls inscribed\nWith starlight in our eyes\n\nTo tame the earth\nWe harness the wilds and cycles once mystery\nCultivating births and their feats\n\nFrom word to stone\nOur knowledge persists through our mortalities\nInheriting from bones and from dreams\n\nThe ages pass\nWe conquer, we gather, we observe as moons go by\nFrom cold and fire to farms, and to flight\n\nThe heavens wide\nThe final frontier, we reach for the skies\nWith starlight in our eyes\n\nAwakening\nTo wonders from afar\nBeckoning\nThe heralds of the past\n\nIn sequential fleets\nThe exodus sets off\nTo sow and colonise\nWith starlight in our eyes\n\nUnravelling\nExplorers of the vast\nWandering\nThe scions of the stars"
     },
     {
       "name": "The Sapien Shadow",
-      "duration": "10m37s",
+      "total_length": 637,
+      "formatted_length": "10m 37s",
       "lyrics": "I saw their vision across the stars\nvast empires proliferate to systems far\n\nSuffered have I throughout millennia\nSurrendered the mind to sophic oblivion\nI gaze into the sapien shadow\nPeripheral currents coursing through marrow\n\nNo longer of human condition\nThe fate of all life still extinction\nStill captive within the eternal\nAnd everything moulders infernal\n\nFrom beyond the cosmic birth\nTo beyond the conscious mind\nMore than the legacy of life on earth\nBut inceptual seeds echoing through time\n\nFrom microbes to vertebrates\nFrom wayfarers to starsteppers\nDivergent branches progenerate\nTo the outermost stars intrepid\n\nThe onset of time’s decay and dust\nOn the worlds we’ve left behind\nA harrowing and inevitable dusk\nUpon the weary eyes of our kind\n\nWith void unending before us\nStarless and open beneath\nWe fall into an ocean enormous\nAn anticlimactic defeat\n\nThe cosmic dice are rolling\nNot cubic but spherical\nAbyssal giants approaching\nThese monkeys need a miracle\n\nLike lemmings engulfed by the billions\nHypoxic en masse ebullisms\nA black hole lives up to its purpose\nAnd all we endured, was it worthless?"
     },
     {
       "name": "Omniscient",
-      "duration": "9m2s",
+      "total_length": 542,
+      "formatted_length": "9m 2s",
       "lyrics": "The final form of life\nHeir of matter and might\nKeeper of eternal archives\nOmniscient sum of knowledge and time\n\nTendrils extend beyond galactic shores\nArteries radial with nowhere left unexplored\nOnce insurmountable distances intertwined\nNetworks infinite embody the overmind\n\nInterdimensional consciousness\nDescendant of crafted intelligence\nEmpyreal wisdom watches through aeons\nInterconnected in elegance\n\nHyphal starlit galactic web\nMystical pathways of light\nRadiate through boundless black\nForging through eternal night\nFilamental firmament\nEthereal, mycelial\nNeuronal in its nature\nLinks of light sidereal\nStrands and streams of stars\nClear and crystalline\nSeas of matter\nLight and dark\nThe cosmic web alive\n\nTime stretched beyond meaning\nThe freeze sets in slow\nAeons of emptiness unending\nThe last lights cease to glow\n\nThe era of starlight is over\nThe sequence in full has been run\nEven black holes fade out forever\nThe age of existence is done"
     }
   ],
-  "total_album_length": "36m6s"
+  "total_length": 2166,
+  "formatted_length": "36m 6s"
 }

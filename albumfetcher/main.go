@@ -117,6 +117,7 @@ func fetchAlbumDataFromBandcamp(url string) (models.BandcampAlbumData, error) {
 		trackDuration, err := parseTrackDuration(trackDurationStr)
 		if err != nil {
 			log.Printf("Error parsing track duration for track %s: %v", trackTitle, err)
+			return
 		}
 
 		totalAlbumDuration += trackDuration
@@ -127,23 +128,25 @@ func fetchAlbumDataFromBandcamp(url string) (models.BandcampAlbumData, error) {
 		}
 
 		track := models.BandcampTrackData{
-			Name:     strings.TrimSpace(trackTitle),
-			Duration: trackDuration.String(),
-			Lyrics:   lyrics,
+			Name:            strings.TrimSpace(trackTitle),
+			TotalLength:     int(trackDuration.Seconds()),
+			FormattedLength: formatDuration(int(trackDuration.Seconds())),
+			Lyrics:          lyrics,
 		}
 
 		tracklist = append(tracklist, track)
 	})
 
 	return models.BandcampAlbumData{
-		ID:               strings.TrimSpace(artistName) + " - " + strings.TrimSpace(albumName),
-		ArtistName:       strings.TrimSpace(artistName),
-		AlbumName:        strings.TrimSpace(albumName),
-		Description:      strings.TrimSpace(description),
-		ImageUrl:         imageUrl,
-		Tracks:           tracklist,
-		TotalAlbumLength: totalAlbumDuration.String(),
-		BandcampUrl:      url,
+		ID:              strings.TrimSpace(artistName) + " - " + strings.TrimSpace(albumName),
+		ArtistName:      strings.TrimSpace(artistName),
+		AlbumName:       strings.TrimSpace(albumName),
+		Description:     strings.TrimSpace(description),
+		ImageUrl:        imageUrl,
+		Tracks:          tracklist,
+		TotalLength:     int(totalAlbumDuration.Seconds()),
+		FormattedLength: formatDuration(int(totalAlbumDuration.Seconds())),
+		BandcampUrl:     url,
 	}, nil
 }
 
@@ -193,4 +196,17 @@ func sanitizeFilenameFromURL(url string) string {
 	artist := parts[2]
 	album := parts[len(parts)-1]
 	return sanitizeFilename(artist + " - " + album)
+}
+
+func formatDuration(seconds int) string {
+	hours := seconds / 3600
+	minutes := (seconds % 3600) / 60
+	seconds = seconds % 60
+
+	if hours > 0 {
+		return fmt.Sprintf("%dh %dm %ds", hours, minutes, seconds)
+	} else if minutes > 0 {
+		return fmt.Sprintf("%dm %ds", minutes, seconds)
+	}
+	return fmt.Sprintf("%ds", seconds)
 }

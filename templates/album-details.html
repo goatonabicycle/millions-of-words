@@ -30,7 +30,7 @@
           <div class="album-details-grid">
             <div>
               <span>Total Duration:</span>
-              <span>{{ .Album.TotalAlbumLength }}</span>
+              <span>{{ .Album.FormattedLength }}</span>
             </div>
             <div>
               <span>Total Words:</span>
@@ -97,7 +97,8 @@
           <div
             class="track-info-card bg-blue-600 text-white p-4 rounded-md shadow-md mt-2">
             <p>
-              <strong>Length:</strong> {{ $trackWithDetails.Track.Duration }}
+              <strong>Length:</strong> {{
+              $trackWithDetails.Track.FormattedLength }}
             </p>
             <p>
               <strong>Total Words:</strong> {{ $trackWithDetails.TotalWords }}

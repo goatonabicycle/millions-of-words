@@ -14,7 +14,8 @@ type BandcampAlbumData struct {
 	BandcampUrl            string              `json:"bandcamp_url"`
 	AmpwallUrl             string              `json:"ampwall_url"`
 	Tracks                 []BandcampTrackData `json:"tracks"`
-	TotalAlbumLength       string              `json:"total_album_length"`
+	TotalLength            int                 `json:"total_length"`
+	FormattedLength        string              `json:"formatted_length"`
 	AlbumWordFrequencies   []WordCount         `json:"-"`
 	TotalWords             int                 `json:"-"`
 	AverageWordsPerTrack   int                 `json:"-"`
@@ -25,7 +26,8 @@ type BandcampAlbumData struct {
 }
 
 type BandcampTrackData struct {
-	Name     string `json:"name"`
-	Duration string `json:"duration"`
-	Lyrics   string `json:"lyrics,omitempty"`
+	Name            string `json:"name"`
+	TotalLength     int    `json:"total_length"`
+	FormattedLength string `json:"formatted_length"`
+	Lyrics          string `json:"lyrics,omitempty"`
 }

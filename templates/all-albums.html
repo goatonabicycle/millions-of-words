@@ -51,19 +51,25 @@
     <script src="https://unpkg.com/tabulator-tables@5.2.7/dist/js/tabulator.min.js"></script>
   </head>
   <body class="mx-auto my-8 dark:bg-gray-900 dark:text-gray-200">
+    <a
+      href="/"
+      class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105"
+      >Back to Home</a
+    >
     <div
       id="albums-table"
       class="overflow-x-auto"></div>
 
     <script>
-      document.addEventListener('DOMContentLoaded', function () {
+           document.addEventListener('DOMContentLoaded', function () {
         var tableData = [
           {{ range .albums }}
           {
             id: "{{ .ID }}",
             cover: "<a href='/album/{{ .ID }}'><img src='{{ .ImageUrl }}' alt='Album cover' class='rounded-lg w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 transition-transform duration-300 ease-in-out hover:scale-110'/></a>",
             album: "{{ .ArtistName }} - {{ .AlbumName }}",
-            totalLength: "{{ .TotalAlbumLength }}",
+            totalLength: {{ .TotalLength }},
+            formattedLength: "{{ .FormattedLength }}",
             totalWords: "{{ .TotalWords }}",
             avgWordsTrack: "{{ .AverageWordsPerTrack }}",
             uniqueWords: "{{ .TotalUniqueWords }}",
@@ -84,12 +90,28 @@
           movableColumns: true,
           resizableRows: true,
           initialSort: [
-            { column: "album", dir: "asc" },
+            { column: "totalLength", dir: "asc" },
           ],
           columns: [
             { title: "Cover", field: "cover", formatter: "html", width: 120, responsive: 0 },
             { title: "Album", field: "album", headerSort: true, widthGrow: 2, minWidth: 250, responsive: 0 },
-            { title: "Total Length", field: "totalLength", headerSort: true, widthGrow: 1, responsive: 2 },
+            {
+              title: "Total Length",
+              field: "totalLength",
+              headerSort: true,
+              widthGrow: 1,
+              responsive: 2,
+              sorter: "number",
+              formatter: function (cell, formatterParams, onRendered) {
+                // Use the formatted string for display
+                var data = cell.getRow().getData();
+                return data.formattedLength;
+              },
+              sort: function (a, b, aRow, bRow, column, dir, sorterParams) {
+                // Sort using the totalLength numeric value
+                return a - b;
+              }
+            },
             { title: "Total Words", field: "totalWords", headerSort: true, widthGrow: 1, responsive: 2 },
             { title: "Avg. Words/Track", field: "avgWordsTrack", headerSort: true, widthGrow: 1, responsive: 3 },
             { title: "Unique Words", field: "uniqueWords", headerSort: true, widthGrow: 1, responsive: 3 },
@@ -97,6 +119,9 @@
             { title: "Consonant Count", field: "consonantCount", headerSort: true, widthGrow: 1, responsive: 3 },
           ],
         });
+
+        // Initially sort by album length (totalLength in seconds)
+        table.setSort([{ column: "totalLength", dir: "asc" }]);
       });
     </script>
   </body>
