@@ -1,11 +1,11 @@
-<!doctype html>
-<html lang="en" class="dark">
+<!DOCTYPE html>
+<html
+  lang="en"
+  class="dark">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {{ template "general-header.html" . }}
     <title>Millions of Words - All Words Frequency</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
     <style>
       .frequency-high {
         font-size: 2rem;
@@ -28,8 +28,7 @@
     </style>
   </head>
   <body
-    class="dark:bg-gray-900 dark:text-gray-200 flex flex-col items-center p-8"
-  >
+    class="dark:bg-gray-900 dark:text-gray-200 flex flex-col items-center p-8">
     <a
       href="/"
       class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105"
@@ -42,8 +41,7 @@
     </div>
 
     <table
-      class="table-auto w-full md:w-2/3 border-collapse border border-gray-500 mb-8"
-    >
+      class="table-auto w-full md:w-2/3 border-collapse border border-gray-500 mb-8">
       <thead>
         <tr class="bg-gray-800">
           <th class="border border-gray-600 px-4 py-2">Word</th>
@@ -52,100 +50,105 @@
       </thead>
       <tbody>
         {{ range .wordFrequencies }}
-          <tr class="hover:bg-gray-700 transition-colors">
-            <td
-              class="border border-gray-600 px-4 py-2 {{ if gt .Count 50 }}
+        <tr class="hover:bg-gray-700 transition-colors">
+          <td
+            class="border border-gray-600 px-4 py-2 {{ if gt .Count 50 }}
                 frequency-high
               {{ else if gt .Count 10 }}
                 frequency-medium
               {{ else }}
                 frequency-low
-              {{ end }}"
-            >
-              {{ .Word }}
-            </td>
-            <td class="border border-gray-600 px-4 py-2">{{ .Count }}</td>
-          </tr>
+              {{ end }}">
+            {{ .Word }}
+          </td>
+          <td class="border border-gray-600 px-4 py-2">{{ .Count }}</td>
+        </tr>
         {{ end }}
       </tbody>
     </table>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const ctx = document.getElementById('wordFrequencyChart').getContext('2d');
-            const jsonData = `{{ .wordFrequenciesJSON }}`;
-            const wordAlbumsData = `{{ .wordAlbumsJSON }}`;
-            let wordFrequencies, wordAlbums;
+      document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document
+          .getElementById("wordFrequencyChart")
+          .getContext("2d");
+        const jsonData = `{{ .wordFrequenciesJSON }}`;
+        const wordAlbumsData = `{{ .wordAlbumsJSON }}`;
+        let wordFrequencies, wordAlbums;
 
-            try {
-                wordFrequencies = JSON.parse(jsonData);
-                wordAlbums = JSON.parse(wordAlbumsData);
-            } catch (e) {
-                return;
-            }
+        try {
+          wordFrequencies = JSON.parse(jsonData);
+          wordAlbums = JSON.parse(wordAlbumsData);
+        } catch (e) {
+          return;
+        }
 
-            const filteredWordFrequencies = wordFrequencies.filter(word => word.count >= 10);
+        const filteredWordFrequencies = wordFrequencies.filter(
+          (word) => word.count >= 10
+        );
 
-            const words = filteredWordFrequencies.map(word => word.word);
-            const counts = filteredWordFrequencies.map(word => word.count);
+        const words = filteredWordFrequencies.map((word) => word.word);
+        const counts = filteredWordFrequencies.map((word) => word.count);
 
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: words,
-                    datasets: [{
-                        label: 'Word Frequency',
-                        data: counts,
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        fill: true,
-                        tension: 0.1
-                    }]
+        new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: words,
+            datasets: [
+              {
+                label: "Word Frequency",
+                data: counts,
+                borderColor: "rgba(75, 192, 192, 1)",
+                backgroundColor: "rgba(75, 192, 192, 0.2)",
+                fill: true,
+                tension: 0.1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              x: {
+                beginAtZero: true,
+                ticks: {
+                  maxTicksLimit: 10,
                 },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            ticks: {
-                                maxTicksLimit: 10
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                maxTicksLimit: 10
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    animation: {
-                        duration: 2000,
-                        easing: 'easeOutBounce'
-                    }
-                }
-            });
-
-            const tooltipElements = document.querySelectorAll('[data-word]');
-            tooltipElements.forEach(element => {
-                element.addEventListener('mouseenter', function() {
-                    const word = this.getAttribute('data-word');
-                    const tooltip = document.getElementById(`tooltip-${word}`);
-                    tooltip.style.display = 'block';
-                    tooltip.style.left = `${this.getBoundingClientRect().left}px`;
-                    tooltip.style.top = `${this.getBoundingClientRect().bottom}px`;
-                });
-                element.addEventListener('mouseleave', function() {
-                    const word = this.getAttribute('data-word');
-                    const tooltip = document.getElementById(`tooltip-${word}`);
-                    tooltip.style.display = 'none';
-                });
-            });
+              },
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  maxTicksLimit: 10,
+                },
+              },
+            },
+            plugins: {
+              legend: {
+                display: false,
+              },
+            },
+            animation: {
+              duration: 2000,
+              easing: "easeOutBounce",
+            },
+          },
         });
+
+        const tooltipElements = document.querySelectorAll("[data-word]");
+        tooltipElements.forEach((element) => {
+          element.addEventListener("mouseenter", function () {
+            const word = this.getAttribute("data-word");
+            const tooltip = document.getElementById(`tooltip-${word}`);
+            tooltip.style.display = "block";
+            tooltip.style.left = `${this.getBoundingClientRect().left}px`;
+            tooltip.style.top = `${this.getBoundingClientRect().bottom}px`;
+          });
+          element.addEventListener("mouseleave", function () {
+            const word = this.getAttribute("data-word");
+            const tooltip = document.getElementById(`tooltip-${word}`);
+            tooltip.style.display = "none";
+          });
+        });
+      });
     </script>
   </body>
 </html>

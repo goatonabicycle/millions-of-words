@@ -1,49 +1,12 @@
-<!doctype html>
-<html lang="en" class="dark">
+<!DOCTYPE html>
+<html
+  lang="en"
+  class="dark">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Millions of Words</title>
-
-    <meta property="og:title" content="Millions of Words - Explore Albums" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://millionsofwords.com" />
-    <meta
-      property="og:image"
-      content="https://yourwebsite.com/path-to-default-image.jpg"
-    />
-    <meta
-      property="og:description"
-      content="Discover albums and explore detailed word analysis for your favorite music."
-    />
-    <meta property="og:site_name" content="Millions of Words" />
-    <meta property="og:locale" content="en_US" />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Millions of Words - Explore Albums" />
-    <meta
-      name="twitter:description"
-      content="Discover albums and explore detailed word analysis for your favorite music."
-    />
-    {{/* <meta
-      name="twitter:image"
-      content="https://yourwebsite.com/path-to-default-image.jpg"
-      />
-    */}}
-    <meta name="twitter:site" content="@gruglistenmusic" />
-    <meta name="twitter:creator" content="@gruglistenmusic" />
-
-    <meta
-      name="description"
-      content="Discover albums and explore detailed word analysis for your favorite music."
-    />
-
-    <script src="https://unpkg.com/htmx.org"></script>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+    {{ template "general-header.html" . }}
   </head>
   <body
-    class="mx-auto my-8 dark:bg-gray-900 dark:text-gray-200 flex flex-col md:flex-row"
-  >
+    class="mx-auto my-8 dark:bg-gray-900 dark:text-gray-200 flex flex-col md:flex-row">
     <div class="w-full h-screen flex flex-col">
       <div class="text-center sticky top-0 bg-gray-900 p-4 z-10">
         <h1 class="text-2xl font-bold mb-4">Albums</h1>
@@ -56,8 +19,7 @@
           hx-params="search"
           hx-target="#album-grid"
           hx-trigger="keyup delayed:500ms"
-          class="mt-1 px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full bg-gray-800 text-gray-200 text-lg"
-        />
+          class="mt-1 px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full bg-gray-800 text-gray-200 text-lg" />
         <a
           href="/all-words"
           class="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md"
@@ -66,8 +28,7 @@
       </div>
       <div
         id="album-grid"
-        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-6 p-4"
-      >
+        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-6 p-4">
         {{ template "album-grid.html" . }}
       </div>
     </div>

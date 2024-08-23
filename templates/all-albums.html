@@ -1,42 +1,13 @@
-<!doctype html>
-<html lang="en" class="dark">
+<!DOCTYPE html>
+<html
+  lang="en"
+  class="dark">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Millions of Words</title>
+    {{ template "general-header.html" . }}
 
-    <meta property="og:title" content="Millions of Words - Explore Albums" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://millionsofwords.com" />
-
-    <meta
-      property="og:description"
-      content="Discover albums and explore detailed word analysis for your favorite music."
-    />
-    <meta property="og:site_name" content="Millions of Words" />
-    <meta property="og:locale" content="en_US" />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Millions of Words - Explore Albums" />
-    <meta
-      name="twitter:description"
-      content="Discover albums and explore detailed word analysis for your favorite music."
-    />
-
-    <meta name="twitter:site" content="@gruglistenmusic" />
-    <meta name="twitter:creator" content="@gruglistenmusic" />
-
-    <meta
-      name="description"
-      content="Discover albums and explore detailed word analysis for your favorite music."
-    />
-
-    <script src="https://unpkg.com/htmx.org"></script>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
     <link
       href="https://unpkg.com/tabulator-tables@5.2.7/dist/css/tabulator.min.css"
-      rel="stylesheet"
-    />
+      rel="stylesheet" />
     <style>
       .tabulator .tabulator-header {
         background-color: #1f2937;
@@ -80,7 +51,9 @@
     <script src="https://unpkg.com/tabulator-tables@5.2.7/dist/js/tabulator.min.js"></script>
   </head>
   <body class="mx-auto my-8 dark:bg-gray-900 dark:text-gray-200">
-    <div id="albums-table" class="overflow-x-auto"></div>
+    <div
+      id="albums-table"
+      class="overflow-x-auto"></div>
 
     <script>
       document.addEventListener('DOMContentLoaded', function () {
