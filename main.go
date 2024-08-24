@@ -293,6 +293,13 @@ func loadAlbumsDataFromJsonFiles() {
 
 		albums = append(albums, album)
 	}
+
+	sort.Slice(albums, func(i, j int) bool {
+		if strings.ToLower(albums[i].ArtistName) == strings.ToLower(albums[j].ArtistName) {
+			return strings.ToLower(albums[i].AlbumName) < strings.ToLower(albums[j].AlbumName)
+		}
+		return strings.ToLower(albums[i].ArtistName) < strings.ToLower(albums[j].ArtistName)
+	})
 }
 
 func calculateAlbumMetrics(album *models.BandcampAlbumData) {
@@ -328,5 +335,4 @@ func calculateAlbumMetrics(album *models.BandcampAlbumData) {
 	album.TotalVowelCount = totalVowelCount
 	album.TotalConsonantCount = totalConsonantCount
 	album.WordLengthDistribution = wordLengthDistribution
-	//album.TotalLength = totalAlbumDuration
 }
