@@ -56,6 +56,10 @@ func cleanWord(word string) string {
 	})
 	word = strings.ToLower(word)
 
+	if word == "-" || word == "--" {
+		return ""
+	}
+
 	if strings.ContainsRune(word, '\'') || strings.ContainsRune(word, '’') || strings.ContainsRune(word, '-') {
 		return word
 	}

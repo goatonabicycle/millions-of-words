@@ -63,6 +63,20 @@ func TestCalculateAndSortWordFrequencies(t *testing.T) {
 				{Word: "test", Count: 1},
 			},
 		},
+		{
+			name:   "The character '-' is not counted as a word",
+			lyrics: "Hey hoe gaan dit? Heel okay! - Hoekom-die-hell nie?",
+			expected: []models.WordCount{
+				{Word: "dit", Count: 1},
+				{Word: "gaan", Count: 1},
+				{Word: "heel", Count: 1},
+				{Word: "hey", Count: 1},
+				{Word: "hoe", Count: 1},
+				{Word: "hoekom-die-hell", Count: 1},
+				{Word: "nie", Count: 1},
+				{Word: "okay", Count: 1},
+			},
+		},
 	}
 
 	for _, tt := range tests {

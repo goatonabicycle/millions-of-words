@@ -1,10 +1,10 @@
-- Make the lyric view more mobile friendly by having a tooltip show on hover.
+- Umami analytics. 
 - Style consistency and general vibe check. 
-- Fix "-" showing up as a word. 
+
 - Have some intentionality about the ordering on the main page. By order added? 
 - Make the all-words page more interesting. The graph is effectively useless.
 - More interesting bits of data. 
   - Nlp/sentiment stuff. 
   - Average album colour.
-  
 - Different lyric sources? Read from metal archives? 
+- Different categories. Rap should be distinct from metal? Also then have an overall.
