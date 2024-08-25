@@ -59,6 +59,7 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 	tracksWithDetails := []models.TrackWithDetails{}
 
 	for _, track := range album.Tracks {
+		track.Lyrics = removeItalics(track.Lyrics)
 		trackDetails := calculateTrackDetails(track)
 
 		totalWords += trackDetails.TotalWords
@@ -121,4 +122,17 @@ func calculateTrackDetails(track models.BandcampTrackData) models.TrackWithDetai
 		ConsonantCount:         consonants,
 		WordLengthDistribution: wordLengths,
 	}
+}
+
+func removeItalics(text string) string {
+	replacer := strings.NewReplacer(
+		"𝘢", "a", "𝘣", "b", "𝘤", "c", "𝘥", "d", "𝘦", "e", "𝘧", "f", "𝘨", "g", "𝘩", "h",
+		"𝘪", "i", "𝘫", "j", "𝘬", "k", "𝘭", "l", "𝘮", "m", "𝘯", "n", "𝘰", "o", "𝘱", "p",
+		"𝘲", "q", "𝘳", "r", "𝘴", "s", "𝘵", "t", "𝘶", "u", "𝘷", "v", "𝘸", "w", "𝘹", "x",
+		"𝘺", "y", "𝘻", "z", "𝘈", "A", "𝘉", "B", "𝘊", "C", "𝘋", "D", "𝘌", "E", "𝘍", "F",
+		"𝘎", "G", "𝘏", "H", "𝘐", "I", "𝘑", "J", "𝘒", "K", "𝘓", "L", "𝘔", "M", "𝘕", "N",
+		"𝘖", "O", "𝘗", "P", "𝘘", "Q", "𝘙", "R", "𝘚", "S", "𝘛", "T", "𝘜", "U", "𝘝", "V",
+		"𝘞", "W", "𝘟", "X", "𝘠", "Y", "𝘡", "Z",
+	)
+	return replacer.Replace(text)
 }
