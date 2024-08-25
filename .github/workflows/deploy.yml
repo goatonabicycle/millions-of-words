@@ -21,7 +21,8 @@ jobs:
       - name: Install Flyctl
         run: |
           curl -L https://fly.io/install.sh | sh
-          export PATH="$HOME/.fly/bin:$PATH"
+          echo 'export PATH="$HOME/.fly/bin:$PATH"' >> ~/.bashrc
+          source ~/.bashrc
 
       - name: Authenticate Flyctl
         env:
@@ -31,5 +32,4 @@ jobs:
 
       - name: Deploy to Fly.io
         run: |
-          export PATH="$HOME/.fly/bin:$PATH"
           flyctl deploy
