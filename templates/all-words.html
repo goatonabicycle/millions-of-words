@@ -31,13 +31,17 @@
     class="dark:bg-gray-900 dark:text-gray-200 flex flex-col items-center p-8">
     <a
       href="/"
-      class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105"
+      class="px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105"
       >Back to Home</a
     >
-    <h1 class="text-3xl font-bold mb-8">All Words Frequency</h1>
+    <h1 class="fancy-header">All Words</h1>
 
     <div class="w-full md:w-2/3 mb-8">
       <canvas id="wordFrequencyChart"></canvas>
+
+      <div class="text-center">
+        (Chart shows words with at least 100 occurences)
+      </div>
     </div>
 
     <table
@@ -73,18 +77,16 @@
           .getElementById("wordFrequencyChart")
           .getContext("2d");
         const jsonData = `{{ .wordFrequenciesJSON }}`;
-        const wordAlbumsData = `{{ .wordAlbumsJSON }}`;
         let wordFrequencies, wordAlbums;
 
         try {
           wordFrequencies = JSON.parse(jsonData);
-          wordAlbums = JSON.parse(wordAlbumsData);
         } catch (e) {
           return;
         }
 
         const filteredWordFrequencies = wordFrequencies.filter(
-          (word) => word.count >= 10
+          (word) => word.count >= 100
         );
 
         const words = filteredWordFrequencies.map((word) => word.word);
@@ -111,13 +113,13 @@
               x: {
                 beginAtZero: true,
                 ticks: {
-                  maxTicksLimit: 10,
+                  maxTicksLimit: 100,
                 },
               },
               y: {
                 beginAtZero: true,
                 ticks: {
-                  maxTicksLimit: 10,
+                  maxTicksLimit: 100,
                 },
               },
             },
@@ -127,7 +129,7 @@
               },
             },
             animation: {
-              duration: 2000,
+              duration: 3000,
               easing: "easeOutBounce",
             },
           },

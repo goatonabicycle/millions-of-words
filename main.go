@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -175,53 +174,18 @@ func searchAlbumsHandler(c echo.Context) error {
 
 func allWordsHandler(c echo.Context) error {
 	wordFrequencyMap := make(map[string]int)
-	wordAlbumMap := make(map[string]map[string]struct{})
 
 	for _, album := range albums {
-		fmt.Println("Processing album:", album.AlbumName)
-
 		for _, track := range album.Tracks {
-			fmt.Println("Processing track:", track.Name)
-
 			wordCounts, _, _, _ := words.CalculateAndSortWordFrequencies(track.Lyrics)
-			fmt.Println("Word counts for track:", wordCounts)
-
 			for _, wc := range wordCounts {
 				wordFrequencyMap[wc.Word] += wc.Count
-
-				if wordAlbumMap[wc.Word] == nil {
-					wordAlbumMap[wc.Word] = make(map[string]struct{})
-				}
-				wordAlbumMap[wc.Word][album.AlbumName] = struct{}{}
-				fmt.Printf("Added word '%s' to album '%s'\n", wc.Word, album.AlbumName)
 			}
 		}
 	}
 
-	fmt.Println("Word Frequency Map:", wordFrequencyMap)
-	fmt.Println("Word Album Map:", wordAlbumMap)
-
 	wordFrequencies := words.MapToSortedList(wordFrequencyMap)
-	wordAlbums := make(map[string][]string)
-	for word, albums := range wordAlbumMap {
-		for album := range albums {
-			wordAlbums[word] = append(wordAlbums[word], album)
-		}
-	}
-
-	fmt.Println("Word Albums after processing:", wordAlbums)
-
-	for _, wc := range wordFrequencies {
-		if _, exists := wordAlbums[wc.Word]; !exists {
-			wordAlbums[wc.Word] = []string{"No data"}
-		}
-	}
-
 	wordFrequenciesJSON, err := json.Marshal(wordFrequencies)
-	if err != nil {
-		return err
-	}
-	wordAlbumsJSON, err := json.Marshal(wordAlbums)
 	if err != nil {
 		return err
 	}
@@ -229,7 +193,6 @@ func allWordsHandler(c echo.Context) error {
 	return c.Render(http.StatusOK, "all-words.html", map[string]interface{}{
 		"wordFrequencies":     wordFrequencies,
 		"wordFrequenciesJSON": template.JS(wordFrequenciesJSON),
-		"wordAlbumsJSON":      template.JS(wordAlbumsJSON),
 	})
 }
 
