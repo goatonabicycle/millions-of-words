@@ -15,9 +15,6 @@
     property="og:image"
     content="{{ .Album.ImageUrl }}" />
   <meta
-    property="og:description"
-    content="{{ .Album.Description }}" />
-  <meta
     property="og:site_name"
     content="Millions of Words" />
   <meta
@@ -31,9 +28,6 @@
     name="twitter:title"
     content="{{ .Album.ArtistName }} - {{ .Album.AlbumName }}" />
   <meta
-    name="twitter:description"
-    content="{{ .Album.Description }}" />
-  <meta
     name="twitter:image"
     content="{{ .Album.ImageUrl }}" />
   <meta
@@ -43,16 +37,15 @@
     name="twitter:creator"
     content="@gruglistenmusic" />
 
-  <meta
-    name="description"
-    content="{{ .Album.Description }}" />
-
   <script
     defer
     src="https://cloud.umami.is/script.js"
     data-website-id="366fc950-59b9-478b-8d47-040bca743961"></script>
   <script src="https://unpkg.com/htmx.org"></script>
   <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Honk&display=swap"
+    rel="stylesheet" />
 
   <style>
     .sticky-container {
@@ -144,7 +137,7 @@
 
     .flex-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
       gap: 10px;
     }
 
@@ -182,6 +175,26 @@
       pointer-events: none;
       z-index: 1000;
       display: none;
+    }
+
+    .fancy-header {
+      font-family: "Honk", sans-serif;
+      font-size: 80px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .album-cover-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    .album-color-block {
+      margin-top: 10px;
+      width: 100%;
+      text-align: center;
     }
   </style>
 </head>

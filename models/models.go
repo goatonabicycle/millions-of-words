@@ -11,10 +11,13 @@ type BandcampAlbumData struct {
 	ID                     string              `json:"id"`
 	ArtistName             string              `json:"artist_name"`
 	AlbumName              string              `json:"album_name"`
-	Description            string              `json:"description"`
 	ImageUrl               string              `json:"image_url"`
+	ImageData              []byte              `json:"-"`
+	ImageDataBase64        string              `json:"-"`
 	BandcampUrl            string              `json:"bandcamp_url"`
 	AmpwallUrl             string              `json:"ampwall_url"`
+	AlbumColorAverage      string              `json:"album_color_average"`
+	DateAdded              string              `json:"date_added"`
 	Tracks                 []BandcampTrackData `json:"tracks"`
 	TotalLength            int                 `json:"total_length"`
 	FormattedLength        string              `json:"formatted_length"`

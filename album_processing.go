@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"html/template"
 	"sort"
 	"strings"
@@ -78,10 +79,16 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 	}
 
 	album.TotalWords = totalWords
-	album.AverageWordsPerTrack = totalWords / len(album.Tracks)
+	if len(album.Tracks) > 0 {
+		album.AverageWordsPerTrack = totalWords / len(album.Tracks)
+	} else {
+		album.AverageWordsPerTrack = 0
+	}
 	album.TotalUniqueWords = len(uniqueWordsMap)
 	album.TotalVowelCount = totalVowelCount
 	album.TotalConsonantCount = totalConsonantCount
+	album.WordLengthDistribution = wordLengthDistribution
+	album.ImageDataBase64 = base64.StdEncoding.EncodeToString(album.ImageData)
 
 	albumWPM := 0.0
 	if float64(album.TotalLength)/60 > 0 {
@@ -126,12 +133,18 @@ func calculateTrackDetails(track models.BandcampTrackData) models.TrackWithDetai
 
 func removeItalics(text string) string {
 	replacer := strings.NewReplacer(
-		"𝘢", "a", "𝘣", "b", "𝘤", "c", "𝘥", "d", "𝘦", "e", "𝘧", "f", "𝘨", "g", "𝘩", "h",
-		"𝘪", "i", "𝘫", "j", "𝘬", "k", "𝘭", "l", "𝘮", "m", "𝘯", "n", "𝘰", "o", "𝘱", "p",
-		"𝘲", "q", "𝘳", "r", "𝘴", "s", "𝘵", "t", "𝘶", "u", "𝘷", "v", "𝘸", "w", "𝘹", "x",
-		"𝘺", "y", "𝘻", "z", "𝘈", "A", "𝘉", "B", "𝘊", "C", "𝘋", "D", "𝘌", "E", "𝘍", "F",
-		"𝘎", "G", "𝘏", "H", "𝘐", "I", "𝘑", "J", "𝘒", "K", "𝘓", "L", "𝘔", "M", "𝘕", "N",
-		"𝘖", "O", "𝘗", "P", "𝘘", "Q", "𝘙", "R", "𝘚", "S", "𝘛", "T", "𝘜", "U", "𝘝", "V",
+		"𝘢", "a", "𝘣", "b", "𝘤", "c", "𝘥", "d",
+		"𝘦", "e", "𝘧", "f", "𝘨", "g", "𝘩", "h",
+		"𝘪", "i", "𝘫", "j", "𝘬", "k", "𝘭", "l",
+		"𝘮", "m", "𝘯", "n", "𝘰", "o", "𝘱", "p",
+		"𝘲", "q", "𝘳", "r", "𝘴", "s", "𝘵", "t",
+		"𝘶", "u", "𝘷", "v", "𝘸", "w", "𝘹", "x",
+		"𝘺", "y", "𝘻", "z", "𝘈", "A", "𝘉", "B",
+		"𝘊", "C", "𝘋", "D", "𝘌", "E", "𝘍", "F",
+		"𝘎", "G", "𝘏", "H", "𝘐", "I", "𝘑", "J",
+		"𝘒", "K", "𝘓", "L", "𝘔", "M", "𝘕", "N",
+		"𝘖", "O", "𝘗", "P", "𝘘", "Q", "𝘙", "R",
+		"𝘚", "S", "𝘛", "T", "𝘜", "U", "𝘝", "V",
 		"𝘞", "W", "𝘟", "X", "𝘠", "Y", "𝘡", "Z",
 	)
 	return replacer.Replace(text)

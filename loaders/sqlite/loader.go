@@ -2,6 +2,8 @@ package loader
 
 import (
 	"database/sql"
+	"encoding/base64"
+	"log"
 	"sort"
 	"strings"
 
@@ -17,12 +19,14 @@ func LoadAlbumsData() ([]models.BandcampAlbumData, error) {
 
 	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
+		log.Printf("Error opening database at %s: %v", dbPath, err)
 		return nil, err
 	}
 	defer db.Close()
 
-	albumRows, err := db.Query("SELECT id, artist_name, album_name, description, image_url, bandcamp_url, ampwall_url, total_length, formatted_length FROM albums")
+	albumRows, err := db.Query("SELECT id, artist_name, album_name, image_url, image_data, album_color_average, bandcamp_url, ampwall_url, total_length, formatted_length, date_added FROM albums")
 	if err != nil {
+		log.Printf("Error querying albums: %v", err)
 		return nil, err
 	}
 	defer albumRows.Close()
@@ -35,27 +39,32 @@ func LoadAlbumsData() ([]models.BandcampAlbumData, error) {
 			&album.ID,
 			&album.ArtistName,
 			&album.AlbumName,
-			&album.Description,
 			&album.ImageUrl,
+			&album.ImageData,
+			&album.AlbumColorAverage,
 			&album.BandcampUrl,
 			&ampwallURL,
 			&album.TotalLength,
 			&album.FormattedLength,
+			&album.DateAdded,
 		)
 		if err != nil {
-			return nil, err
+			log.Printf("Error scanning album row: %v", err)
+			continue
 		}
 
-		// Convert sql.NullString to string
 		if ampwallURL.Valid {
 			album.AmpwallUrl = ampwallURL.String
 		} else {
 			album.AmpwallUrl = ""
 		}
 
+		album.ImageDataBase64 = base64.StdEncoding.EncodeToString(album.ImageData)
+
 		trackRows, err := db.Query("SELECT name, total_length, formatted_length, lyrics FROM tracks WHERE album_id = ?", album.ID)
 		if err != nil {
-			return nil, err
+			log.Printf("Error querying tracks for album %s: %v", album.ID, err)
+			continue
 		}
 
 		var tracks []models.BandcampTrackData
@@ -63,7 +72,8 @@ func LoadAlbumsData() ([]models.BandcampAlbumData, error) {
 			var track models.BandcampTrackData
 			err := trackRows.Scan(&track.Name, &track.TotalLength, &track.FormattedLength, &track.Lyrics)
 			if err != nil {
-				return nil, err
+				log.Printf("Error scanning track row for album %s: %v", album.ID, err)
+				continue
 			}
 			tracks = append(tracks, track)
 		}

@@ -4,28 +4,40 @@
   class="dark">
   {{ template "album-details-header.html" . }}
 
-  <body class="dark:bg-gray-800 dark:text-gray-200 p-4">
+  <body
+    class="dark:bg-gray-900 dark:text-gray-200 flex flex-col items-center p-8">
     <div
       id="tooltip"
       class="tooltip"></div>
-    <div id="album-details">
-      <h2 class="text-4xl font-bold text-center">
-        {{ .Album.ArtistName }} - {{ .Album.AlbumName }} <br />
+
+    <a
+      href="/"
+      class="absolute top-4 left-4 px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-md transition transform hover:scale-105 hover:bg-gray-600"
+      >Back to Home</a
+    >
+    <div
+      id="album-details"
+      class="text-center">
+      <h1 class="fancy-header">
+        {{ .Album.ArtistName }} - {{ .Album.AlbumName }}
+      </h1>
+      <div class="text-center">
         {{ if .Album.AmpwallUrl }}
         <a
           href="{{ .Album.AmpwallUrl }}"
           target="_blank"
-          class="text-sm underline"
+          class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105"
           >See on Ampwall</a
         >
         {{ end }}
+
         <a
           href="{{ .Album.BandcampUrl }}"
           target="_blank"
-          class="text-sm underline"
+          class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105"
           >See on Bandcamp</a
         >
-      </h2>
+      </div>
 
       <div class="album-details-container">
         <div class="details-section">
@@ -40,7 +52,7 @@
               <span>{{ .Album.TotalWords }}</span>
             </div>
             <div>
-              <span>Avg Words/Track:</span>
+              <span>Avgerage # of Words per Track:</span>
               <span>{{ .Album.AverageWordsPerTrack }}</span>
             </div>
             <div>
@@ -56,7 +68,7 @@
               <span>{{ .Album.TotalConsonantCount }}</span>
             </div>
             <div>
-              <span>WPM:</span>
+              <span>Words Per Minute:</span>
               <span>{{ printf "%.2f" .AlbumWPM }}</span>
             </div>
           </div>
@@ -85,9 +97,18 @@
 
         <div class="album-cover-container">
           <img
-            src="{{ .Album.ImageUrl }}"
+            src="data:image/jpeg;base64,{{ .Album.ImageDataBase64 }}"
             alt="{{ .Album.AlbumName }} Cover"
-            class="album-cover rounded-md shadow-md" />
+            class="album-cover rounded-md shadow-md block mx-auto" />
+
+          <div class="text-center mt-2">
+            <span class="text-white font-semibold">Average color:</span>
+            <span class="font-semibold">{{ .Album.AlbumColorAverage }}</span>
+          </div>
+
+          <div
+            class="album-color-block rounded-md shadow-md"
+            style="background-color: {{ .Album.AlbumColorAverage }}; width: 100%; height: 50px; margin-top: 10px;"></div>
         </div>
       </div>
 
@@ -111,7 +132,7 @@
               {{ $trackWithDetails.UniqueWords }}
             </p>
             <p>
-              <strong>WPM:</strong>
+              <strong>Words Per Minute:</strong>
               {{ printf "%.2f" $trackWithDetails.WordsPerMinute }}
             </p>
           </div>
@@ -132,6 +153,8 @@
               <p>This track has no lyrics.</p>
               {{ end }}
             </div>
+
+            {{ if $trackWithDetails.Track.Lyrics }}
 
             <div
               class="word-counts bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1">
@@ -154,6 +177,7 @@
                 </div>
               </div>
             </div>
+            {{ end }}
           </div>
         </div>
         {{ end }}
