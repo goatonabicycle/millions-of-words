@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
+	loader "millions-of-words/loaders/sqlite"
 	"millions-of-words/models"
-	loader "millions-of-words/sqliteloader"
 	"millions-of-words/words"
 
 	"github.com/labstack/echo/v4"

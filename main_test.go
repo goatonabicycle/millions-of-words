@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"millions-of-words/loader"
+	loader "millions-of-words/loaders/sqlite"
 	"millions-of-words/models"
 	"os"
 	"testing"
