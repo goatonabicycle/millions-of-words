@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"database/sql"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -17,23 +18,26 @@ import (
 	"millions-of-words/models"
 
 	"github.com/PuerkitoBio/goquery"
+	_ "modernc.org/sqlite"
 )
 
 func main() {
 	textfileFlag := flag.String("textfile", "", "Path to a text file containing Bandcamp URLs (one per line)")
+	saveModeFlag := flag.String("savemode", "db", "Mode to save data: 'db' for SQLite database, 'json' for JSON files")
+	dbPath := "../data/db/albums.db"
 	flag.Parse()
 
 	if *textfileFlag != "" {
-		processTextFile(*textfileFlag)
+		processTextFile(*textfileFlag, dbPath, *saveModeFlag)
 	} else if len(os.Args) >= 2 {
 		url := os.Args[1]
-		processSingleURL(url)
+		processSingleURL(url, dbPath, *saveModeFlag)
 	} else {
-		log.Fatal("Usage: go run main.go <bandcamp_url> OR go run main.go --textfile=<file_with_links.txt>")
+		log.Fatal("Usage: go run main.go <bandcamp_url> OR go run main.go --textfile=<file_with_links.txt> --savemode=<db|json>")
 	}
 }
 
-func processTextFile(filePath string) {
+func processTextFile(filePath, dbPath, saveMode string) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		log.Fatalf("Failed to open file: %v", err)
@@ -46,7 +50,7 @@ func processTextFile(filePath string) {
 		if url == "" {
 			continue
 		}
-		processSingleURL(url)
+		processSingleURL(url, dbPath, saveMode)
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -54,16 +58,17 @@ func processTextFile(filePath string) {
 	}
 }
 
-func processSingleURL(url string) {
+func processSingleURL(url, dbPath, saveMode string) {
 	fmt.Println("=========================================")
 	fmt.Printf("Processing album data for URL: %s\n", url)
 
-	filename := filepath.Join("../data", fmt.Sprintf("%s - %s.json", sanitizeFilenameFromURL(url)))
-
-	if _, err := os.Stat(filename); err == nil {
-		fmt.Printf("File already exists for URL: %s. Skipping download.\n", url)
-		fmt.Println("=========================================")
-		return
+	if saveMode == "db" {
+		dbDir := filepath.Dir(dbPath)
+		if _, err := os.Stat(dbDir); os.IsNotExist(err) {
+			if err := os.MkdirAll(dbDir, 0755); err != nil {
+				log.Fatalf("Failed to create directory for SQLite database: %v", err)
+			}
+		}
 	}
 
 	albumData, err := fetchAlbumDataFromBandcamp(url)
@@ -73,9 +78,18 @@ func processSingleURL(url string) {
 		return
 	}
 
-	err = writeAlbumsDataToJsonFile(albumData)
-	if err != nil {
-		log.Printf("Failed to write album data to JSON for URL %s: %v", url, err)
+	if saveMode == "json" {
+		err = writeAlbumsDataToJsonFile(albumData)
+		if err != nil {
+			log.Printf("Failed to write album data to JSON for URL %s: %v", url, err)
+		}
+	} else if saveMode == "db" {
+		err = insertAlbumDataIntoSQLite(albumData, dbPath)
+		if err != nil {
+			log.Printf("Failed to write album data to SQLite for URL %s: %v", url, err)
+		}
+	} else {
+		log.Printf("Invalid save mode: %s. Use 'db' or 'json'.", saveMode)
 	}
 
 	fmt.Println("Finished processing.")
@@ -180,6 +194,71 @@ func writeAlbumsDataToJsonFile(album models.BandcampAlbumData) error {
 	if err != nil {
 		return fmt.Errorf("error writing album data to file: %w", err)
 	}
+	return nil
+}
+
+func insertAlbumDataIntoSQLite(album models.BandcampAlbumData, dbPath string) error {
+	db, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		return fmt.Errorf("error opening database: %w", err)
+	}
+	defer db.Close()
+
+	if err := createTablesIfNotExist(db); err != nil {
+		return fmt.Errorf("error creating tables: %w", err)
+	}
+
+	_, err = db.Exec(`INSERT OR REPLACE INTO albums (id, artist_name, album_name, description, image_url, bandcamp_url, total_length, formatted_length) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		album.ID, album.ArtistName, album.AlbumName, album.Description, album.ImageUrl, album.BandcampUrl, album.TotalLength, album.FormattedLength)
+	if err != nil {
+		return fmt.Errorf("error inserting album data: %w", err)
+	}
+
+	for _, track := range album.Tracks {
+		_, err = db.Exec(`INSERT INTO tracks (album_id, name, total_length, formatted_length, lyrics) VALUES (?, ?, ?, ?, ?)`,
+			album.ID, track.Name, track.TotalLength, track.FormattedLength, track.Lyrics)
+		if err != nil {
+			return fmt.Errorf("error inserting track data: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func createTablesIfNotExist(db *sql.DB) error {
+	albumTable := `
+	CREATE TABLE IF NOT EXISTS albums (
+		id TEXT PRIMARY KEY,
+		artist_name TEXT,
+		album_name TEXT,
+		description TEXT,
+		image_url TEXT,
+		bandcamp_url TEXT,
+		total_length INTEGER,
+		formatted_length TEXT
+	);
+	`
+	trackTable := `
+	CREATE TABLE IF NOT EXISTS tracks (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		album_id TEXT,
+		name TEXT,
+		total_length INTEGER,
+		formatted_length TEXT,
+		lyrics TEXT,
+		FOREIGN KEY(album_id) REFERENCES albums(id)
+	);
+	`
+	_, err := db.Exec(albumTable)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(trackTable)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
