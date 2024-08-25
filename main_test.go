@@ -40,11 +40,6 @@ func TestLoadAlbumsDataFromJsonFiles(t *testing.T) {
 		t.Fatalf("Failed to close temporary file: %v", err)
 	}
 
-	// Point the function to the temporary directory
-	oldDataDir := "data"                    // Backup the original data directory
-	dataDir = tempDir                       // Use the temporary directory for the test
-	defer func() { dataDir = oldDataDir }() // Restore after test
-
 	// Execute the function
 	albums, err = loader.LoadAlbumsData()
 	if err != nil {
