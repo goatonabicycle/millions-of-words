@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
+	"millions-of-words/loader"
 	"millions-of-words/models"
 	"os"
 	"testing"
@@ -44,7 +46,10 @@ func TestLoadAlbumsDataFromJsonFiles(t *testing.T) {
 	defer func() { dataDir = oldDataDir }() // Restore after test
 
 	// Execute the function
-	loadAlbumsDataFromJsonFiles()
+	albums, err = loader.LoadAlbumsData()
+	if err != nil {
+		log.Fatalf("Failed to load album data: %v", err)
+	}
 
 	// Test: Verify the albums variable contains the loaded data
 	if len(albums) != 1 || albums[0].ArtistName != "Test Artist" || albums[0].AlbumName != "Test Album" {
