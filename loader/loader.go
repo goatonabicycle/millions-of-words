@@ -14,7 +14,7 @@ import (
 func LoadAlbumsData() ([]models.BandcampAlbumData, error) {
 	var albums []models.BandcampAlbumData
 
-	dataDir := "/data"
+	dataDir := "data"
 
 	files, err := os.ReadDir(dataDir)
 	if err != nil {
