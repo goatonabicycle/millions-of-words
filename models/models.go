@@ -1,5 +1,7 @@
 package models
 
+import "html/template"
+
 type WordCount struct {
 	Word  string `json:"word"`
 	Count int    `json:"count"`
@@ -30,4 +32,16 @@ type BandcampTrackData struct {
 	TotalLength     int    `json:"total_length"`
 	FormattedLength string `json:"formatted_length"`
 	Lyrics          string `json:"lyrics,omitempty"`
+}
+
+type TrackWithDetails struct {
+	Track                  BandcampTrackData
+	FormattedLyrics        template.HTML
+	SortedWordCounts       []WordCount
+	WordsPerMinute         float64
+	TotalWords             int
+	UniqueWords            int
+	VowelCount             int
+	ConsonantCount         int
+	WordLengthDistribution map[int]int
 }

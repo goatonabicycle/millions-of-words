@@ -134,54 +134,24 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 	wordLengthDistribution := make(map[int]int)
 	uniqueWordsMap := make(map[string]struct{})
 
-	type TrackWithDetails struct {
-		Track                  models.BandcampTrackData
-		FormattedLyrics        template.HTML
-		SortedWordCounts       []models.WordCount
-		WordsPerMinute         float64
-		TotalWords             int
-		UniqueWords            int
-		VowelCount             int
-		ConsonantCount         int
-		WordLengthDistribution map[int]int
-	}
-	tracksWithDetails := []TrackWithDetails{}
+	tracksWithDetails := []models.TrackWithDetails{}
 
 	for _, track := range album.Tracks {
-		sortedWordCounts, vowels, consonants, wordLengths := words.CalculateAndSortWordFrequencies(track.Lyrics)
-		wordCount := len(strings.Fields(track.Lyrics))
-		totalWords += wordCount
-		totalVowelCount += vowels
-		totalConsonantCount += consonants
-		trackUniqueWordsMap := make(map[string]struct{})
+		trackDetails := calculateTrackDetails(track)
 
-		for length, count := range wordLengths {
+		totalWords += trackDetails.TotalWords
+		totalVowelCount += trackDetails.VowelCount
+		totalConsonantCount += trackDetails.ConsonantCount
+
+		for length, count := range trackDetails.WordLengthDistribution {
 			wordLengthDistribution[length] += count
 		}
 
-		for _, wc := range sortedWordCounts {
+		for _, wc := range trackDetails.SortedWordCounts {
 			uniqueWordsMap[wc.Word] = struct{}{}
-			trackUniqueWordsMap[wc.Word] = struct{}{}
 		}
 
-		wpm := 0.0
-		if float64(track.TotalLength)/60 > 0 {
-			wpm = float64(wordCount) / (float64(track.TotalLength) / 60)
-		}
-
-		lyrics := template.HTML(track.Lyrics)
-
-		tracksWithDetails = append(tracksWithDetails, TrackWithDetails{
-			Track:                  track,
-			FormattedLyrics:        lyrics,
-			SortedWordCounts:       sortedWordCounts,
-			WordsPerMinute:         wpm,
-			TotalWords:             wordCount,
-			UniqueWords:            len(trackUniqueWordsMap),
-			VowelCount:             vowels,
-			ConsonantCount:         consonants,
-			WordLengthDistribution: wordLengths,
-		})
+		tracksWithDetails = append(tracksWithDetails, trackDetails)
 	}
 
 	album.TotalWords = totalWords
@@ -199,5 +169,34 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 		"Album":             album,
 		"TracksWithDetails": tracksWithDetails,
 		"AlbumWPM":          albumWPM,
+	}
+}
+
+func calculateTrackDetails(track models.BandcampTrackData) models.TrackWithDetails {
+	sortedWordCounts, vowels, consonants, wordLengths := words.CalculateAndSortWordFrequencies(track.Lyrics)
+	wordCount := len(strings.Fields(track.Lyrics))
+	trackUniqueWordsMap := make(map[string]struct{})
+
+	for _, wc := range sortedWordCounts {
+		trackUniqueWordsMap[wc.Word] = struct{}{}
+	}
+
+	wpm := 0.0
+	if float64(track.TotalLength)/60 > 0 {
+		wpm = float64(wordCount) / (float64(track.TotalLength) / 60)
+	}
+
+	lyrics := template.HTML(track.Lyrics)
+
+	return models.TrackWithDetails{
+		Track:                  track,
+		FormattedLyrics:        lyrics,
+		SortedWordCounts:       sortedWordCounts,
+		WordsPerMinute:         wpm,
+		TotalWords:             wordCount,
+		UniqueWords:            len(trackUniqueWordsMap),
+		VowelCount:             vowels,
+		ConsonantCount:         consonants,
+		WordLengthDistribution: wordLengths,
 	}
 }
