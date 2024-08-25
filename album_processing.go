@@ -8,6 +8,8 @@ import (
 
 	"millions-of-words/models"
 	"millions-of-words/words"
+
+	"github.com/jdkato/prose/v2"
 )
 
 func filterAlbumsByQuery(query string) []models.BandcampAlbumData {
@@ -102,6 +104,36 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 	}
 }
 
+var posTagToCategory = map[string]string{
+	// Nouns
+	"NN":   "Nouns",
+	"NNS":  "Nouns",
+	"NNP":  "Nouns",
+	"NNPS": "Nouns",
+	// Verbs
+	"VB":  "Verbs",
+	"VBD": "Verbs",
+	"VBG": "Verbs",
+	"VBN": "Verbs",
+	"VBP": "Verbs",
+	"VBZ": "Verbs",
+	// Adjectives
+	"JJ":  "Adjectives",
+	"JJR": "Adjectives",
+	"JJS": "Adjectives",
+	// Adverbs
+	"RB":  "Adverbs",
+	"RBR": "Adverbs",
+	"RBS": "Adverbs",
+	// Pronouns
+	"PRP":  "Pronouns",
+	"PRP$": "Pronouns",
+	// Prepositions
+	"IN": "Prepositions",
+	// Conjunctions
+	"CC": "Conjunctions",
+}
+
 func calculateTrackDetails(track models.BandcampTrackData) models.TrackWithDetails {
 	sortedWordCounts, vowels, consonants, wordLengths := words.CalculateAndSortWordFrequencies(track.Lyrics)
 	wordCount := len(strings.Fields(track.Lyrics))
@@ -109,6 +141,24 @@ func calculateTrackDetails(track models.BandcampTrackData) models.TrackWithDetai
 
 	for _, wc := range sortedWordCounts {
 		trackUniqueWordsMap[wc.Word] = struct{}{}
+	}
+
+	posCategorization := categorizeWordsByPOS(track.Lyrics)
+
+	broadCategoryCounts := make(map[string]int)
+	for pos, words := range posCategorization {
+		if category, exists := posTagToCategory[pos]; exists {
+			broadCategoryCounts[category] += len(words)
+		}
+	}
+
+	posCategorizationByWord := make(map[string]string)
+	for pos, words := range posCategorization {
+		if category, exists := posTagToCategory[pos]; exists {
+			for _, word := range words {
+				posCategorizationByWord[word] = category
+			}
+		}
 	}
 
 	wpm := 0.0
@@ -119,15 +169,17 @@ func calculateTrackDetails(track models.BandcampTrackData) models.TrackWithDetai
 	lyrics := template.HTML(track.Lyrics)
 
 	return models.TrackWithDetails{
-		Track:                  track,
-		FormattedLyrics:        lyrics,
-		SortedWordCounts:       sortedWordCounts,
-		WordsPerMinute:         wpm,
-		TotalWords:             wordCount,
-		UniqueWords:            len(trackUniqueWordsMap),
-		VowelCount:             vowels,
-		ConsonantCount:         consonants,
-		WordLengthDistribution: wordLengths,
+		Track:                   track,
+		FormattedLyrics:         lyrics,
+		SortedWordCounts:        sortedWordCounts,
+		WordsPerMinute:          wpm,
+		TotalWords:              wordCount,
+		UniqueWords:             len(trackUniqueWordsMap),
+		VowelCount:              vowels,
+		ConsonantCount:          consonants,
+		WordLengthDistribution:  wordLengths,
+		POSCategorizationCounts: broadCategoryCounts,
+		POSCategorization:       posCategorizationByWord,
 	}
 }
 
@@ -148,4 +200,18 @@ func removeItalics(text string) string {
 		"𝘞", "W", "𝘟", "X", "𝘠", "Y", "𝘡", "Z",
 	)
 	return replacer.Replace(text)
+}
+
+func categorizeWordsByPOS(text string) map[string][]string {
+	doc, err := prose.NewDocument(text)
+	if err != nil {
+		panic(err)
+	}
+
+	posMap := make(map[string][]string)
+	for _, tok := range doc.Tokens() {
+		posMap[tok.Tag] = append(posMap[tok.Tag], tok.Text)
+	}
+
+	return posMap
 }

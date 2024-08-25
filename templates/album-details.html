@@ -12,9 +12,10 @@
 
     <a
       href="/"
-      class="absolute top-4 left-4 px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-md transition transform hover:scale-105 hover:bg-gray-600"
-      >Back to Home</a
-    >
+      class="absolute top-4 left-4 px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-md transition transform hover:scale-105 hover:bg-gray-600">
+      Back to Home
+    </a>
+
     <div
       id="album-details"
       class="text-center">
@@ -26,17 +27,17 @@
         <a
           href="{{ .Album.AmpwallUrl }}"
           target="_blank"
-          class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105"
-          >See on Ampwall</a
-        >
+          class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105">
+          See on Ampwall
+        </a>
         {{ end }}
 
         <a
           href="{{ .Album.BandcampUrl }}"
           target="_blank"
-          class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105"
-          >See on Bandcamp</a
-        >
+          class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105">
+          See on Bandcamp
+        </a>
       </div>
 
       <div class="album-details-container">
@@ -52,7 +53,7 @@
               <span>{{ .Album.TotalWords }}</span>
             </div>
             <div>
-              <span>Avgerage # of Words per Track:</span>
+              <span>Average # of Words per Track:</span>
               <span>{{ .Album.AverageWordsPerTrack }}</span>
             </div>
             <div>
@@ -84,6 +85,7 @@
             </div>
             {{ end }}
           </div>
+
           <h3 class="mt-4">Word Length Distribution</h3>
           <div class="flex-grid">
             {{ range $length, $count := .Album.WordLengthDistribution }}
@@ -120,22 +122,44 @@
           </h3>
           <div
             class="track-info-card bg-blue-600 text-white p-4 rounded-md shadow-md mt-2">
-            <p>
-              <strong>Length:</strong> {{
-              $trackWithDetails.Track.FormattedLength }}
-            </p>
-            <p>
-              <strong>Total Words:</strong> {{ $trackWithDetails.TotalWords }}
-            </p>
-            <p>
-              <strong>Unique Words:</strong>
-              {{ $trackWithDetails.UniqueWords }}
-            </p>
-            <p>
-              <strong>Words Per Minute:</strong>
-              {{ printf "%.2f" $trackWithDetails.WordsPerMinute }}
-            </p>
+            <div class="track-info-grid first-row">
+              <div class="track-info-item">
+                <span class="info-title">Length:</span>
+                <span class="info-value"
+                  >{{ $trackWithDetails.Track.FormattedLength }}</span
+                >
+              </div>
+              <div class="track-info-item">
+                <span class="info-title">Total Words:</span>
+                <span class="info-value"
+                  >{{ $trackWithDetails.TotalWords }}</span
+                >
+              </div>
+              <div class="track-info-item">
+                <span class="info-title">Unique Words:</span>
+                <span class="info-value"
+                  >{{ $trackWithDetails.UniqueWords }}</span
+                >
+              </div>
+              <div class="track-info-item">
+                <span class="info-title">Words Per Minute:</span>
+                <span class="info-value"
+                  >{{ printf "%.2f" $trackWithDetails.WordsPerMinute }}</span
+                >
+              </div>
+            </div>
+
+            <div class="track-info-grid second-row">
+              {{ range $category, $count :=
+              $trackWithDetails.POSCategorizationCounts }}
+              <div class="track-info-item">
+                <span class="info-title">{{ $category }}:</span>
+                <span class="info-value">{{ $count }}</span>
+              </div>
+              {{ end }}
+            </div>
           </div>
+
           <div
             id="trackDetails{{ $trackIndex }}"
             class="lg:flex mt-4 gap-2">
@@ -146,8 +170,7 @@
               <pre
                 class="whitespace-pre-wrap text-xs leading-4"
                 id="lyrics{{ $trackIndex }}">
-                    {{ $trackWithDetails.FormattedLyrics }}
-                  </pre
+{{ $trackWithDetails.FormattedLyrics }}</pre
               >
               {{ else }}
               <p>This track has no lyrics.</p>
@@ -155,7 +178,6 @@
             </div>
 
             {{ if $trackWithDetails.Track.Lyrics }}
-
             <div
               class="word-counts bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1">
               <div class="sticky-container">
@@ -164,7 +186,7 @@
                   {{ range $wordIndex, $wordCount :=
                   $trackWithDetails.SortedWordCounts }}
                   <div
-                    class="inline-flex items-center bg-indigo-600 text-white rounded-full px-2 py-1 text-sm font-medium cursor-pointer shadow-md transition-colors hover:bg-indigo-500"
+                    class="inline-flex items-center bg-indigo-600 text-white rounded-full px-2 py-1 text-xs font-medium cursor-pointer shadow-md transition-colors hover:bg-indigo-500"
                     id="wordCount{{ $trackIndex }}-{{ $wordCount.Word }}"
                     data-word="{{ $wordCount.Word }}"
                     data-track="{{ $trackIndex }}"

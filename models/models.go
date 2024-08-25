@@ -38,13 +38,15 @@ type BandcampTrackData struct {
 }
 
 type TrackWithDetails struct {
-	Track                  BandcampTrackData
-	FormattedLyrics        template.HTML
-	SortedWordCounts       []WordCount
-	WordsPerMinute         float64
-	TotalWords             int
-	UniqueWords            int
-	VowelCount             int
-	ConsonantCount         int
-	WordLengthDistribution map[int]int
+	Track                   BandcampTrackData
+	FormattedLyrics         template.HTML
+	SortedWordCounts        []WordCount
+	WordsPerMinute          float64
+	TotalWords              int
+	UniqueWords             int
+	VowelCount              int
+	ConsonantCount          int
+	WordLengthDistribution  map[int]int
+	POSCategorization       map[string]string
+	POSCategorizationCounts map[string]int
 }
