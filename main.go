@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"millions-of-words/loader"
 	"millions-of-words/models"
@@ -120,83 +119,4 @@ func allWordsHandler(c echo.Context) error {
 		"wordFrequencies":     wordFrequencies,
 		"wordFrequenciesJSON": template.JS(wordFrequenciesJSON),
 	})
-}
-
-func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} {
-	album.AlbumWordFrequencies = aggregateWordFrequencies(album)
-	if len(album.AlbumWordFrequencies) > 20 {
-		album.AlbumWordFrequencies = album.AlbumWordFrequencies[:20]
-	}
-
-	totalWords := 0
-	totalVowelCount := 0
-	totalConsonantCount := 0
-	wordLengthDistribution := make(map[int]int)
-	uniqueWordsMap := make(map[string]struct{})
-
-	tracksWithDetails := []models.TrackWithDetails{}
-
-	for _, track := range album.Tracks {
-		trackDetails := calculateTrackDetails(track)
-
-		totalWords += trackDetails.TotalWords
-		totalVowelCount += trackDetails.VowelCount
-		totalConsonantCount += trackDetails.ConsonantCount
-
-		for length, count := range trackDetails.WordLengthDistribution {
-			wordLengthDistribution[length] += count
-		}
-
-		for _, wc := range trackDetails.SortedWordCounts {
-			uniqueWordsMap[wc.Word] = struct{}{}
-		}
-
-		tracksWithDetails = append(tracksWithDetails, trackDetails)
-	}
-
-	album.TotalWords = totalWords
-	album.AverageWordsPerTrack = totalWords / len(album.Tracks)
-	album.TotalUniqueWords = len(uniqueWordsMap)
-	album.TotalVowelCount = totalVowelCount
-	album.TotalConsonantCount = totalConsonantCount
-
-	albumWPM := 0.0
-	if float64(album.TotalLength)/60 > 0 {
-		albumWPM = float64(totalWords) / (float64(album.TotalLength) / 60)
-	}
-
-	return map[string]interface{}{
-		"Album":             album,
-		"TracksWithDetails": tracksWithDetails,
-		"AlbumWPM":          albumWPM,
-	}
-}
-
-func calculateTrackDetails(track models.BandcampTrackData) models.TrackWithDetails {
-	sortedWordCounts, vowels, consonants, wordLengths := words.CalculateAndSortWordFrequencies(track.Lyrics)
-	wordCount := len(strings.Fields(track.Lyrics))
-	trackUniqueWordsMap := make(map[string]struct{})
-
-	for _, wc := range sortedWordCounts {
-		trackUniqueWordsMap[wc.Word] = struct{}{}
-	}
-
-	wpm := 0.0
-	if float64(track.TotalLength)/60 > 0 {
-		wpm = float64(wordCount) / (float64(track.TotalLength) / 60)
-	}
-
-	lyrics := template.HTML(track.Lyrics)
-
-	return models.TrackWithDetails{
-		Track:                  track,
-		FormattedLyrics:        lyrics,
-		SortedWordCounts:       sortedWordCounts,
-		WordsPerMinute:         wpm,
-		TotalWords:             wordCount,
-		UniqueWords:            len(trackUniqueWordsMap),
-		VowelCount:             vowels,
-		ConsonantCount:         consonants,
-		WordLengthDistribution: wordLengths,
-	}
 }
