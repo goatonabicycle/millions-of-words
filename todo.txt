@@ -3,5 +3,18 @@
 - More interesting bits of data. 
   - Nlp/sentiment stuff. 
   - Number of verbs/nouns/adjectives/adverbs.
+    - Highlight these when hovering over the category
+  - Properties to add:
+    - Characters
+    - Characters (no spaces)
+    - Add percentages to the word counts
+    - Lines
+    - Syllables
+    - Avg. word length
+  - Setting to hide common words
+
 - Different lyric sources? Read from metal archives? 
 - Different categories. Rap should be distinct from metal? Also then have an overall.
+
+
+More thi
