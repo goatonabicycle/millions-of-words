@@ -3,13 +3,10 @@ package main
 import (
 	"encoding/base64"
 	"html/template"
-	"sort"
 	"strings"
 
 	"millions-of-words/models"
 	"millions-of-words/words"
-
-	"github.com/jdkato/prose/v2"
 )
 
 func filterAlbumsByQuery(query string) []models.BandcampAlbumData {
@@ -23,32 +20,8 @@ func filterAlbumsByQuery(query string) []models.BandcampAlbumData {
 	return filtered
 }
 
-func aggregateWordFrequencies(album models.BandcampAlbumData) []models.WordCount {
-	wordFreqMap := make(map[string]int)
-	for _, track := range album.Tracks {
-		wordCounts, _, _, _ := words.CalculateAndSortWordFrequencies(track.Lyrics)
-		for _, wc := range wordCounts {
-			wordFreqMap[wc.Word] += wc.Count
-		}
-	}
-
-	var totalWordFrequencies []models.WordCount
-	for word, count := range wordFreqMap {
-		totalWordFrequencies = append(totalWordFrequencies, models.WordCount{Word: word, Count: count})
-	}
-
-	sort.Slice(totalWordFrequencies, func(i, j int) bool {
-		if totalWordFrequencies[i].Count == totalWordFrequencies[j].Count {
-			return totalWordFrequencies[i].Word < totalWordFrequencies[j].Word
-		}
-		return totalWordFrequencies[i].Count > totalWordFrequencies[j].Count
-	})
-
-	return totalWordFrequencies
-}
-
 func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} {
-	album.AlbumWordFrequencies = aggregateWordFrequencies(album)
+	album.AlbumWordFrequencies = words.AggregateWordFrequencies(album)
 	if len(album.AlbumWordFrequencies) > 20 {
 		album.AlbumWordFrequencies = album.AlbumWordFrequencies[:20]
 	}
@@ -62,7 +35,6 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 	tracksWithDetails := []models.TrackWithDetails{}
 
 	for _, track := range album.Tracks {
-		track.Lyrics = removeItalics(track.Lyrics)
 		trackDetails := calculateTrackDetails(track)
 
 		totalWords += trackDetails.TotalWords
@@ -104,36 +76,6 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 	}
 }
 
-var posTagToCategory = map[string]string{
-	// Nouns
-	"NN":   "Nouns",
-	"NNS":  "Nouns",
-	"NNP":  "Nouns",
-	"NNPS": "Nouns",
-	// Verbs
-	"VB":  "Verbs",
-	"VBD": "Verbs",
-	"VBG": "Verbs",
-	"VBN": "Verbs",
-	"VBP": "Verbs",
-	"VBZ": "Verbs",
-	// Adjectives
-	"JJ":  "Adjectives",
-	"JJR": "Adjectives",
-	"JJS": "Adjectives",
-	// Adverbs
-	"RB":  "Adverbs",
-	"RBR": "Adverbs",
-	"RBS": "Adverbs",
-	// Pronouns
-	"PRP":  "Pronouns",
-	"PRP$": "Pronouns",
-	// Prepositions
-	"IN": "Prepositions",
-	// Conjunctions
-	"CC": "Conjunctions",
-}
-
 func calculateTrackDetails(track models.BandcampTrackData) models.TrackWithDetails {
 	sortedWordCounts, vowels, consonants, wordLengths := words.CalculateAndSortWordFrequencies(track.Lyrics)
 	wordCount := len(strings.Fields(track.Lyrics))
@@ -143,19 +85,19 @@ func calculateTrackDetails(track models.BandcampTrackData) models.TrackWithDetai
 		trackUniqueWordsMap[wc.Word] = struct{}{}
 	}
 
-	posCategorization := categorizeWordsByPOS(track.Lyrics)
+	posCategorization := words.CategorizeWordsByPOS(track.Lyrics)
 
 	broadCategoryCounts := make(map[string]int)
-	for pos, words := range posCategorization {
-		if category, exists := posTagToCategory[pos]; exists {
-			broadCategoryCounts[category] += len(words)
+	for pos, wordsList := range posCategorization {
+		if category, exists := words.PosTagToCategory()[pos]; exists {
+			broadCategoryCounts[category] += len(wordsList)
 		}
 	}
 
 	posCategorizationByWord := make(map[string]string)
-	for pos, words := range posCategorization {
-		if category, exists := posTagToCategory[pos]; exists {
-			for _, word := range words {
+	for pos, wordsList := range posCategorization {
+		if category, exists := words.PosTagToCategory()[pos]; exists {
+			for _, word := range wordsList {
 				posCategorizationByWord[word] = category
 			}
 		}
@@ -181,40 +123,4 @@ func calculateTrackDetails(track models.BandcampTrackData) models.TrackWithDetai
 		POSCategorizationCounts: broadCategoryCounts,
 		POSCategorization:       posCategorizationByWord,
 	}
-}
-
-func removeItalics(text string) string {
-	replacer := strings.NewReplacer(
-		"𝘢", "a", "𝘣", "b", "𝘤", "c", "𝘥", "d",
-		"𝘦", "e", "𝘧", "f", "𝘨", "g", "𝘩", "h",
-		"𝘪", "i", "𝘫", "j", "𝘬", "k", "𝘭", "l",
-		"𝘮", "m", "𝘯", "n", "𝘰", "o", "𝘱", "p",
-		"𝘲", "q", "𝘳", "r", "𝘴", "s", "𝘵", "t",
-		"𝘶", "u", "𝘷", "v", "𝘸", "w", "𝘹", "x",
-		"𝘺", "y", "𝘻", "z", "𝘈", "A", "𝘉", "B",
-		"𝘊", "C", "𝘋", "D", "𝘌", "E", "𝘍", "F",
-		"𝘎", "G", "𝘏", "H", "𝘐", "I", "𝘑", "J",
-		"𝘒", "K", "𝘓", "L", "𝘔", "M", "𝘕", "N",
-		"𝘖", "O", "𝘗", "P", "𝘘", "Q", "𝘙", "R",
-		"𝘚", "S", "𝘛", "T", "𝘜", "U", "𝘝", "V",
-		"𝘞", "W", "𝘟", "X", "𝘠", "Y", "𝘡", "Z",
-	)
-	return replacer.Replace(text)
-}
-
-func categorizeWordsByPOS(text string) map[string][]string {
-	doc, err := prose.NewDocument(strings.ToLower(text))
-	if err != nil {
-		panic(err)
-	}
-
-	posMap := make(map[string][]string)
-	for _, tok := range doc.Tokens() {
-		cleanedWord := words.CleanWord(tok.Text)
-		if cleanedWord != "" {
-			posMap[tok.Tag] = append(posMap[tok.Tag], cleanedWord)
-		}
-	}
-
-	return posMap
 }
