@@ -152,7 +152,10 @@
             <div class="track-info-grid second-row">
               {{ range $category, $count :=
               $trackWithDetails.POSCategorizationCounts }}
-              <div class="track-info-item">
+              <div
+                class="track-info-item"
+                onmouseover="highlightPOSWords('{{ $category }}', {{ $trackIndex }})"
+                onmouseout="unhighlightPOSWords('{{ $category }}', {{ $trackIndex }})">
                 <span class="info-title">{{ $category }}:</span>
                 <span class="info-value">{{ $count }}</span>
               </div>
@@ -207,7 +210,7 @@
     </div>
 
     <script>
-          function wrapLyricsWordsWithSpans(trackIndex) {
+        function wrapLyricsWordsWithSpans(trackIndex, posCategorization) {
           const lyricsElement = document.getElementById(`lyrics${trackIndex}`);
           if (lyricsElement) {
               const lines = lyricsElement.innerHTML.split(/\n/);
@@ -216,9 +219,10 @@
                   return words.map(word => {
                       const cleanedWord = cleanWord(word);
                       if (cleanedWord.length > 0) {
+                          const posCategory = posCategorization[cleanedWord.toLowerCase()] || '';
                           const wordCountElement = document.getElementById(`wordCount${trackIndex}-${escapeSelector(cleanedWord)}`);
                           const count = wordCountElement ? wordCountElement.getAttribute('data-count') : 0;
-                          return `<span data-word="${cleanedWord}" data-track="${trackIndex}" data-count="${count}" onmouseover="highlightRelatedWords(this); showTooltip(this)" onmouseout="unhighlightRelatedWords(this); hideTooltip()">${word}</span>`;
+                          return `<span data-word="${cleanedWord}" data-track="${trackIndex}" data-count="${count}" data-pos-category="${posCategory}" onmouseover="highlightRelatedWords(this); showTooltip(this)" onmouseout="unhighlightRelatedWords(this); hideTooltip()">${word}</span>`;
                       }
                       return word;
                   }).join('');
@@ -264,9 +268,21 @@
           return word.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, '\\$1');
       }
 
+      function highlightPOSWords(category, trackIndex) {
+          const selector = `[data-pos-category="${category}"][data-track="${trackIndex}"]`;
+          const relatedWords = document.querySelectorAll(selector);
+          relatedWords.forEach(el => el.classList.add('highlighted-pos'));
+      }
+
+      function unhighlightPOSWords(category, trackIndex) {
+          const selector = `[data-pos-category="${category}"][data-track="${trackIndex}"]`;
+          const relatedWords = document.querySelectorAll(selector);
+          relatedWords.forEach(el => el.classList.remove('highlighted-pos'));
+      }
+
       document.addEventListener("DOMContentLoaded", function() {
           {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
-          wrapLyricsWordsWithSpans({{ $trackIndex }});
+          wrapLyricsWordsWithSpans({{ $trackIndex }}, {{ $trackWithDetails.POSCategorization }});
           {{ end }}
       });
     </script>
