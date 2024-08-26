@@ -20,7 +20,7 @@ func CalculateAndSortWordFrequencies(lyrics string) ([]models.WordCount, int, in
 	words := splitLyricsIntoWords(lyrics)
 
 	for _, word := range words {
-		cleanedWord := cleanWord(word)
+		cleanedWord := CleanWord(word)
 		if cleanedWord != "" {
 			wordCounts[cleanedWord]++
 			vowels, consonants := countVowelsAndConsonants(cleanedWord)
@@ -50,7 +50,7 @@ func splitLyricsIntoWords(lyrics string) []string {
 	return words
 }
 
-func cleanWord(word string) string {
+func CleanWord(word string) string {
 	word = strings.TrimFunc(word, func(r rune) bool {
 		return !unicode.IsLetter(r) && !unicode.IsNumber(r) && r != '\'' && r != '’' && r != '-'
 	})

@@ -203,14 +203,17 @@ func removeItalics(text string) string {
 }
 
 func categorizeWordsByPOS(text string) map[string][]string {
-	doc, err := prose.NewDocument(text)
+	doc, err := prose.NewDocument(strings.ToLower(text))
 	if err != nil {
 		panic(err)
 	}
 
 	posMap := make(map[string][]string)
 	for _, tok := range doc.Tokens() {
-		posMap[tok.Tag] = append(posMap[tok.Tag], tok.Text)
+		cleanedWord := words.CleanWord(tok.Text)
+		if cleanedWord != "" {
+			posMap[tok.Tag] = append(posMap[tok.Tag], cleanedWord)
+		}
 	}
 
 	return posMap

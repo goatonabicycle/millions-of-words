@@ -1,9 +1,24 @@
 - Style consistency and general vibe check. 
-- Have some intentionality about the ordering on the main page. By order added? 
+- Have some intentionality about the ordering on the main page. By order added? How should new albums be handled?
 - More interesting bits of data. 
   - Nlp/sentiment stuff. 
   - Number of verbs/nouns/adjectives/adverbs.
     - Highlight these when hovering over the category
+      - The numbers here do not currently match well. Something is off. 
+    - Highlight what the word is from the word count. 
+    - Add more, 
+      - Determiners  
+      - Interjections 
+      - Articles
+      - Numerals 
+      - Particles  
+      - Expletives  
+      - Auxiliary Verbs
+      - Possessive Pronouns
+      - Possessive Nouns
+      - Wh-words
+      - Profanities
+    - Have a tooltip that explains each part of speech 
   - Properties to add:
     - Characters
     - Characters (no spaces)

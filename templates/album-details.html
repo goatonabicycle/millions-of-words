@@ -154,6 +154,8 @@
               $trackWithDetails.POSCategorizationCounts }}
               <div
                 class="track-info-item"
+                data-category="{{ $category }}"
+                data-track-index="{{ $trackIndex }}"
                 onmouseover="highlightPOSWords('{{ $category }}', {{ $trackIndex }})"
                 onmouseout="unhighlightPOSWords('{{ $category }}', {{ $trackIndex }})">
                 <span class="info-title">{{ $category }}:</span>
@@ -210,19 +212,19 @@
     </div>
 
     <script>
-        function wrapLyricsWordsWithSpans(trackIndex, posCategorization) {
+       function wrapLyricsWordsWithSpans(trackIndex, posCategorization) {
           const lyricsElement = document.getElementById(`lyrics${trackIndex}`);
           if (lyricsElement) {
               const lines = lyricsElement.innerHTML.split(/\n/);
               lyricsElement.innerHTML = lines.map(line => {
                   const words = line.trim().split(/(\s+)/);
                   return words.map(word => {
-                      const cleanedWord = cleanWord(word);
+                      const cleanedWord = cleanWord(word).toLowerCase();
                       if (cleanedWord.length > 0) {
-                          const posCategory = posCategorization[cleanedWord.toLowerCase()] || '';
+                          const posCategory = posCategorization[cleanedWord] || '';
                           const wordCountElement = document.getElementById(`wordCount${trackIndex}-${escapeSelector(cleanedWord)}`);
                           const count = wordCountElement ? wordCountElement.getAttribute('data-count') : 0;
-                          return `<span data-word="${cleanedWord}" data-track="${trackIndex}" data-count="${count}" data-pos-category="${posCategory}" onmouseover="highlightRelatedWords(this); showTooltip(this)" onmouseout="unhighlightRelatedWords(this); hideTooltip()">${word}</span>`;
+                          return `<span class="word" data-word="${cleanedWord}" data-track="${trackIndex}" data-count="${count}" data-pos-category="${posCategory}" onmouseover="highlightRelatedWords(this); showTooltip(this)" onmouseout="unhighlightRelatedWords(this); hideTooltip()">${word}</span>`;
                       }
                       return word;
                   }).join('');
@@ -269,15 +271,52 @@
       }
 
       function highlightPOSWords(category, trackIndex) {
-          const selector = `[data-pos-category="${category}"][data-track="${trackIndex}"]`;
+          const posClass = getPOSClass(category);
+
+          const selector = `.word[data-pos-category="${category}"][data-track="${trackIndex}"]`;
           const relatedWords = document.querySelectorAll(selector);
-          relatedWords.forEach(el => el.classList.add('highlighted-pos'));
+          relatedWords.forEach(el => el.classList.add(posClass));
+
+          const infoBlockSelector = `.track-info-item[data-category="${category}"][data-track-index="${trackIndex}"]`;
+          const infoBlock = document.querySelector(infoBlockSelector);
+          if (infoBlock) {
+              infoBlock.classList.add(posClass);
+          }
       }
 
       function unhighlightPOSWords(category, trackIndex) {
-          const selector = `[data-pos-category="${category}"][data-track="${trackIndex}"]`;
+          const posClass = getPOSClass(category);
+
+          const selector = `.word[data-pos-category="${category}"][data-track="${trackIndex}"]`;
           const relatedWords = document.querySelectorAll(selector);
-          relatedWords.forEach(el => el.classList.remove('highlighted-pos'));
+          relatedWords.forEach(el => el.classList.remove(posClass));
+
+          const infoBlockSelector = `.track-info-item[data-category="${category}"][data-track-index="${trackIndex}"]`;
+          const infoBlock = document.querySelector(infoBlockSelector);
+          if (infoBlock) {
+              infoBlock.classList.remove(posClass);
+          }
+      }
+
+      function getPOSClass(category) {
+          switch (category.toLowerCase()) {
+              case 'nouns':
+                  return 'highlighted-noun';
+              case 'verbs':
+                  return 'highlighted-verb';
+              case 'adjectives':
+                  return 'highlighted-adjective';
+              case 'adverbs':
+                  return 'highlighted-adverb';
+              case 'pronouns':
+                  return 'highlighted-pronoun';
+              case 'prepositions':
+                  return 'highlighted-preposition';
+              case 'conjunctions':
+                  return 'highlighted-conjunction';
+              default:
+                  return '';
+          }
       }
 
       document.addEventListener("DOMContentLoaded", function() {
