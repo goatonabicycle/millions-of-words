@@ -33,3 +33,4 @@
 - Different lyric sources? Read from metal archives? 
 - Different categories. Rap should be distinct from metal? Also then have an overall.
 - Search by word. 
+- All words should show the albums the word it appears on. Show little icons in line. 
