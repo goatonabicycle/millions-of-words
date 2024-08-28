@@ -29,6 +29,9 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 	totalWords := 0
 	totalVowelCount := 0
 	totalConsonantCount := 0
+	totalCharacters := 0
+	totalCharactersNoSpaces := 0
+	totalLines := 0
 	wordLengthDistribution := make(map[int]int)
 	uniqueWordsMap := make(map[string]struct{})
 
@@ -40,6 +43,9 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 		totalWords += trackDetails.TotalWords
 		totalVowelCount += trackDetails.VowelCount
 		totalConsonantCount += trackDetails.ConsonantCount
+		totalCharacters += trackDetails.TotalCharacters
+		totalCharactersNoSpaces += trackDetails.TotalCharactersNoSpaces
+		totalLines += trackDetails.TotalLines
 
 		for length, count := range trackDetails.WordLengthDistribution {
 			wordLengthDistribution[length] += count
@@ -53,6 +59,10 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 	}
 
 	album.TotalWords = totalWords
+	album.TotalCharacters = totalCharacters
+	album.TotalCharactersNoSpaces = totalCharactersNoSpaces
+	album.TotalLines = totalLines
+
 	if len(album.Tracks) > 0 {
 		album.AverageWordsPerTrack = totalWords / len(album.Tracks)
 	} else {
@@ -109,6 +119,9 @@ func calculateTrackDetails(track models.BandcampTrackData) models.TrackWithDetai
 	}
 
 	lyrics := template.HTML(track.Lyrics)
+	totalCharacters := len(track.Lyrics)
+	totalCharactersNoSpaces := len(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(track.Lyrics, " ", ""), "\n", ""), "\r", ""))
+	totalLines := len(strings.Split(strings.ReplaceAll(track.Lyrics, "\r\n", "\n"), "\n"))
 
 	return models.TrackWithDetails{
 		Track:                   track,
@@ -122,5 +135,8 @@ func calculateTrackDetails(track models.BandcampTrackData) models.TrackWithDetai
 		WordLengthDistribution:  wordLengths,
 		POSCategorizationCounts: broadCategoryCounts,
 		POSCategorization:       posCategorizationByWord,
+		TotalCharacters:         totalCharacters,
+		TotalCharactersNoSpaces: totalCharactersNoSpaces,
+		TotalLines:              totalLines,
 	}
 }

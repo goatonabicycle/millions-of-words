@@ -3,11 +3,8 @@
 
 - More interesting bits of data: 
   - Nlp/sentiment stuff. 
-  - Properties to add:
-    - Characters
-    - Characters (no spaces)
-    - Add percentages to the word counts
-    - Lines
+  - Properties to add:   
+    - Add percentages to the word counts    
     - Syllables
     - Avg. word length
   - Number of verbs/nouns/adjectives/adverbs.

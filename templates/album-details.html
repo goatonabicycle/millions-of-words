@@ -3,7 +3,6 @@
   lang="en"
   class="dark">
   {{ template "album-details-header.html" . }}
-
   <body
     class="dark:bg-gray-900 dark:text-gray-200 flex flex-col items-center p-8">
     <div
@@ -71,6 +70,18 @@
             <div>
               <span>Words Per Minute:</span>
               <span>{{ printf "%.2f" .AlbumWPM }}</span>
+            </div>
+            <div>
+              <span>Total Characters:</span>
+              <span>{{ .Album.TotalCharacters }}</span>
+            </div>
+            <div>
+              <span>Characters (No Spaces):</span>
+              <span>{{ .Album.TotalCharactersNoSpaces }}</span>
+            </div>
+            <div>
+              <span>Total Lines:</span>
+              <span>{{ .Album.TotalLines }}</span>
             </div>
           </div>
         </div>
@@ -147,6 +158,24 @@
                   >{{ printf "%.2f" $trackWithDetails.WordsPerMinute }}</span
                 >
               </div>
+              <div class="track-info-item">
+                <span class="info-title">Total Characters:</span>
+                <span class="info-value"
+                  >{{ $trackWithDetails.TotalCharacters }}</span
+                >
+              </div>
+              <div class="track-info-item">
+                <span class="info-title">Characters (No Spaces):</span>
+                <span class="info-value"
+                  >{{ $trackWithDetails.TotalCharactersNoSpaces }}</span
+                >
+              </div>
+              <div class="track-info-item">
+                <span class="info-title">Total Lines:</span>
+                <span class="info-value"
+                  >{{ $trackWithDetails.TotalLines }}</span
+                >
+              </div>
             </div>
 
             <div class="track-info-grid second-row">
@@ -175,7 +204,7 @@
               <pre
                 class="whitespace-pre-wrap text-xs leading-4"
                 id="lyrics{{ $trackIndex }}">
-{{ $trackWithDetails.FormattedLyrics }}</pre
+                                {{ $trackWithDetails.FormattedLyrics }}</pre
               >
               {{ else }}
               <p>This track has no lyrics.</p>
