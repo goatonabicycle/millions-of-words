@@ -1,3 +1,4 @@
+- Have way more calculations stored in the database. Go kinda sucks in terms of its package ecosystem.
 - Style consistency and general vibe check. 
 - Have some intentionality about the ordering on the main page. By order added? How should new albums be handled?
 
