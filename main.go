@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -15,6 +15,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+)
+
+const (
+	defaultPort         = "8080"
+	defaultTemplatesDir = "./templates"
 )
 
 var (
@@ -30,34 +35,48 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 }
 
 func main() {
-	templatesDir := os.Getenv("TEMPLATES_DIR")
-	if templatesDir == "" {
-		templatesDir = "./templates"
-	}
-
 	e := echo.New()
-
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
+	templatesDir := getEnv("TEMPLATES_DIR", defaultTemplatesDir)
 	renderer := &TemplateRenderer{
 		templates: template.Must(template.New("").ParseGlob(filepath.Join(templatesDir, "*.html"))),
 	}
 	e.Renderer = renderer
 
+	if err := loadAlbums(); err != nil {
+		e.Logger.Fatal(err)
+	}
+
+	setupRoutes(e)
+
+	port := getEnv("PORT", defaultPort)
+	e.Logger.Fatal(e.Start(":" + port))
+}
+
+func getEnv(key, fallback string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return fallback
+}
+
+func loadAlbums() error {
 	var err error
 	albums, err = loader.LoadAlbumsData()
 	if err != nil {
-		log.Fatalf("Failed to load album data: %v", err)
+		return fmt.Errorf("failed to load album data: %w", err)
 	}
+	return nil
+}
 
+func setupRoutes(e *echo.Echo) {
 	e.GET("/", indexHandler)
 	e.GET("/all-words", allWordsHandler)
 	e.GET("/all-albums", allAlbumsHandler)
 	e.GET("/album/:id", albumDetailsHandler)
 	e.GET("/search-albums", searchAlbumsHandler)
-
-	e.Logger.Fatal(e.Start("0.0.0.0:8080"))
 }
 
 func renderTemplate(c echo.Context, name string, data map[string]interface{}) error {
@@ -85,13 +104,12 @@ func albumDetailsHandler(c echo.Context) error {
 			return renderTemplate(c, "album-details.html", data)
 		}
 	}
-	return c.String(http.StatusNotFound, "Album not found.")
+	return echo.NewHTTPError(http.StatusNotFound, "Album not found")
 }
 
 func searchAlbumsHandler(c echo.Context) error {
 	searchQuery := c.QueryParam("search")
 	filteredAlbums := filterAlbumsByQuery(searchQuery)
-
 	return c.Render(http.StatusOK, "album-grid.html", map[string]interface{}{
 		"albums": filteredAlbums,
 	})
@@ -112,7 +130,7 @@ func allWordsHandler(c echo.Context) error {
 	wordFrequencies := words.MapToSortedList(wordFrequencyMap)
 	wordFrequenciesJSON, err := json.Marshal(wordFrequencies)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to marshal word frequencies")
 	}
 
 	return c.Render(http.StatusOK, "all-words.html", map[string]interface{}{
