@@ -39,7 +39,6 @@ var posTagToCategory = map[string]string{
 	"CC": "Conjunctions",
 }
 
-// PosTagToCategory returns the map of POS tags to their broad categories
 func PosTagToCategory() map[string]string {
 	return posTagToCategory
 }
@@ -98,10 +97,9 @@ func CalculateAndSortWordFrequencies(lyrics string) ([]models.WordCount, int, in
 }
 
 func splitLyricsIntoWords(lyrics string) []string {
-	words := strings.FieldsFunc(lyrics, func(r rune) bool {
+	return strings.FieldsFunc(lyrics, func(r rune) bool {
 		return unicode.IsSpace(r) || (unicode.IsPunct(r) && r != '\'' && r != '’' && r != '-')
 	})
-	return words
 }
 
 func CleanWord(word string) string {
