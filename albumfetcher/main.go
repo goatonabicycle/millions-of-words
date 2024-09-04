@@ -8,10 +8,12 @@ import (
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -21,37 +23,40 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-func main() {
-	dbPath := "../data/db/albums.db"
-	urlFilePath := "bandcamp_urls.txt"
+const (
+	dbPath      = "../data/db/albums.db"
+	urlFilePath = "bandcamp_urls.txt"
+)
 
-	ensureDatabaseExists(dbPath)
-	processTextFile(urlFilePath, dbPath)
+func main() {
+	if err := ensureDatabaseExists(dbPath); err != nil {
+		log.Fatalf("Failed to ensure database exists: %v", err)
+	}
+
+	if err := processTextFile(urlFilePath, dbPath); err != nil {
+		log.Fatalf("Error processing text file: %v", err)
+	}
 }
 
-func ensureDatabaseExists(dbPath string) {
-	dbDir := "../data/db"
-	if _, err := os.Stat(dbDir); os.IsNotExist(err) {
-		if err := os.MkdirAll(dbDir, 0755); err != nil {
-			log.Fatalf("Failed to create directory for SQLite database: %v", err)
-		}
+func ensureDatabaseExists(dbPath string) error {
+	dbDir := filepath.Dir(dbPath)
+	if err := os.MkdirAll(dbDir, 0755); err != nil {
+		return fmt.Errorf("failed to create directory for SQLite database: %w", err)
 	}
 
 	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
-		log.Fatalf("Error opening database: %v", err)
+		return fmt.Errorf("error opening database: %w", err)
 	}
 	defer db.Close()
 
-	if err := createTablesIfNotExist(db); err != nil {
-		log.Fatalf("Error creating tables in database: %v", err)
-	}
+	return createTablesIfNotExist(db)
 }
 
-func processTextFile(filePath, dbPath string) {
+func processTextFile(filePath, dbPath string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
-		log.Fatalf("Failed to open file: %v", err)
+		return fmt.Errorf("failed to open file: %w", err)
 	}
 	defer file.Close()
 
@@ -61,52 +66,51 @@ func processTextFile(filePath, dbPath string) {
 		if url == "" {
 			continue
 		}
-		processSingleURL(url, dbPath)
+		if err := processSingleURL(url, dbPath); err != nil {
+			log.Printf("Error processing URL %s: %v", url, err)
+		}
 	}
 
-	if err := scanner.Err(); err != nil {
-		log.Fatalf("Error reading file: %v", err)
-	}
+	return scanner.Err()
 }
 
-func processSingleURL(url, dbPath string) {
-	log.Println("=========================================")
-	log.Printf("Processing album data for URL: %s\n", url)
+func processSingleURL(url, dbPath string) error {
+	log.Printf("Processing album data for URL: %s", url)
 
-	if urlExistsInDatabase(url, dbPath) {
-		log.Printf("Album with URL %s already exists in the database. Skipping.\n", url)
-		log.Println("=========================================")
-		return
+	exists, err := urlExistsInDatabase(url, dbPath)
+	if err != nil {
+		return fmt.Errorf("error checking if URL exists: %w", err)
+	}
+	if exists {
+		log.Printf("Album with URL %s already exists in the database. Skipping.", url)
+		return nil
 	}
 
 	albumData, err := fetchAlbumDataFromBandcamp(url)
 	if err != nil {
-		log.Printf("Failed to fetch album data for URL %s: %v", url, err)
-		log.Println("=========================================")
-		return
+		return fmt.Errorf("failed to fetch album data: %w", err)
 	}
 
 	albumData.DateAdded = time.Now().Format("2006-01-02 15:04:05")
 
 	albumData.AlbumColorAverage, err = calculateAverageColor(albumData.ImageData)
 	if err != nil {
-		log.Printf("Failed to calculate average color for URL %s: %v", url, err)
+		log.Printf("Failed to calculate average color: %v", err)
 		albumData.AlbumColorAverage = "#000000"
 	}
 
-	err = insertAlbumDataIntoSQLite(albumData, dbPath)
-	if err != nil {
-		log.Printf("Failed to write album data to SQLite for URL %s: %v", url, err)
+	if err := insertAlbumDataIntoSQLite(albumData, dbPath); err != nil {
+		return fmt.Errorf("failed to write album data to SQLite: %w", err)
 	}
 
 	log.Println("Finished processing.")
-	log.Println("=========================================")
+	return nil
 }
 
-func urlExistsInDatabase(url, dbPath string) bool {
+func urlExistsInDatabase(url, dbPath string) (bool, error) {
 	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
-		log.Fatalf("Error opening database: %v", err)
+		return false, fmt.Errorf("error opening database: %w", err)
 	}
 	defer db.Close()
 
@@ -114,13 +118,13 @@ func urlExistsInDatabase(url, dbPath string) bool {
 	query := "SELECT EXISTS(SELECT 1 FROM albums WHERE bandcamp_url=? LIMIT 1)"
 	err = db.QueryRow(query, url).Scan(&exists)
 	if err != nil {
-		log.Fatalf("Error checking if URL exists in database: %v", err)
+		return false, fmt.Errorf("error checking if URL exists in database: %w", err)
 	}
-	return exists
+	return exists, nil
 }
 
 func fetchAlbumDataFromBandcamp(url string) (models.BandcampAlbumData, error) {
-	log.Printf("Fetching album data from Bandcamp for URL: %s\n", url)
+	log.Printf("Fetching album data from Bandcamp for URL: %s", url)
 	resp, err := http.Get(url)
 	if err != nil {
 		return models.BandcampAlbumData{}, fmt.Errorf("error fetching Bandcamp page: %w", err)
@@ -138,10 +142,27 @@ func fetchAlbumDataFromBandcamp(url string) (models.BandcampAlbumData, error) {
 
 	imageData, err := fetchImageData(imageUrl)
 	if err != nil {
-		log.Printf("Failed to fetch album image for URL %s: %v", url, err)
-		imageData = nil
+		log.Printf("Failed to fetch album image: %v", err)
 	}
 
+	tracklist, totalAlbumDuration := processTracklist(doc)
+
+	return models.BandcampAlbumData{
+		ID:                strings.TrimSpace(artistName) + " - " + strings.TrimSpace(albumName),
+		ArtistName:        strings.TrimSpace(artistName),
+		AlbumName:         strings.TrimSpace(albumName),
+		ImageUrl:          imageUrl,
+		ImageData:         imageData,
+		AlbumColorAverage: "",
+		Tracks:            tracklist,
+		TotalLength:       int(totalAlbumDuration.Seconds()),
+		FormattedLength:   formatDuration(int(totalAlbumDuration.Seconds())),
+		BandcampUrl:       url,
+		AmpwallUrl:        "",
+	}, nil
+}
+
+func processTracklist(doc *goquery.Document) ([]models.BandcampTrackData, time.Duration) {
 	var tracklist []models.BandcampTrackData
 	var totalAlbumDuration time.Duration
 
@@ -149,7 +170,7 @@ func fetchAlbumDataFromBandcamp(url string) (models.BandcampAlbumData, error) {
 		trackTitle := s.Find(".title-col .track-title").Text()
 		trackDurationStr := strings.TrimSpace(s.Find(".title-col .time").Text())
 
-		log.Printf("  - Processing track: '%s', Duration: '%s'\n", trackTitle, trackDurationStr)
+		log.Printf("  - Processing track: '%s', Duration: '%s'", trackTitle, trackDurationStr)
 
 		if strings.TrimSpace(trackTitle) == "" || trackDurationStr == "" {
 			log.Printf("Warning: Missing essential data for track %d (%s). Skipping this track.", i+1, trackTitle)
@@ -179,19 +200,7 @@ func fetchAlbumDataFromBandcamp(url string) (models.BandcampAlbumData, error) {
 		tracklist = append(tracklist, track)
 	})
 
-	return models.BandcampAlbumData{
-		ID:                strings.TrimSpace(artistName) + " - " + strings.TrimSpace(albumName),
-		ArtistName:        strings.TrimSpace(artistName),
-		AlbumName:         strings.TrimSpace(albumName),
-		ImageUrl:          imageUrl,
-		ImageData:         imageData,
-		AlbumColorAverage: "",
-		Tracks:            tracklist,
-		TotalLength:       int(totalAlbumDuration.Seconds()),
-		FormattedLength:   formatDuration(int(totalAlbumDuration.Seconds())),
-		BandcampUrl:       url,
-		AmpwallUrl:        "",
-	}, nil
+	return tracklist, totalAlbumDuration
 }
 
 func fetchImageData(imageUrl string) ([]byte, error) {
@@ -205,12 +214,7 @@ func fetchImageData(imageUrl string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	imageData, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("error reading image data: %w", err)
-	}
-
-	return imageData, nil
+	return io.ReadAll(resp.Body)
 }
 
 func calculateAverageColor(imageData []byte) (string, error) {
@@ -245,10 +249,21 @@ func parseTrackDuration(durationStr string) (time.Duration, error) {
 		return 0, fmt.Errorf("invalid track duration format: %s", durationStr)
 	}
 
-	minutes := strings.TrimSpace(parts[0])
-	seconds := strings.TrimSpace(parts[1])
+	minutes, err := strconv.Atoi(strings.TrimSpace(parts[0]))
+	if err != nil {
+		return 0, fmt.Errorf("invalid minutes in duration: %s", durationStr)
+	}
 
-	return time.ParseDuration(fmt.Sprintf("%sm%ss", minutes, seconds))
+	seconds, err := strconv.Atoi(strings.TrimSpace(parts[1]))
+	if err != nil {
+		return 0, fmt.Errorf("invalid seconds in duration: %s", durationStr)
+	}
+
+	if seconds >= 60 {
+		return 0, fmt.Errorf("seconds should be less than 60: %s", durationStr)
+	}
+
+	return time.Duration(minutes)*time.Minute + time.Duration(seconds)*time.Second, nil
 }
 
 func insertAlbumDataIntoSQLite(album models.BandcampAlbumData, dbPath string) error {
@@ -258,11 +273,13 @@ func insertAlbumDataIntoSQLite(album models.BandcampAlbumData, dbPath string) er
 	}
 	defer db.Close()
 
-	if err := createTablesIfNotExist(db); err != nil {
-		return fmt.Errorf("error creating tables: %w", err)
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("error starting transaction: %w", err)
 	}
+	defer tx.Rollback()
 
-	_, err = db.Exec(`INSERT INTO albums 
+	_, err = tx.Exec(`INSERT INTO albums 
 		(id, artist_name, album_name, image_url, image_data, bandcamp_url, ampwall_url, album_color_average, total_length, formatted_length, date_added) 
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		album.ID, album.ArtistName, album.AlbumName, album.ImageUrl, album.ImageData, album.BandcampUrl, album.AmpwallUrl, album.AlbumColorAverage, album.TotalLength, album.FormattedLength, album.DateAdded)
@@ -271,14 +288,14 @@ func insertAlbumDataIntoSQLite(album models.BandcampAlbumData, dbPath string) er
 	}
 
 	for _, track := range album.Tracks {
-		_, err = db.Exec(`INSERT INTO tracks (album_id, name, total_length, formatted_length, lyrics) VALUES (?, ?, ?, ?, ?)`,
+		_, err = tx.Exec(`INSERT INTO tracks (album_id, name, total_length, formatted_length, lyrics) VALUES (?, ?, ?, ?, ?)`,
 			album.ID, track.Name, track.TotalLength, track.FormattedLength, track.Lyrics)
 		if err != nil {
 			return fmt.Errorf("error inserting track data: %w", err)
 		}
 	}
 
-	return nil
+	return tx.Commit()
 }
 
 func createTablesIfNotExist(db *sql.DB) error {
@@ -308,14 +325,12 @@ func createTablesIfNotExist(db *sql.DB) error {
 		FOREIGN KEY(album_id) REFERENCES albums(id)
 	);
 	`
-	_, err := db.Exec(albumTable)
-	if err != nil {
-		return err
+	if _, err := db.Exec(albumTable); err != nil {
+		return fmt.Errorf("error creating albums table: %w", err)
 	}
 
-	_, err = db.Exec(trackTable)
-	if err != nil {
-		return err
+	if _, err := db.Exec(trackTable); err != nil {
+		return fmt.Errorf("error creating tracks table: %w", err)
 	}
 
 	return nil
