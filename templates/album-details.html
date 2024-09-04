@@ -7,87 +7,52 @@
     class="dark:bg-gray-900 dark:text-gray-200 flex flex-col items-center p-8">
     <div
       id="tooltip"
-      class="tooltip"></div>
+      class="tooltip"
+      aria-live="polite"></div>
 
-    <a
-      href="/"
-      class="absolute top-4 left-4 px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-md transition transform hover:scale-105 hover:bg-gray-600">
-      Back to Home
-    </a>
+    <nav>
+      <a
+        href="/"
+        class="absolute top-4 left-4 px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-md transition transform hover:scale-105 hover:bg-gray-600">
+        Back to Home
+      </a>
+    </nav>
 
-    <div
+    <main
       id="album-details"
       class="text-center">
-      <h1 class="fancy-header-album-title">
-        {{ .Album.ArtistName }} - {{ .Album.AlbumName }}
-      </h1>
-      <div class="text-center">
-        {{ if .Album.AmpwallUrl }}
-        <a
-          href="{{ .Album.AmpwallUrl }}"
-          target="_blank"
-          class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105">
-          See on Ampwall
-        </a>
-        {{ end }}
+      <header>
+        <h1 class="fancy-header-album-title">
+          {{ .Album.ArtistName }} - {{ .Album.AlbumName }}
+        </h1>
+        <div class="text-center">
+          {{ if .Album.AmpwallUrl }}
+          <a
+            href="{{ .Album.AmpwallUrl }}"
+            target="_blank"
+            class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105">
+            See on Ampwall
+          </a>
+          {{ end }}
+          <a
+            href="{{ .Album.BandcampUrl }}"
+            target="_blank"
+            class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105">
+            See on Bandcamp
+          </a>
+        </div>
+      </header>
 
-        <a
-          href="{{ .Album.BandcampUrl }}"
-          target="_blank"
-          class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105">
-          See on Bandcamp
-        </a>
-      </div>
-
-      <div class="album-details-container">
+      <section class="album-details-container">
         <div class="details-section">
-          <h3>Album Details</h3>
+          <h2>Album Details</h2>
           <div class="album-details-grid">
-            <div>
-              <span>Total Duration:</span>
-              <span>{{ .Album.FormattedLength }}</span>
-            </div>
-            <div>
-              <span>Total Words:</span>
-              <span>{{ .Album.TotalWords }}</span>
-            </div>
-            <div>
-              <span>Average # of Words per Track:</span>
-              <span>{{ .Album.AverageWordsPerTrack }}</span>
-            </div>
-            <div>
-              <span>Unique Words:</span>
-              <span>{{ .Album.TotalUniqueWords }}</span>
-            </div>
-            <div>
-              <span>Vowel Count:</span>
-              <span>{{ .Album.TotalVowelCount }}</span>
-            </div>
-            <div>
-              <span>Consonant Count:</span>
-              <span>{{ .Album.TotalConsonantCount }}</span>
-            </div>
-            <div>
-              <span>Words Per Minute:</span>
-              <span>{{ printf "%.2f" .AlbumWPM }}</span>
-            </div>
-            <div>
-              <span>Total Characters:</span>
-              <span>{{ .Album.TotalCharacters }}</span>
-            </div>
-            <div>
-              <span>Characters (No Spaces):</span>
-              <span>{{ .Album.TotalCharactersNoSpaces }}</span>
-            </div>
-            <div>
-              <span>Total Lines:</span>
-              <span>{{ .Album.TotalLines }}</span>
-            </div>
+            {{ template "album-details/album-info-grid.html" . }}
           </div>
         </div>
 
         <div class="details-section">
-          <h3>Top 20 Words</h3>
+          <h2>Top 20 Words</h2>
           <div class="flex-grid">
             {{ range $index, $wordCount := .Album.AlbumWordFrequencies }}
             <div>
@@ -97,11 +62,11 @@
             {{ end }}
           </div>
 
-          <h3 class="mt-4">Word Length Distribution</h3>
+          <h2 class="mt-4">Word Length Distribution</h2>
           <div class="flex-grid">
             {{ range $length, $count := .Album.WordLengthDistribution }}
             <div>
-              <span>{{ $length }} :</span>
+              <span>{{ $length }}:</span>
               <span>{{ $count }}</span>
             </div>
             {{ end }}
@@ -113,21 +78,19 @@
             src="data:image/jpeg;base64,{{ .Album.ImageDataBase64 }}"
             alt="{{ .Album.AlbumName }} Cover"
             class="album-cover rounded-md shadow-md block mx-auto" />
-
           <div class="text-center mt-2">
             <span class="text-white font-semibold">Average color:</span>
             <span class="font-semibold">{{ .Album.AlbumColorAverage }}</span>
           </div>
-
           <div
             class="album-color-block rounded-md shadow-md"
             style="background-color: {{ .Album.AlbumColorAverage }}; width: 100%; height: 50px; margin-top: 10px;"></div>
         </div>
-      </div>
+      </section>
 
-      <div class="mt-8">
+      <section class="mt-8">
         {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
-        <div class="track mb-6">
+        <article class="track mb-6">
           <h3 class="text-2xl font-semibold text-center text-white">
             {{ $trackWithDetails.Track.Name }}
           </h3>
@@ -204,7 +167,7 @@
               <pre
                 class="whitespace-pre-wrap text-xs leading-4"
                 id="lyrics{{ $trackIndex }}">
-                                {{ $trackWithDetails.FormattedLyrics }}</pre
+{{ $trackWithDetails.FormattedLyrics }}</pre
               >
               {{ else }}
               <p>This track has no lyrics.</p>
@@ -235,19 +198,74 @@
             </div>
             {{ end }}
           </div>
-        </div>
+        </article>
         {{ end }}
-      </div>
-    </div>
+      </section>
+    </main>
 
     <script>
-       function wrapLyricsWordsWithSpans(trackIndex, posCategorization) {
+      const cleanWord = (word) => word.toLowerCase().replace(/^[^a-zA-Z0-9À-ž'-]+|[^a-zA-Z0-9À-ž'-]+$/g, '');
+      const escapeSelector = (word) => word.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+
+      const getPOSClass = (category) => {
+          const posClasses = {
+              nouns: 'highlighted-noun',
+              verbs: 'highlighted-verb',
+              adjectives: 'highlighted-adjective',
+              adverbs: 'highlighted-adverb',
+              pronouns: 'highlighted-pronoun',
+              prepositions: 'highlighted-preposition',
+              conjunctions: 'highlighted-conjunction'
+          };
+          return posClasses[category.toLowerCase()] || '';
+      };
+
+      const highlightPOSWords = (category, trackIndex) => {
+          const posClass = getPOSClass(category);
+          document.querySelectorAll(`.word[data-pos-category="${category}"][data-track="${trackIndex}"]`)
+              .forEach(el => el.classList.add(posClass));
+          document.querySelector(`.track-info-item[data-category="${category}"][data-track-index="${trackIndex}"]`)
+              ?.classList.add(posClass);
+      };
+
+      const unhighlightPOSWords = (category, trackIndex) => {
+          const posClass = getPOSClass(category);
+          document.querySelectorAll(`.word[data-pos-category="${category}"][data-track="${trackIndex}"]`)
+              .forEach(el => el.classList.remove(posClass));
+          document.querySelector(`.track-info-item[data-category="${category}"][data-track-index="${trackIndex}"]`)
+              ?.classList.remove(posClass);
+      };
+
+      const highlightRelatedWords = (element) => {
+          const { word, track } = element.dataset;
+          document.querySelectorAll(`[data-word="${escapeSelector(word)}"][data-track="${track}"]`)
+              .forEach(el => el.classList.add('highlighted'));
+      };
+
+      const unhighlightRelatedWords = (element) => {
+          const { word, track } = element.dataset;
+          document.querySelectorAll(`[data-word="${escapeSelector(word)}"][data-track="${track}"]`)
+              .forEach(el => el.classList.remove('highlighted'));
+      };
+
+      const showTooltip = (element) => {
+          const tooltip = document.getElementById('tooltip');
+          tooltip.innerHTML = `Count: ${element.getAttribute('data-count')}`;
+          tooltip.style.display = 'block';
+          const rect = element.getBoundingClientRect();
+          tooltip.style.left = `${rect.left + window.scrollX}px`;
+          tooltip.style.top = `${rect.top + window.scrollY - 30}px`;
+      };
+
+      const hideTooltip = () => {
+          document.getElementById('tooltip').style.display = 'none';
+      };
+
+      const wrapLyricsWordsWithSpans = (trackIndex, posCategorization) => {
           const lyricsElement = document.getElementById(`lyrics${trackIndex}`);
           if (lyricsElement) {
-              const lines = lyricsElement.innerHTML.split(/\n/);
-              lyricsElement.innerHTML = lines.map(line => {
-                  const words = line.trim().split(/(\s+)/);
-                  return words.map(word => {
+              lyricsElement.innerHTML = lyricsElement.innerHTML.split(/\n/).map(line =>
+                  line.trim().split(/(\s+)/).map(word => {
                       const cleanedWord = cleanWord(word).toLowerCase();
                       if (cleanedWord.length > 0) {
                           const posCategory = posCategorization[cleanedWord] || '';
@@ -256,97 +274,10 @@
                           return `<span class="word" data-word="${cleanedWord}" data-track="${trackIndex}" data-count="${count}" data-pos-category="${posCategory}" onmouseover="highlightRelatedWords(this); showTooltip(this)" onmouseout="unhighlightRelatedWords(this); hideTooltip()">${word}</span>`;
                       }
                       return word;
-                  }).join('');
-              }).join('\n');
+                  }).join('')
+              ).join('\n');
           }
-      }
-
-      function highlightRelatedWords(element) {
-          const word = escapeSelector(element.dataset.word);
-          const trackIndex = element.dataset.track;
-          const selector = `[data-word="${word}"][data-track="${trackIndex}"]`;
-          const relatedWords = document.querySelectorAll(selector);
-          relatedWords.forEach(el => el.classList.add('highlighted'));
-      }
-
-      function unhighlightRelatedWords(element) {
-          const word = escapeSelector(element.dataset.word);
-          const trackIndex = element.dataset.track;
-          const selector = `[data-word="${word}"][data-track="${trackIndex}"]`;
-          const relatedWords = document.querySelectorAll(selector);
-          relatedWords.forEach(el => el.classList.remove('highlighted'));
-      }
-
-      function showTooltip(element) {
-          const count = element.getAttribute('data-count');
-          const tooltip = document.getElementById('tooltip');
-          tooltip.innerHTML = `Count: ${count}`;
-          tooltip.style.display = 'block';
-          tooltip.style.left = `${element.getBoundingClientRect().left + window.scrollX}px`;
-          tooltip.style.top = `${element.getBoundingClientRect().top + window.scrollY - 30}px`;
-      }
-
-      function hideTooltip() {
-          const tooltip = document.getElementById('tooltip');
-          tooltip.style.display = 'none';
-      }
-
-      function cleanWord(word) {
-          return word.toLowerCase().replace(/^[^a-zA-Z0-9À-ž'-]+|[^a-zA-Z0-9À-ž'-]+$/g, '');
-      }
-
-      function escapeSelector(word) {
-          return word.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, '\\$1');
-      }
-
-      function highlightPOSWords(category, trackIndex) {
-          const posClass = getPOSClass(category);
-
-          const selector = `.word[data-pos-category="${category}"][data-track="${trackIndex}"]`;
-          const relatedWords = document.querySelectorAll(selector);
-          relatedWords.forEach(el => el.classList.add(posClass));
-
-          const infoBlockSelector = `.track-info-item[data-category="${category}"][data-track-index="${trackIndex}"]`;
-          const infoBlock = document.querySelector(infoBlockSelector);
-          if (infoBlock) {
-              infoBlock.classList.add(posClass);
-          }
-      }
-
-      function unhighlightPOSWords(category, trackIndex) {
-          const posClass = getPOSClass(category);
-
-          const selector = `.word[data-pos-category="${category}"][data-track="${trackIndex}"]`;
-          const relatedWords = document.querySelectorAll(selector);
-          relatedWords.forEach(el => el.classList.remove(posClass));
-
-          const infoBlockSelector = `.track-info-item[data-category="${category}"][data-track-index="${trackIndex}"]`;
-          const infoBlock = document.querySelector(infoBlockSelector);
-          if (infoBlock) {
-              infoBlock.classList.remove(posClass);
-          }
-      }
-
-      function getPOSClass(category) {
-          switch (category.toLowerCase()) {
-              case 'nouns':
-                  return 'highlighted-noun';
-              case 'verbs':
-                  return 'highlighted-verb';
-              case 'adjectives':
-                  return 'highlighted-adjective';
-              case 'adverbs':
-                  return 'highlighted-adverb';
-              case 'pronouns':
-                  return 'highlighted-pronoun';
-              case 'prepositions':
-                  return 'highlighted-preposition';
-              case 'conjunctions':
-                  return 'highlighted-conjunction';
-              default:
-                  return '';
-          }
-      }
+      };
 
       document.addEventListener("DOMContentLoaded", function() {
           {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}

@@ -1,0 +1,43 @@
+{{ define "album-details/album-info-grid.html" }}
+
+<div>
+  <span>Total Duration:</span>
+  <span>{{ .Album.FormattedLength }}</span>
+</div>
+<div>
+  <span>Total Words:</span>
+  <span>{{ .Album.TotalWords }}</span>
+</div>
+<div>
+  <span>Average # of Words per Track:</span>
+  <span>{{ .Album.AverageWordsPerTrack }}</span>
+</div>
+<div>
+  <span>Unique Words:</span>
+  <span>{{ .Album.TotalUniqueWords }}</span>
+</div>
+<div>
+  <span>Vowel Count:</span>
+  <span>{{ .Album.TotalVowelCount }}</span>
+</div>
+<div>
+  <span>Consonant Count:</span>
+  <span>{{ .Album.TotalConsonantCount }}</span>
+</div>
+<div>
+  <span>Words Per Minute:</span>
+  <span>{{ printf "%.2f" .AlbumWPM }}</span>
+</div>
+<div>
+  <span>Total Characters:</span>
+  <span>{{ .Album.TotalCharacters }}</span>
+</div>
+<div>
+  <span>Characters (No Spaces):</span>
+  <span>{{ .Album.TotalCharactersNoSpaces }}</span>
+</div>
+<div>
+  <span>Total Lines:</span>
+  <span>{{ .Album.TotalLines }}</span>
+</div>
+{{ end }}

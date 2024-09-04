@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	loader "millions-of-words/loaders/sqlite"
 	"millions-of-words/models"
@@ -33,17 +35,16 @@ type TemplateRenderer struct {
 func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return t.templates.ExecuteTemplate(w, name, data)
 }
-
 func main() {
 	e := echo.New()
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	setupMiddleware(e)
 
-	templatesDir := getEnv("TEMPLATES_DIR", defaultTemplatesDir)
-	renderer := &TemplateRenderer{
-		templates: template.Must(template.New("").ParseGlob(filepath.Join(templatesDir, "*.html"))),
+	templates, err := parseTemplates(getEnv("TEMPLATES_DIR", defaultTemplatesDir))
+	if err != nil {
+		log.Fatalf("Error parsing templates: %v", err)
 	}
-	e.Renderer = renderer
+
+	e.Renderer = &TemplateRenderer{templates: templates}
 
 	if err := loadAlbums(); err != nil {
 		e.Logger.Fatal(err)
@@ -53,6 +54,42 @@ func main() {
 
 	port := getEnv("PORT", defaultPort)
 	e.Logger.Fatal(e.Start(":" + port))
+}
+
+func setupMiddleware(e *echo.Echo) {
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+}
+
+func parseTemplates(templatesDir string) (*template.Template, error) {
+	templates := template.New("")
+
+	err := filepath.Walk(templatesDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && strings.HasSuffix(path, ".html") {
+			relPath, err := filepath.Rel(templatesDir, path)
+			if err != nil {
+				return err
+			}
+			relPath = filepath.ToSlash(relPath)
+
+			_, err = templates.New(relPath).ParseFiles(path)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("Parsed template: %s\n", relPath)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return templates, nil
 }
 
 func getEnv(key, fallback string) string {
