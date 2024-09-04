@@ -141,6 +141,7 @@
               </div>
             </div>
 
+            <h4 class="font-semibold m-5">Go POS analysis</h4>
             <div class="track-info-grid second-row">
               {{ range $category, $count :=
               $trackWithDetails.POSCategorizationCounts }}
@@ -159,7 +160,7 @@
 
           <div
             id="trackDetails{{ $trackIndex }}"
-            class="lg:flex mt-4 gap-2">
+            class="lg:flex mt-4 gap-2 flex-wrap">
             <div
               class="lyrics bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1"
               id="lyricsText{{ $trackIndex }}">
@@ -204,86 +205,199 @@
     </main>
 
     <script>
-      const cleanWord = (word) => word.toLowerCase().replace(/^[^a-zA-Z0-9À-ž'-]+|[^a-zA-Z0-9À-ž'-]+$/g, '');
-      const escapeSelector = (word) => word.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+       const cleanWord = (word) => word.toLowerCase().replace(/^[^a-zA-Z0-9À-ž'-]+|[^a-zA-Z0-9À-ž'-]+$/g, '');
+       const escapeSelector = (word) => word.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, '\\$1');
 
-      const getPOSClass = (category) => {
-          const posClasses = {
-              nouns: 'highlighted-noun',
-              verbs: 'highlighted-verb',
-              adjectives: 'highlighted-adjective',
-              adverbs: 'highlighted-adverb',
-              pronouns: 'highlighted-pronoun',
-              prepositions: 'highlighted-preposition',
-              conjunctions: 'highlighted-conjunction'
+       const getPOSClass = (category) => {
+           const posClasses = {
+               nouns: 'highlighted-noun',
+               verbs: 'highlighted-verb',
+               adjectives: 'highlighted-adjective',
+               adverbs: 'highlighted-adverb',
+               pronouns: 'highlighted-pronoun',
+               prepositions: 'highlighted-preposition',
+               conjunctions: 'highlighted-conjunction'
+           };
+           return posClasses[category.toLowerCase()] || '';
+       };
+
+       const highlightPOSWords = (category, trackIndex) => {
+           const posClass = getPOSClass(category);
+           document.querySelectorAll(`.word[data-pos-category="${category}"][data-track="${trackIndex}"]`)
+               .forEach(el => el.classList.add(posClass));
+           document.querySelector(`.track-info-item[data-category="${category}"][data-track-index="${trackIndex}"]`)
+               ?.classList.add(posClass);
+       };
+
+       const unhighlightPOSWords = (category, trackIndex) => {
+           const posClass = getPOSClass(category);
+           document.querySelectorAll(`.word[data-pos-category="${category}"][data-track="${trackIndex}"]`)
+               .forEach(el => el.classList.remove(posClass));
+           document.querySelector(`.track-info-item[data-category="${category}"][data-track-index="${trackIndex}"]`)
+               ?.classList.remove(posClass);
+       };
+
+       const highlightRelatedWords = (element) => {
+           const { word, track } = element.dataset;
+           document.querySelectorAll(`[data-word="${escapeSelector(word)}"][data-track="${track}"]`)
+               .forEach(el => el.classList.add('highlighted'));
+       };
+
+       const unhighlightRelatedWords = (element) => {
+           const { word, track } = element.dataset;
+           document.querySelectorAll(`[data-word="${escapeSelector(word)}"][data-track="${track}"]`)
+               .forEach(el => el.classList.remove('highlighted'));
+       };
+
+       const showTooltip = (element) => {
+           const tooltip = document.getElementById('tooltip');
+           tooltip.innerHTML = `Count: ${element.getAttribute('data-count')}`;
+           tooltip.style.display = 'block';
+           const rect = element.getBoundingClientRect();
+           tooltip.style.left = `${rect.left + window.scrollX}px`;
+           tooltip.style.top = `${rect.top + window.scrollY - 30}px`;
+       };
+
+       const hideTooltip = () => {
+           document.getElementById('tooltip').style.display = 'none';
+       };
+
+       const wrapLyricsWordsWithSpans = (trackIndex, posCategorization) => {
+           const lyricsElement = document.getElementById(`lyrics${trackIndex}`);
+           if (lyricsElement) {
+               lyricsElement.innerHTML = lyricsElement.innerHTML.split(/\n/).map(line =>
+                   line.trim().split(/(\s+)/).map(word => {
+                       const cleanedWord = cleanWord(word).toLowerCase();
+                       if (cleanedWord.length > 0) {
+                           const posCategory = posCategorization[cleanedWord] || '';
+                           const wordCountElement = document.getElementById(`wordCount${trackIndex}-${escapeSelector(cleanedWord)}`);
+                           const count = wordCountElement ? wordCountElement.getAttribute('data-count') : 0;
+                           return `<span class="word" data-word="${cleanedWord}" data-track="${trackIndex}" data-count="${count}" data-pos-category="${posCategory}" onmouseover="highlightRelatedWords(this); showTooltip(this)" onmouseout="unhighlightRelatedWords(this); hideTooltip()">${word}</span>`;
+                       }
+                       return word;
+                   }).join('')
+               ).join('\n');
+           }
+       };
+
+
+      function analyzeAllTracksWithCompromise() {
+         console.log("Analyzing all tracks with Compromise");
+         const trackElements = document.querySelectorAll('.track');
+         console.log(`Found ${trackElements.length} track elements`);
+         trackElements.forEach((trackElement, index) => {
+           analyzeTrackWithCompromise(trackElement, index);
+         });
+       }
+
+       function analyzeTrackWithCompromise(trackElement, trackIndex) {
+         console.log(`Analyzing track ${trackIndex}`);
+         const lyricsElement = trackElement.querySelector('pre');
+         if (!lyricsElement) {
+           console.error(`Lyrics element not found for track ${trackIndex}`);
+           return;
+         }
+
+         const lyrics = lyricsElement.textContent.toLowerCase();
+         const doc = nlp(lyrics);
+
+         const posCategories = {
+           adjective: doc.adjectives().out('array'),
+           adverb: doc.adverbs().out('array'),
+           conjunction: doc.conjunctions().out('array'),
+           noun: doc.nouns().out('array'),
+           preposition: doc.prepositions().out('array'),
+           pronoun: doc.pronouns().out('array'),
+           verb: doc.verbs().out('array'),
           };
-          return posClasses[category.toLowerCase()] || '';
-      };
 
-      const highlightPOSWords = (category, trackIndex) => {
-          const posClass = getPOSClass(category);
-          document.querySelectorAll(`.word[data-pos-category="${category}"][data-track="${trackIndex}"]`)
-              .forEach(el => el.classList.add(posClass));
-          document.querySelector(`.track-info-item[data-category="${category}"][data-track-index="${trackIndex}"]`)
-              ?.classList.add(posClass);
-      };
+         const compromisePosContainer = document.createElement('div');
+         compromisePosContainer.className = 'compromise-pos mt-4';
+         compromisePosContainer.innerHTML = `
+          <h4 class="font-semibold m-5">Compromise POS Analysis</h4>
+           <div class="track-info-grid second-row">
+             ${Object.entries(posCategories).map(([category, words]) => `
+               <div class="track-info-item" data-category="${category}" data-track-index="${trackIndex}">
+                 <span class="info-title">${category.charAt(0).toUpperCase() + category.slice(1)}s:</span>
+                 <span class="info-value">${words.length}</span>
+               </div>
+             `).join('')}
+           </div>
+         `;
 
-      const unhighlightPOSWords = (category, trackIndex) => {
-          const posClass = getPOSClass(category);
-          document.querySelectorAll(`.word[data-pos-category="${category}"][data-track="${trackIndex}"]`)
-              .forEach(el => el.classList.remove(posClass));
-          document.querySelector(`.track-info-item[data-category="${category}"][data-track-index="${trackIndex}"]`)
-              ?.classList.remove(posClass);
-      };
+         const trackInfoCard = trackElement.querySelector('.track-info-card');
+         if (trackInfoCard) {
+           trackInfoCard.appendChild(compromisePosContainer);
+           console.log(`Added Compromise POS container to track ${trackIndex}`);
 
-      const highlightRelatedWords = (element) => {
-          const { word, track } = element.dataset;
-          document.querySelectorAll(`[data-word="${escapeSelector(word)}"][data-track="${track}"]`)
-              .forEach(el => el.classList.add('highlighted'));
-      };
+           compromisePosContainer.querySelectorAll('.track-info-item').forEach(item => {
+             item.addEventListener('mouseover', function() {
+               const category = this.getAttribute('data-category');
+               console.log(`Mouseover on Compromise ${category} for track ${trackIndex}`);
+               highlightCompromisePOSWords(category, trackIndex);
+             });
+             item.addEventListener('mouseout', function() {
+               const category = this.getAttribute('data-category');
+               console.log(`Mouseout on Compromise ${category} for track ${trackIndex}`);
+               unhighlightCompromisePOSWords(category, trackIndex);
+             });
+           });
+         } else {
+           console.error(`Track info card not found for track ${trackIndex}`);
+         }
 
-      const unhighlightRelatedWords = (element) => {
-          const { word, track } = element.dataset;
-          document.querySelectorAll(`[data-word="${escapeSelector(word)}"][data-track="${track}"]`)
-              .forEach(el => el.classList.remove('highlighted'));
-      };
+         updateLyricsWithCompromisePOS(lyricsElement, posCategories, trackIndex);
+       }
 
-      const showTooltip = (element) => {
-          const tooltip = document.getElementById('tooltip');
-          tooltip.innerHTML = `Count: ${element.getAttribute('data-count')}`;
-          tooltip.style.display = 'block';
-          const rect = element.getBoundingClientRect();
-          tooltip.style.left = `${rect.left + window.scrollX}px`;
-          tooltip.style.top = `${rect.top + window.scrollY - 30}px`;
-      };
+       function updateLyricsWithCompromisePOS(lyricsElement, posCategories, trackIndex) {
+         console.log(`Updating lyrics with Compromise POS for track ${trackIndex}`);
+         const words = lyricsElement.querySelectorAll('.word');
+         words.forEach(wordElement => {
+           const word = wordElement.getAttribute('data-word');
+           if (word) {
+             const category = Object.entries(posCategories).find(([, words]) => words.includes(word.toLowerCase()));
+             if (category) {
+                console.log(`Found ${category[0]} for ${word}. Setting the data-compromise-pos attribute`);
 
-      const hideTooltip = () => {
-          document.getElementById('tooltip').style.display = 'none';
-      };
+               wordElement.setAttribute('data-compromise-pos', category[0]);
+             }
+           }
+         });
+         console.log(`Updated ${words.length} words with Compromise POS data`);
+       }
 
-      const wrapLyricsWordsWithSpans = (trackIndex, posCategorization) => {
-          const lyricsElement = document.getElementById(`lyrics${trackIndex}`);
-          if (lyricsElement) {
-              lyricsElement.innerHTML = lyricsElement.innerHTML.split(/\n/).map(line =>
-                  line.trim().split(/(\s+)/).map(word => {
-                      const cleanedWord = cleanWord(word).toLowerCase();
-                      if (cleanedWord.length > 0) {
-                          const posCategory = posCategorization[cleanedWord] || '';
-                          const wordCountElement = document.getElementById(`wordCount${trackIndex}-${escapeSelector(cleanedWord)}`);
-                          const count = wordCountElement ? wordCountElement.getAttribute('data-count') : 0;
-                          return `<span class="word" data-word="${cleanedWord}" data-track="${trackIndex}" data-count="${count}" data-pos-category="${posCategory}" onmouseover="highlightRelatedWords(this); showTooltip(this)" onmouseout="unhighlightRelatedWords(this); hideTooltip()">${word}</span>`;
-                      }
-                      return word;
-                  }).join('')
-              ).join('\n');
-          }
-      };
+       function getPOSCSSClass(category) {
+         return `highlighted-${category}`;
+       }
 
-      document.addEventListener("DOMContentLoaded", function() {
-          {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
-          wrapLyricsWordsWithSpans({{ $trackIndex }}, {{ $trackWithDetails.POSCategorization }});
-          {{ end }}
-      });
+       function highlightCompromisePOSWords(category, trackIndex) {
+         console.log(`Highlighting Compromise ${category} words for track ${trackIndex}`);
+         const posClass = getPOSCSSClass(category);
+         const words = document.querySelectorAll(`.word[data-compromise-pos="${category}"][data-track="${trackIndex}"]`);
+         console.log(`Found ${words.length} words to highlight`);
+         words.forEach(el => el.classList.add(posClass));
+         document.querySelector(`.compromise-pos .track-info-item[data-category="${category}"][data-track-index="${trackIndex}"]`)
+           ?.classList.add(posClass);
+       }
+
+       function unhighlightCompromisePOSWords(category, trackIndex) {
+         console.log(`Unhighlighting Compromise ${category} words for track ${trackIndex}`);
+         const posClass = getPOSCSSClass(category);
+         const words = document.querySelectorAll(`.word[data-compromise-pos="${category}"][data-track="${trackIndex}"]`);
+         console.log(`Found ${words.length} words to unhighlight`);
+         words.forEach(el => el.classList.remove(posClass));
+         document.querySelector(`.compromise-pos .track-info-item[data-category="${category}"][data-track-index="${trackIndex}"]`)
+           ?.classList.remove(posClass);
+       }
+
+       document.addEventListener("DOMContentLoaded", function() {
+           {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
+           wrapLyricsWordsWithSpans({{ $trackIndex }}, {{ $trackWithDetails.POSCategorization }});
+           {{ end }}
+
+           console.log("DOM fully loaded. Initializing Compromise analysis.");
+           analyzeAllTracksWithCompromise();
+       });
     </script>
   </body>
 </html>
