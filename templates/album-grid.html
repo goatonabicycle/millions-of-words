@@ -1,16 +1,17 @@
 {{ range .albums }}
-<div
+<article
   class="rounded-lg shadow overflow-hidden cursor-pointer bg-gray-800 hover:bg-gray-700 transform hover:-translate-y-1 hover:scale-105 transition-all duration-300">
   <a href="/album/{{ .ID }}">
     <img
       src="{{ .ImageUrl }}"
-      alt="Album cover"
-      class="w-full object-cover" />
+      alt="Album cover for {{ .AlbumName }} by {{ .ArtistName }}"
+      class="w-full object-cover"
+      loading="lazy" />
     <div class="p-4">
-      <h5 class="text-lg font-semibold text-center">
+      <h3 class="text-lg font-semibold text-center">
         {{ .ArtistName }} - {{ .AlbumName }}
-      </h5>
+      </h3>
     </div>
   </a>
-</div>
+</article>
 {{ end }}
