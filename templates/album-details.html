@@ -251,11 +251,13 @@
 
        const showTooltip = (element) => {
            const tooltip = document.getElementById('tooltip');
-           tooltip.innerHTML = `Count: ${element.getAttribute('data-count')}`;
+           const count = element.getAttribute('data-count');
+           const compromisePos = element.getAttribute('data-compromise-pos');
+           tooltip.innerHTML = `Count: ${count}<br>POS: ${compromisePos || 'Unknown'}`;
            tooltip.style.display = 'block';
            const rect = element.getBoundingClientRect();
            tooltip.style.left = `${rect.left + window.scrollX}px`;
-           tooltip.style.top = `${rect.top + window.scrollY - 30}px`;
+           tooltip.style.top = `${rect.top + window.scrollY - 40}px`;
        };
 
        const hideTooltip = () => {
