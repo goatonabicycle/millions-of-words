@@ -141,6 +141,19 @@
               </div>
             </div>
 
+            <div class="flex items-center justify-center mt-2">
+              <input
+                type="checkbox"
+                id="highlightAll{{ $trackIndex }}"
+                class="highlight-all-checkbox mr-2"
+                data-track="{{ $trackIndex }}" />
+              <label
+                for="highlightAll{{ $trackIndex }}"
+                class="text-white"
+                >Highlight All Words</label
+              >
+            </div>
+
             <h4 class="font-semibold m-5">Go POS analysis</h4>
             <div class="track-info-grid second-row">
               {{ range $category, $count :=
@@ -304,14 +317,20 @@
          const doc = nlp(lyrics);
 
          const posCategories = {
-           adjective: doc.adjectives().out('array'),
-           adverb: doc.adverbs().out('array'),
-           conjunction: doc.conjunctions().out('array'),
-           noun: doc.nouns().out('array'),
-           preposition: doc.prepositions().out('array'),
-           pronoun: doc.pronouns().out('array'),
-           verb: doc.verbs().out('array'),
-          };
+          noun: doc.nouns().out('array'),
+          verb: doc.verbs().out('array'),
+          adjective: doc.adjectives().out('array'),
+          adverb: doc.adverbs().out('array'),
+          pronoun: doc.pronouns().out('array'),
+          preposition: doc.prepositions().out('array'),
+          conjunction: doc.conjunctions().out('array'),
+          determiner: doc.match('#Determiner').out('array'),
+          auxiliary: doc.match('#Auxiliary').out('array'),
+          particle: doc.match('#Particle').out('array'),
+          number: doc.numbers().out('array'),
+          interjection: doc.match('#Interjection').out('array'),
+          abbreviation: doc.acronyms().concat(doc.abbreviations()).out('array')
+        };
 
          const compromisePosContainer = document.createElement('div');
          compromisePosContainer.className = 'compromise-pos mt-4';
@@ -392,6 +411,19 @@
            ?.classList.remove(posClass);
        }
 
+       function toggleHighlightAll(checkbox) {
+         const trackIndex = checkbox.getAttribute('data-track');
+         const words = document.querySelectorAll(`.word[data-track="${trackIndex}"]`);
+
+         words.forEach(word => {
+           if (checkbox.checked) {
+             word.classList.add('highlighted-all');
+           } else {
+             word.classList.remove('highlighted-all');
+           }
+         });
+       }
+
        document.addEventListener("DOMContentLoaded", function() {
            {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
            wrapLyricsWordsWithSpans({{ $trackIndex }}, {{ $trackWithDetails.POSCategorization }});
@@ -399,6 +431,12 @@
 
            console.log("DOM fully loaded. Initializing Compromise analysis.");
            analyzeAllTracksWithCompromise();
+
+           document.querySelectorAll('.highlight-all-checkbox').forEach(checkbox => {
+             checkbox.addEventListener('change', function() {
+               toggleHighlightAll(this);
+             });
+           });
        });
     </script>
   </body>

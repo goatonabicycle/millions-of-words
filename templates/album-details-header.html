@@ -264,13 +264,21 @@
     }
 
     :root {
-      --color-nouns: #ff6f61;
-      --color-verbs: #42a5f5;
-      --color-adjectives: #66bb6a;
-      --color-adverbs: #ffeb3b;
-      --color-pronouns: #ab47bc;
-      --color-prepositions: #ffa726;
-      --color-conjunctions: #ff073a;
+      --color-noun: #ff6f61;
+      --color-verb: #42a5f5;
+      --color-adjective: #66bb6a;
+      --color-adverb: #ffeb3b;
+      --color-pronoun: #ab47bc;
+      --color-preposition: #ffa726;
+      --color-conjunction: #ff073a;
+      --color-determiner: #00bcd4;
+      --color-auxiliary: #9c27b0;
+      --color-particle: #795548;
+      --color-number: #4caf50;
+      --color-interjection: #ff5722;
+      --color-expression: #607d8b;
+      --color-date: #3f51b5;
+      --color-abbreviation: #009688;
       --text-color-light: #fff;
       --text-color-dark: #000;
     }
@@ -281,46 +289,132 @@
       border-radius: 6px;
     }
 
-    .track-info-item[data-category="nouns"]:hover,
-    .highlighted-noun {
-      background-color: var(--color-nouns);
+    .track-info-item[data-category="noun"]:hover,
+    .highlighted-noun,
+    .word.highlighted-all[data-compromise-pos="noun"] {
+      background-color: var(--color-noun);
       color: var(--text-color-light);
     }
 
-    .track-info-item[data-category="verbs"]:hover,
-    .highlighted-verb {
-      background-color: var(--color-verbs);
+    .track-info-item[data-category="verb"]:hover,
+    .highlighted-verb,
+    .word.highlighted-all[data-compromise-pos="verb"] {
+      background-color: var(--color-verb);
       color: var(--text-color-light);
     }
 
-    .track-info-item[data-category="adjectives"]:hover,
-    .highlighted-adjective {
-      background-color: var(--color-adjectives);
+    .track-info-item[data-category="adjective"]:hover,
+    .highlighted-adjective,
+    .word.highlighted-all[data-compromise-pos="adjective"] {
+      background-color: var(--color-adjective);
       color: var(--text-color-light);
     }
 
-    .track-info-item[data-category="adverbs"]:hover,
-    .highlighted-adverb {
-      background-color: var(--color-adverbs);
+    .track-info-item[data-category="adverb"]:hover,
+    .highlighted-adverb,
+    .word.highlighted-all[data-compromise-pos="adverb"] {
+      background-color: var(--color-adverb);
       color: var(--text-color-dark);
     }
 
-    .track-info-item[data-category="pronouns"]:hover,
-    .highlighted-pronoun {
-      background-color: var(--color-pronouns);
+    .track-info-item[data-category="pronoun"]:hover,
+    .highlighted-pronoun,
+    .word.highlighted-all[data-compromise-pos="pronoun"] {
+      background-color: var(--color-pronoun);
       color: var(--text-color-light);
     }
 
-    .track-info-item[data-category="prepositions"]:hover,
-    .highlighted-preposition {
-      background-color: var(--color-prepositions);
+    .track-info-item[data-category="preposition"]:hover,
+    .highlighted-preposition,
+    .word.highlighted-all[data-compromise-pos="preposition"] {
+      background-color: var(--color-preposition);
       color: var(--text-color-light);
     }
 
-    .track-info-item[data-category="conjunctions"]:hover,
-    .highlighted-conjunction {
-      background-color: var(--color-conjunctions);
+    .track-info-item[data-category="conjunction"]:hover,
+    .highlighted-conjunction,
+    .word.highlighted-all[data-compromise-pos="conjunction"] {
+      background-color: var(--color-conjunction);
       color: var(--text-color-light);
+    }
+
+    .track-info-item[data-category="determiner"]:hover,
+    .highlighted-determiner,
+    .word.highlighted-all[data-compromise-pos="determiner"] {
+      background-color: var(--color-determiner);
+      color: var(--text-color-light);
+    }
+
+    .track-info-item[data-category="auxiliary"]:hover,
+    .highlighted-auxiliary,
+    .word.highlighted-all[data-compromise-pos="auxiliary"] {
+      background-color: var(--color-auxiliary);
+      color: var(--text-color-light);
+    }
+
+    .track-info-item[data-category="particle"]:hover,
+    .highlighted-particle,
+    .word.highlighted-all[data-compromise-pos="particle"] {
+      background-color: var(--color-particle);
+      color: var(--text-color-light);
+    }
+
+    .track-info-item[data-category="number"]:hover,
+    .highlighted-number,
+    .word.highlighted-all[data-compromise-pos="number"] {
+      background-color: var(--color-number);
+      color: var(--text-color-light);
+    }
+
+    .track-info-item[data-category="interjection"]:hover,
+    .highlighted-interjection,
+    .word.highlighted-all[data-compromise-pos="interjection"] {
+      background-color: var(--color-interjection);
+      color: var(--text-color-light);
+    }
+
+    .track-info-item[data-category="expression"]:hover,
+    .highlighted-expression,
+    .word.highlighted-all[data-compromise-pos="expression"] {
+      background-color: var(--color-expression);
+      color: var(--text-color-light);
+    }
+
+    .track-info-item[data-category="date"]:hover,
+    .highlighted-date,
+    .word.highlighted-all[data-compromise-pos="date"] {
+      background-color: var(--color-date);
+      color: var(--text-color-light);
+    }
+
+    .track-info-item[data-category="abbreviation"]:hover,
+    .highlighted-abbreviation,
+    .word.highlighted-all[data-compromise-pos="abbreviation"] {
+      background-color: var(--color-abbreviation);
+      color: var(--text-color-light);
+    }
+
+    .word.highlighted-all {
+      transition: background-color 0.5s ease, color 0.5s ease;
+    }
+
+    .word.highlighted {
+      background-color: #fcd34d;
+      color: #000;
+      text-decoration: underline;
+    }
+
+    .tooltip {
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.75);
+      color: #fff;
+      padding: 5px 5px;
+      margin-bottom: 40px;
+      border-radius: 6px;
+      font-size: 14px;
+      pointer-events: none;
+      z-index: 1000;
+      display: none;
     }
   </style>
 </head>
