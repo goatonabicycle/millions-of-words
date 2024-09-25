@@ -221,6 +221,22 @@
        const cleanWord = (word) => word.toLowerCase().replace(/^[^a-zA-Z0-9À-ž'-]+|[^a-zA-Z0-9À-ž'-]+$/g, '');
        const escapeSelector = (word) => word.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, '\\$1');
 
+       const posCategories = {
+          noun: doc.nouns().out('array'),
+          verb: doc.verbs().out('array'),
+          adjective: doc.adjectives().out('array'),
+          adverb: doc.adverbs().out('array'),
+          pronoun: doc.pronouns().out('array'),
+          preposition: doc.prepositions().out('array'),
+          conjunction: doc.conjunctions().out('array'),
+          determiner: doc.match('#Determiner').out('array'),
+          auxiliary: doc.match('#Auxiliary').out('array'),
+          particle: doc.match('#Particle').out('array'),
+          number: doc.numbers().out('array'),
+          interjection: doc.match('#Interjection').out('array'),
+          abbreviation: doc.acronyms().concat(doc.abbreviations()).out('array')
+        };
+
        const getPOSClass = (category) => {
            const posClasses = {
                nouns: 'highlighted-noun',
@@ -316,21 +332,7 @@
          const lyrics = lyricsElement.textContent.toLowerCase();
          const doc = nlp(lyrics);
 
-         const posCategories = {
-          noun: doc.nouns().out('array'),
-          verb: doc.verbs().out('array'),
-          adjective: doc.adjectives().out('array'),
-          adverb: doc.adverbs().out('array'),
-          pronoun: doc.pronouns().out('array'),
-          preposition: doc.prepositions().out('array'),
-          conjunction: doc.conjunctions().out('array'),
-          determiner: doc.match('#Determiner').out('array'),
-          auxiliary: doc.match('#Auxiliary').out('array'),
-          particle: doc.match('#Particle').out('array'),
-          number: doc.numbers().out('array'),
-          interjection: doc.match('#Interjection').out('array'),
-          abbreviation: doc.acronyms().concat(doc.abbreviations()).out('array')
-        };
+
 
          const compromisePosContainer = document.createElement('div');
          compromisePosContainer.className = 'compromise-pos mt-4';
