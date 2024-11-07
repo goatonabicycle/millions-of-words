@@ -1,26 +1,19 @@
 <!DOCTYPE html>
-<html
-  lang="en"
-  class="dark">
+<html lang="en" class="dark">
   {{ template "album-details-header.html" . }}
-  <body
-    class="dark:bg-gray-900 dark:text-gray-200 flex flex-col items-center p-8">
-    <div
-      id="tooltip"
-      class="tooltip"
-      aria-live="polite"></div>
+  <body class="dark:bg-gray-900 dark:text-gray-200 flex flex-col items-center p-8">
+    <div id="tooltip" class="tooltip" aria-live="polite"></div>
 
     <nav>
       <a
         href="/"
-        class="absolute top-4 left-4 px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-md transition transform hover:scale-105 hover:bg-gray-600">
+        class="absolute top-4 left-4 px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-md transition transform hover:scale-105 hover:bg-gray-600"
+      >
         Back to Home
       </a>
     </nav>
 
-    <main
-      id="album-details"
-      class="text-center">
+    <main id="album-details" class="text-center">
       <header>
         <h1 class="fancy-header-album-title">
           {{ .Album.ArtistName }} - {{ .Album.AlbumName }}
@@ -30,14 +23,16 @@
           <a
             href="{{ .Album.AmpwallUrl }}"
             target="_blank"
-            class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105">
+            class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105"
+          >
             See on Ampwall
           </a>
           {{ end }}
           <a
             href="{{ .Album.BandcampUrl }}"
             target="_blank"
-            class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105">
+            class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105"
+          >
             See on Bandcamp
           </a>
         </div>
@@ -77,14 +72,16 @@
           <img
             src="data:image/jpeg;base64,{{ .Album.ImageDataBase64 }}"
             alt="{{ .Album.AlbumName }} Cover"
-            class="album-cover rounded-md shadow-md block mx-auto" />
+            class="album-cover rounded-md shadow-md block mx-auto"
+          />
           <div class="text-center mt-2">
             <span class="text-white font-semibold">Average color:</span>
             <span class="font-semibold">{{ .Album.AlbumColorAverage }}</span>
           </div>
           <div
             class="album-color-block rounded-md shadow-md"
-            style="background-color: {{ .Album.AlbumColorAverage }}; width: 100%; height: 50px; margin-top: 10px;"></div>
+            style="background-color: {{ .Album.AlbumColorAverage }}; width: 100%; height: 50px; margin-top: 10px;"
+          ></div>
         </div>
       </section>
 
@@ -94,50 +91,35 @@
           <h3 class="text-2xl font-semibold text-center text-white">
             {{ $trackWithDetails.Track.Name }}
           </h3>
-          <div
-            class="track-info-card bg-blue-600 text-white p-4 rounded-md shadow-md mt-2">
+          <div class="track-info-card bg-blue-600 text-white p-4 rounded-md shadow-md mt-2">
             <div class="track-info-grid first-row">
               <div class="track-info-item">
                 <span class="info-title">Length:</span>
-                <span class="info-value"
-                  >{{ $trackWithDetails.Track.FormattedLength }}</span
-                >
+                <span class="info-value">{{ $trackWithDetails.Track.FormattedLength }}</span>
               </div>
               <div class="track-info-item">
                 <span class="info-title">Total Words:</span>
-                <span class="info-value"
-                  >{{ $trackWithDetails.TotalWords }}</span
-                >
+                <span class="info-value">{{ $trackWithDetails.TotalWords }}</span>
               </div>
               <div class="track-info-item">
                 <span class="info-title">Unique Words:</span>
-                <span class="info-value"
-                  >{{ $trackWithDetails.UniqueWords }}</span
-                >
+                <span class="info-value">{{ $trackWithDetails.UniqueWords }}</span>
               </div>
               <div class="track-info-item">
                 <span class="info-title">Words Per Minute:</span>
-                <span class="info-value"
-                  >{{ printf "%.2f" $trackWithDetails.WordsPerMinute }}</span
-                >
+                <span class="info-value">{{ printf "%.2f" $trackWithDetails.WordsPerMinute }}</span>
               </div>
               <div class="track-info-item">
                 <span class="info-title">Total Characters:</span>
-                <span class="info-value"
-                  >{{ $trackWithDetails.TotalCharacters }}</span
-                >
+                <span class="info-value">{{ $trackWithDetails.TotalCharacters }}</span>
               </div>
               <div class="track-info-item">
                 <span class="info-title">Characters (No Spaces):</span>
-                <span class="info-value"
-                  >{{ $trackWithDetails.TotalCharactersNoSpaces }}</span
-                >
+                <span class="info-value">{{ $trackWithDetails.TotalCharactersNoSpaces }}</span>
               </div>
               <div class="track-info-item">
                 <span class="info-title">Total Lines:</span>
-                <span class="info-value"
-                  >{{ $trackWithDetails.TotalLines }}</span
-                >
+                <span class="info-value">{{ $trackWithDetails.TotalLines }}</span>
               </div>
             </div>
 
@@ -146,64 +128,38 @@
                 type="checkbox"
                 id="highlightAll{{ $trackIndex }}"
                 class="highlight-all-checkbox mr-2"
-                data-track="{{ $trackIndex }}" />
-              <label
-                for="highlightAll{{ $trackIndex }}"
-                class="text-white"
-                >Highlight All Words</label
-              >
-            </div>
-
-            <h4 class="font-semibold m-5">Go POS analysis</h4>
-            <div class="track-info-grid second-row">
-              {{ range $category, $count :=
-              $trackWithDetails.POSCategorizationCounts }}
-              <div
-                class="track-info-item"
-                data-category="{{ $category }}"
-                data-track-index="{{ $trackIndex }}"
-                onmouseover="highlightPOSWords('{{ $category }}', {{ $trackIndex }})"
-                onmouseout="unhighlightPOSWords('{{ $category }}', {{ $trackIndex }})">
-                <span class="info-title">{{ $category }}:</span>
-                <span class="info-value">{{ $count }}</span>
-              </div>
-              {{ end }}
+                data-track="{{ $trackIndex }}"
+              />
+              <label for="highlightAll{{ $trackIndex }}" class="text-white">Highlight All Words</label>
             </div>
           </div>
 
-          <div
-            id="trackDetails{{ $trackIndex }}"
-            class="lg:flex mt-4 gap-2 flex-wrap">
+          <div id="trackDetails{{ $trackIndex }}" class="lg:flex mt-4 gap-2 flex-wrap">
             <div
               class="lyrics bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1"
-              id="lyricsText{{ $trackIndex }}">
+              id="lyricsText{{ $trackIndex }}"
+            >
               {{ if $trackWithDetails.Track.Lyrics }}
-              <pre
-                class="whitespace-pre-wrap text-xs leading-4"
-                id="lyrics{{ $trackIndex }}">
-{{ $trackWithDetails.FormattedLyrics }}</pre
-              >
+              <pre class="whitespace-pre-wrap text-xs leading-4" id="lyrics{{ $trackIndex }}">
+{{ $trackWithDetails.FormattedLyrics }}</pre>
               {{ else }}
               <p>This track has no lyrics.</p>
               {{ end }}
             </div>
 
             {{ if $trackWithDetails.Track.Lyrics }}
-            <div
-              class="word-counts bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1">
+            <div class="word-counts bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1">
               <div class="sticky-container">
                 <h4 class="font-semibold mb-2 text-indigo-600">Word Counts</h4>
                 <div class="flex flex-wrap gap-2">
-                  {{ range $wordIndex, $wordCount :=
-                  $trackWithDetails.SortedWordCounts }}
+                  {{ range $wordIndex, $wordCount := $trackWithDetails.SortedWordCounts }}
                   <div
-                    class="inline-flex items-center bg-indigo-600 text-white rounded-full px-2 py-1 text-xs font-medium cursor-pointer shadow-md transition-colors hover:bg-indigo-500"
+                    class="inline-flex items-center bg-indigo-600 text-white rounded-full px-2 py-1 text-xs font-medium cursor-pointer shadow-md transition-colors"
                     id="wordCount{{ $trackIndex }}-{{ $wordCount.Word }}"
                     data-word="{{ $wordCount.Word }}"
                     data-track="{{ $trackIndex }}"
                     data-count="{{ $wordCount.Count }}"
-                    onmouseover="highlightRelatedWords(this)"
-                    onmouseout="unhighlightRelatedWords(this)">
+                  >
                     {{ $wordCount.Word }}: {{ $wordCount.Count }}
                   </div>
                   {{ end }}
@@ -217,227 +173,24 @@
       </section>
     </main>
 
+    <script src="/static/js/highlight-manager.js"></script>
+    <script src="/static/js/tooltip.js"></script>
+    <script src="/static/js/compromise-analyzer.js"></script>
+    <script src="/static/js/track-initializer.js"></script>
+
     <script>
-       const cleanWord = (word) => word.toLowerCase().replace(/^[^a-zA-Z0-9À-ž'-]+|[^a-zA-Z0-9À-ž'-]+$/g, '');
-       const escapeSelector = (word) => word.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+      document.addEventListener('DOMContentLoaded', function () {
+        const trackData = [
+          {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
+          {
+            index: {{ $trackIndex }},
+            posCategorization: {{ $trackWithDetails.POSCategorization }},
+          },
+          {{ end }}
+        ];
 
-       const getPOSClass = (category) => {
-           const posClasses = {
-               nouns: 'highlighted-noun',
-               verbs: 'highlighted-verb',
-               adjectives: 'highlighted-adjective',
-               adverbs: 'highlighted-adverb',
-               pronouns: 'highlighted-pronoun',
-               prepositions: 'highlighted-preposition',
-               conjunctions: 'highlighted-conjunction'
-           };
-           return posClasses[category.toLowerCase()] || '';
-       };
-
-       const highlightPOSWords = (category, trackIndex) => {
-           const posClass = getPOSClass(category);
-           document.querySelectorAll(`.word[data-pos-category="${category}"][data-track="${trackIndex}"]`)
-               .forEach(el => el.classList.add(posClass));
-           document.querySelector(`.track-info-item[data-category="${category}"][data-track-index="${trackIndex}"]`)
-               ?.classList.add(posClass);
-       };
-
-       const unhighlightPOSWords = (category, trackIndex) => {
-           const posClass = getPOSClass(category);
-           document.querySelectorAll(`.word[data-pos-category="${category}"][data-track="${trackIndex}"]`)
-               .forEach(el => el.classList.remove(posClass));
-           document.querySelector(`.track-info-item[data-category="${category}"][data-track-index="${trackIndex}"]`)
-               ?.classList.remove(posClass);
-       };
-
-       const highlightRelatedWords = (element) => {
-           const { word, track } = element.dataset;
-           document.querySelectorAll(`[data-word="${escapeSelector(word)}"][data-track="${track}"]`)
-               .forEach(el => el.classList.add('highlighted'));
-       };
-
-       const unhighlightRelatedWords = (element) => {
-           const { word, track } = element.dataset;
-           document.querySelectorAll(`[data-word="${escapeSelector(word)}"][data-track="${track}"]`)
-               .forEach(el => el.classList.remove('highlighted'));
-       };
-
-       const showTooltip = (element) => {
-           const tooltip = document.getElementById('tooltip');
-           const count = element.getAttribute('data-count');
-           const compromisePos = element.getAttribute('data-compromise-pos');
-           tooltip.innerHTML = `Count: ${count}<br>POS: ${compromisePos || 'Unknown'}`;
-           tooltip.style.display = 'block';
-           const rect = element.getBoundingClientRect();
-           tooltip.style.left = `${rect.left + window.scrollX}px`;
-           tooltip.style.top = `${rect.top + window.scrollY - 40}px`;
-       };
-
-       const hideTooltip = () => {
-           document.getElementById('tooltip').style.display = 'none';
-       };
-
-       const wrapLyricsWordsWithSpans = (trackIndex, posCategorization) => {
-           const lyricsElement = document.getElementById(`lyrics${trackIndex}`);
-           if (lyricsElement) {
-               lyricsElement.innerHTML = lyricsElement.innerHTML.split(/\n/).map(line =>
-                   line.trim().split(/(\s+)/).map(word => {
-                       const cleanedWord = cleanWord(word).toLowerCase();
-                       if (cleanedWord.length > 0) {
-                           const posCategory = posCategorization[cleanedWord] || '';
-                           const wordCountElement = document.getElementById(`wordCount${trackIndex}-${escapeSelector(cleanedWord)}`);
-                           const count = wordCountElement ? wordCountElement.getAttribute('data-count') : 0;
-                           return `<span class="word" data-word="${cleanedWord}" data-track="${trackIndex}" data-count="${count}" data-pos-category="${posCategory}" onmouseover="highlightRelatedWords(this); showTooltip(this)" onmouseout="unhighlightRelatedWords(this); hideTooltip()">${word}</span>`;
-                       }
-                       return word;
-                   }).join('')
-               ).join('\n');
-           }
-       };
-
-
-      function analyzeAllTracksWithCompromise() {
-         console.log("Analyzing all tracks with Compromise");
-         const trackElements = document.querySelectorAll('.track');
-         console.log(`Found ${trackElements.length} track elements`);
-         trackElements.forEach((trackElement, index) => {
-           analyzeTrackWithCompromise(trackElement, index);
-         });
-       }
-
-       function analyzeTrackWithCompromise(trackElement, trackIndex) {
-         console.log(`Analyzing track ${trackIndex}`);
-         const lyricsElement = trackElement.querySelector('pre');
-         if (!lyricsElement) {
-           console.error(`Lyrics element not found for track ${trackIndex}`);
-           return;
-         }
-
-         const lyrics = lyricsElement.textContent.toLowerCase();
-         const doc = nlp(lyrics);
-
-         const posCategories = {
-            noun: doc.nouns().out('array'),
-            verb: doc.verbs().out('array'),
-            adjective: doc.adjectives().out('array'),
-            adverb: doc.adverbs().out('array'),
-            pronoun: doc.pronouns().out('array'),
-            preposition: doc.prepositions().out('array'),
-            conjunction: doc.conjunctions().out('array'),
-            determiner: doc.match('#Determiner').out('array'),
-            auxiliary: doc.match('#Auxiliary').out('array'),
-            particle: doc.match('#Particle').out('array'),
-            number: doc.numbers().out('array'),
-            interjection: doc.match('#Interjection').out('array'),
-            abbreviation: doc.acronyms().concat(doc.abbreviations()).out('array')
-          };
-
-         const compromisePosContainer = document.createElement('div');
-         compromisePosContainer.className = 'compromise-pos mt-4';
-         compromisePosContainer.innerHTML = `
-          <h4 class="font-semibold m-5">Compromise POS Analysis</h4>
-           <div class="track-info-grid second-row">
-             ${Object.entries(posCategories).map(([category, words]) => `
-               <div class="track-info-item" data-category="${category}" data-track-index="${trackIndex}">
-                 <span class="info-title">${category.charAt(0).toUpperCase() + category.slice(1)}s:</span>
-                 <span class="info-value">${words.length}</span>
-               </div>
-             `).join('')}
-           </div>
-         `;
-
-         const trackInfoCard = trackElement.querySelector('.track-info-card');
-         if (trackInfoCard) {
-           trackInfoCard.appendChild(compromisePosContainer);
-           console.log(`Added Compromise POS container to track ${trackIndex}`);
-
-           compromisePosContainer.querySelectorAll('.track-info-item').forEach(item => {
-             item.addEventListener('mouseover', function() {
-               const category = this.getAttribute('data-category');
-               console.log(`Mouseover on Compromise ${category} for track ${trackIndex}`);
-               highlightCompromisePOSWords(category, trackIndex);
-             });
-             item.addEventListener('mouseout', function() {
-               const category = this.getAttribute('data-category');
-               console.log(`Mouseout on Compromise ${category} for track ${trackIndex}`);
-               unhighlightCompromisePOSWords(category, trackIndex);
-             });
-           });
-         } else {
-           console.error(`Track info card not found for track ${trackIndex}`);
-         }
-
-         updateLyricsWithCompromisePOS(lyricsElement, posCategories, trackIndex);
-       }
-
-       function updateLyricsWithCompromisePOS(lyricsElement, posCategories, trackIndex) {
-         console.log(`Updating lyrics with Compromise POS for track ${trackIndex}`);
-         const words = lyricsElement.querySelectorAll('.word');
-         words.forEach(wordElement => {
-           const word = wordElement.getAttribute('data-word');
-           if (word) {
-             const category = Object.entries(posCategories).find(([, words]) => words.includes(word.toLowerCase()));
-             if (category) {
-                console.log(`Found ${category[0]} for ${word}. Setting the data-compromise-pos attribute`);
-
-               wordElement.setAttribute('data-compromise-pos', category[0]);
-             }
-           }
-         });
-         console.log(`Updated ${words.length} words with Compromise POS data`);
-       }
-
-       function getPOSCSSClass(category) {
-         return `highlighted-${category}`;
-       }
-
-       function highlightCompromisePOSWords(category, trackIndex) {
-         console.log(`Highlighting Compromise ${category} words for track ${trackIndex}`);
-         const posClass = getPOSCSSClass(category);
-         const words = document.querySelectorAll(`.word[data-compromise-pos="${category}"][data-track="${trackIndex}"]`);
-         console.log(`Found ${words.length} words to highlight`);
-         words.forEach(el => el.classList.add(posClass));
-         document.querySelector(`.compromise-pos .track-info-item[data-category="${category}"][data-track-index="${trackIndex}"]`)
-           ?.classList.add(posClass);
-       }
-
-       function unhighlightCompromisePOSWords(category, trackIndex) {
-         console.log(`Unhighlighting Compromise ${category} words for track ${trackIndex}`);
-         const posClass = getPOSCSSClass(category);
-         const words = document.querySelectorAll(`.word[data-compromise-pos="${category}"][data-track="${trackIndex}"]`);
-         console.log(`Found ${words.length} words to unhighlight`);
-         words.forEach(el => el.classList.remove(posClass));
-         document.querySelector(`.compromise-pos .track-info-item[data-category="${category}"][data-track-index="${trackIndex}"]`)
-           ?.classList.remove(posClass);
-       }
-
-       function toggleHighlightAll(checkbox) {
-         const trackIndex = checkbox.getAttribute('data-track');
-         const words = document.querySelectorAll(`.word[data-track="${trackIndex}"]`);
-
-         words.forEach(word => {
-           if (checkbox.checked) {
-             word.classList.add('highlighted-all');
-           } else {
-             word.classList.remove('highlighted-all');
-           }
-         });
-       }
-
-       document.addEventListener("DOMContentLoaded", function() {
-           {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
-           wrapLyricsWordsWithSpans({{ $trackIndex }}, {{ $trackWithDetails.POSCategorization }});
-           {{ end }}
-
-           console.log("DOM fully loaded. Initializing Compromise analysis.");
-           analyzeAllTracksWithCompromise();
-
-           document.querySelectorAll('.highlight-all-checkbox').forEach(checkbox => {
-             checkbox.addEventListener('change', function() {
-               toggleHighlightAll(this);
-             });
-           });
-       });
+        trackInitializer.initialize(trackData);
+      });
     </script>
   </body>
 </html>

@@ -59,6 +59,8 @@ func main() {
 func setupMiddleware(e *echo.Echo) {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+
+	e.Static("/static", "static")
 }
 
 func parseTemplates(templatesDir string) (*template.Template, error) {
