@@ -59,6 +59,26 @@
     body {
       font-family: "Open Sans", sans-serif;
     }
+    
+    :root {
+      --color-noun: #ff6f61;
+      --color-verb: #42a5f5;
+      --color-adjective: #66bb6a;
+      --color-adverb: #ffeb3b;
+      --color-pronoun: #ab47bc;
+      --color-preposition: #ffa726;
+      --color-conjunction: #ff073a;
+      --color-determiner: #00bcd4;
+      --color-auxiliary: #9c27b0;
+      --color-particle: #795548;
+      --color-number: #4caf50;
+      --color-interjection: #ff5722;
+      --color-expression: #607d8b;
+      --color-date: #3f51b5;
+      --color-abbreviation: #009688;
+      --text-color-light: #fff;
+      --text-color-dark: #000;
+    }
 
     .sticky-container {
       position: -webkit-sticky;
@@ -84,17 +104,17 @@
       column-gap: 20px;
     }
 
+     @media (max-width: 768px) {
+      .lyrics {
+        column-count: 1;
+      }
+    }
+
     .lyrics .highlighted,
     .word-counts .highlighted {
       background-color: #fcd34d;
       color: #000;
       text-decoration: underline;
-    }
-
-    @media (max-width: 768px) {
-      .lyrics {
-        column-count: 1;
-      }
     }
 
     .album-details-container {
@@ -176,19 +196,6 @@
       }
     }
 
-    .tooltip {
-      position: absolute;
-      background-color: rgba(0, 0, 0, 0.75);
-      color: #fff;
-      padding: 5px 5px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      pointer-events: none;
-      z-index: 1000;
-      display: none;
-    }
-
     .fancy-header-album-title {
       font-family: "Open Sans", sans-serif;
       font-size: 50px;
@@ -262,27 +269,7 @@
         grid-template-columns: 1fr;
       }
     }
-
-    :root {
-      --color-noun: #ff6f61;
-      --color-verb: #42a5f5;
-      --color-adjective: #66bb6a;
-      --color-adverb: #ffeb3b;
-      --color-pronoun: #ab47bc;
-      --color-preposition: #ffa726;
-      --color-conjunction: #ff073a;
-      --color-determiner: #00bcd4;
-      --color-auxiliary: #9c27b0;
-      --color-particle: #795548;
-      --color-number: #4caf50;
-      --color-interjection: #ff5722;
-      --color-expression: #607d8b;
-      --color-date: #3f51b5;
-      --color-abbreviation: #009688;
-      --text-color-light: #fff;
-      --text-color-dark: #000;
-    }
-
+   
     .track-info-item {
       transition: background-color 0.5s ease, color 0.5s ease;
       padding: 4px 8px;
