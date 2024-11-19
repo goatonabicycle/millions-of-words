@@ -1,20 +1,14 @@
-- Style consistency and general vibe check. 
-- Have some intentionality about the ordering on the main page. By order added? How should new albums be handled?
-
-- More interesting bits of data: 
-  - Use this: https://compromise.cool/
-  
-  - Nlp/sentiment stuff. 
-  - Properties to add:   
-    - Add percentages to the word counts    
-    - Syllables
-    - Avg. word length
-  - Number of verbs/nouns/adjectives/adverbs.
-    - Add the category to the tooltip.
-    - Highlight these when hovering over the category
-      - The numbers here do not currently match well. Something is off. 
-    - Highlight what the word is from the word count. 
-    - Add more, 
+Todo before sharing this: 
+  - Style consistency and general vibe check. 
+  - Have some intentionality about the ordering on the main page. By order added? How should new albums be handled?
+  - Have a tooltip that explains each part of speech 
+  - More interesting bits of data:     
+    - Nlp/sentiment stuff. 
+    - Properties to add:   
+      - Add percentages to the word counts    
+      - Syllables
+      - Avg. word length   
+    - Finalize the POS categories: 
       - Determiners  
       - Interjections 
       - Articles
@@ -25,11 +19,12 @@
       - Possessive Pronouns
       - Possessive Nouns
       - Wh-words
-      - Profanities
-    - Have a tooltip that explains each part of speech 
-  - Setting to hide common words
+      - Profanities      
 
-- Different lyric sources? Read from metal archives? 
-- Different categories. Rap should be distinct from metal? Also then have an overall.
-- Search by word. 
-- All words should show the albums the word it appears on. Show little icons in line. 
+  - Admin page that I can use to edit/add data. 
+    - Different lyric sources? Read from metal archives? 
+    - Different categories. Rap should be distinct from metal? Also then have an overall.    
+
+Then do: 
+  - Setting to hide common words
+  - Add a graph of the word POS distribution per track.

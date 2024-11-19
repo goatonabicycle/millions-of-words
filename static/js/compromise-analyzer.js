@@ -1,15 +1,13 @@
 const compromiseAnalyzer = {
-  categories: ['noun', 'verb', 'adjective', 'adverb', 'pronoun', 'preposition',
-    'conjunction', 'determiner', 'auxiliary', 'particle', 'number',
-    'interjection', 'abbreviation'],
+  get categories() {
+    return Object.keys(COLORS);
+  },
 
-  analyze: (text) => {
+  analyze(text) {
     const doc = nlp(text.toLowerCase());
-    return compromiseAnalyzer.categories.reduce((acc, category) => {
+    return this.categories.reduce((acc, category) => {
       let words;
-      if (category === 'abbreviation') {
-        words = doc.acronyms().concat(doc.abbreviations()).out('array');
-      } else if (category in doc) {
+      if (category in doc) {
         words = doc[category + 's']().out('array');
       } else {
         words = doc.match('#' + category.charAt(0).toUpperCase() + category.slice(1)).out('array');
@@ -19,38 +17,45 @@ const compromiseAnalyzer = {
     }, {});
   },
 
-  createPOSContainer: (posCategories, trackIndex) => {
+  createPOSContainer(posCategories, trackIndex) {
     const container = document.createElement('div');
     container.className = 'compromise-pos mt-4';
 
     const content = Object.entries(posCategories)
+      .filter(([_, words]) => words.length > 0)
       .map(([category, words]) => `
-              <div class="track-info-item" 
-                   data-category="${category}" 
-                   data-track-index="${trackIndex}"
-                   onmouseover="highlightManager.togglePOSHighlight('${category}', ${trackIndex}, true)"
-                   onmouseout="highlightManager.togglePOSHighlight('${category}', ${trackIndex}, false)">
-                  <span class="info-title">${category.charAt(0).toUpperCase() + category.slice(1)}s:</span>
-                  <span class="info-value">${words.length}</span>
-              </div>
-          `).join('');
+        <div class="${DOM_CLASSES.trackInfoItem}"
+             ${DOM_ATTRIBUTES.category}="${category}"
+             ${DOM_ATTRIBUTES.trackIndex}="${trackIndex}"
+             onmouseover="highlightManager.togglePOSHighlight('${category}', ${trackIndex}, true)"
+             onmouseout="highlightManager.togglePOSHighlight('${category}', ${trackIndex}, false)"
+             style="background-color: #374151; color: #d1d5db">
+          <span class="info-title">${category.charAt(0).toUpperCase() + category.slice(1)}s:</span>
+          <span class="info-value">${words.length}</span>
+        </div>
+      `).join('');
 
     container.innerHTML = `
-          <h4 class="font-semibold m-5">Compromise POS Analysis</h4>
-          <div class="track-info-grid second-row">${content}</div>
-      `;
+      <h4 class="font-semibold m-5">Parts</h4>
+      <div class="track-info-grid second-row">${content}</div>
+    `;
 
     return container;
   },
 
-  attachToTrack: (trackElement, trackIndex, posCategories) => {
-    trackElement.querySelectorAll('.word').forEach(wordElement => {
-      const word = wordElement.getAttribute('data-word');
+  attachToTrack(trackElement, trackIndex, posCategories) {
+    trackElement.querySelectorAll(`.${DOM_CLASSES.word}`).forEach(wordElement => {
+      const word = wordElement.getAttribute(DOM_ATTRIBUTES.word);
       if (word) {
-        const category = Object.entries(posCategories)
-          .find(([, words]) => words.includes(word.toLowerCase()));
-        if (category) {
-          wordElement.setAttribute('data-compromise-pos', category[0]);
+        const matchingCategories = [];
+        Object.entries(posCategories).forEach(([category, words]) => {
+          if (words.includes(word.toLowerCase())) {
+            matchingCategories.push(category);
+          }
+        });
+
+        if (matchingCategories.length > 0) {
+          wordElement.setAttribute(DOM_ATTRIBUTES.compromisePos, matchingCategories.join(','));
         }
       }
     });

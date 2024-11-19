@@ -8,8 +8,9 @@ window.tooltip = {
   show: (element) => {
     const count = element.getAttribute('data-count');
     const pos = element.getAttribute('data-compromise-pos');
+    const categories = pos ? pos.split(',').join(', ') : 'Unknown';
 
-    tooltip.element.innerHTML = `Count: ${count} | ${pos || 'Unknown'}`;
+    tooltip.element.innerHTML = `Count: ${count} | ${categories}`;
     tooltip.element.style.display = 'block';
 
     const rect = element.getBoundingClientRect();
