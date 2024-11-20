@@ -5,60 +5,7 @@ import (
 	"sort"
 	"strings"
 	"unicode"
-
-	"github.com/jdkato/prose/v2"
 )
-
-var posTagToCategory = map[string]string{
-	// Nouns
-	"NN":   "Nouns",
-	"NNS":  "Nouns",
-	"NNP":  "Nouns",
-	"NNPS": "Nouns",
-	// Verbs
-	"VB":  "Verbs",
-	"VBD": "Verbs",
-	"VBG": "Verbs",
-	"VBN": "Verbs",
-	"VBP": "Verbs",
-	"VBZ": "Verbs",
-	// Adjectives
-	"JJ":  "Adjectives",
-	"JJR": "Adjectives",
-	"JJS": "Adjectives",
-	// Adverbs
-	"RB":  "Adverbs",
-	"RBR": "Adverbs",
-	"RBS": "Adverbs",
-	// Pronouns
-	"PRP":  "Pronouns",
-	"PRP$": "Pronouns",
-	// Prepositions
-	"IN": "Prepositions",
-	// Conjunctions
-	"CC": "Conjunctions",
-}
-
-func PosTagToCategory() map[string]string {
-	return posTagToCategory
-}
-
-func CategorizeWordsByPOS(text string) map[string][]string {
-	doc, err := prose.NewDocument(strings.ToLower(text))
-	if err != nil {
-		panic(err)
-	}
-
-	posMap := make(map[string][]string)
-	for _, tok := range doc.Tokens() {
-		cleanedWord := CleanWord(tok.Text)
-		if cleanedWord != "" {
-			posMap[tok.Tag] = append(posMap[tok.Tag], cleanedWord)
-		}
-	}
-
-	return posMap
-}
 
 func CalculateAndSortWordFrequencies(lyrics string) ([]models.WordCount, int, int, map[int]int) {
 	if lyrics == "" {

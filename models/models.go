@@ -53,8 +53,6 @@ type TrackWithDetails struct {
 	VowelCount              int
 	ConsonantCount          int
 	WordLengthDistribution  map[int]int
-	POSCategorization       map[string]string
-	POSCategorizationCounts map[string]int
 	TotalCharacters         int
 	TotalCharactersNoSpaces int
 	TotalLines              int

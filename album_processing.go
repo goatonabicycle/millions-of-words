@@ -97,10 +97,6 @@ func calculateTrackDetails(track models.BandcampTrackData) models.TrackWithDetai
 		trackUniqueWordsMap[wc.Word] = struct{}{}
 	}
 
-	posCategorization := words.CategorizeWordsByPOS(track.Lyrics)
-	broadCategoryCounts := categorizePOS(posCategorization)
-	posCategorizationByWord := mapWordsToCategories(posCategorization)
-
 	wpm := calculateWPM(float64(wordCount), float64(track.TotalLength))
 
 	lyrics := template.HTML(track.Lyrics)
@@ -118,8 +114,6 @@ func calculateTrackDetails(track models.BandcampTrackData) models.TrackWithDetai
 		VowelCount:              vowels,
 		ConsonantCount:          consonants,
 		WordLengthDistribution:  wordLengths,
-		POSCategorizationCounts: broadCategoryCounts,
-		POSCategorization:       posCategorizationByWord,
 		TotalCharacters:         totalCharacters,
 		TotalCharactersNoSpaces: totalCharactersNoSpaces,
 		TotalLines:              totalLines,
@@ -138,26 +132,4 @@ func calculateWPM(words, minutes float64) float64 {
 		return words / (minutes / 60)
 	}
 	return 0
-}
-
-func categorizePOS(posCategorization map[string][]string) map[string]int {
-	broadCategoryCounts := make(map[string]int)
-	for pos, wordsList := range posCategorization {
-		if category, exists := words.PosTagToCategory()[pos]; exists {
-			broadCategoryCounts[category] += len(wordsList)
-		}
-	}
-	return broadCategoryCounts
-}
-
-func mapWordsToCategories(posCategorization map[string][]string) map[string]string {
-	posCategorizationByWord := make(map[string]string)
-	for pos, wordsList := range posCategorization {
-		if category, exists := words.PosTagToCategory()[pos]; exists {
-			for _, word := range wordsList {
-				posCategorizationByWord[word] = category
-			}
-		}
-	}
-	return posCategorizationByWord
 }
