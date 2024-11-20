@@ -88,13 +88,15 @@ const highlightManager = {
   },
 
   highlightAllWords(trackIndex, shouldHighlight) {
-    document.querySelectorAll(`.${DOM_CLASSES.word}[${DOM_ATTRIBUTES.track}="${trackIndex}"]`)
-      .forEach(word => {
-        const categories = word.getAttribute(DOM_ATTRIBUTES.compromisePos)?.split(',') || [];
-        if (categories.length > 0) {
-          this.highlightElement(word, categories, shouldHighlight);
-        }
-      });
+    const wordElements = document.querySelectorAll(`.${DOM_CLASSES.word}[${DOM_ATTRIBUTES.track}="${trackIndex}"]`);
+
+    wordElements.forEach(word => {
+      const categories = word.getAttribute(DOM_ATTRIBUTES.compromisePos)?.split(',') || [];
+      if (categories.length > 0) {
+        const wordText = word.getAttribute(DOM_ATTRIBUTES.word);
+        this.highlightWordAndRelated(wordText, trackIndex, categories, shouldHighlight);
+      }
+    });
   }
 };
 
