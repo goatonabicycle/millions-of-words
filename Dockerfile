@@ -9,11 +9,11 @@ RUN go mod download && go mod verify
 COPY . .
 RUN go build -v -o /run-app .
 
-
 FROM debian:bookworm
 
 COPY --from=builder /run-app /usr/local/bin/
 COPY templates /templates
+COPY static /static
 COPY data data
 
 CMD ["run-app"]
