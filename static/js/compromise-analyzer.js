@@ -18,29 +18,36 @@ const compromiseAnalyzer = {
   },
 
   createPOSContainer(posCategories, trackIndex) {
-    const container = document.createElement('div');
-    container.className = 'compromise-pos mt-4';
+    const fragment = document.createDocumentFragment();
 
-    const content = Object.entries(posCategories)
+    Object.entries(posCategories)
       .filter(([_, words]) => words.length > 0)
-      .map(([category, words]) => `
-        <div class="${DOM_CLASSES.trackInfoItem}"
-             ${DOM_ATTRIBUTES.category}="${category}"
-             ${DOM_ATTRIBUTES.trackIndex}="${trackIndex}"
-             onmouseover="highlightManager.togglePOSHighlight('${category}', ${trackIndex}, true)"
-             onmouseout="highlightManager.togglePOSHighlight('${category}', ${trackIndex}, false)"
-             style="background-color: #374151; color: #d1d5db">
-          <span class="info-title">${category.charAt(0).toUpperCase() + category.slice(1)}s:</span>
-          <span class="info-value">${words.length}</span>
-        </div>
-      `).join('');
+      .forEach(([category, words]) => {
+        const div = document.createElement('div');
+        div.className = 'pos-tag';
+        div.setAttribute(DOM_ATTRIBUTES.category, category);
+        div.setAttribute(DOM_ATTRIBUTES.trackIndex, trackIndex);
 
-    container.innerHTML = `
-      <h4 class="font-semibold m-5">Parts</h4>
-      <div class="track-info-grid second-row">${content}</div>
-    `;
+        const baseColor = COLORS[category];
+        div.style.background = `linear-gradient(135deg, ${baseColor}40, ${baseColor}50)`;
 
-    return container;
+        div.innerHTML = `
+          <span class="pos-category">${category.charAt(0).toUpperCase() + category.slice(1)}</span>
+          <span class="pos-count">${words.length}</span>
+        `;
+
+        div.addEventListener('mouseover', () => {
+          highlightManager.togglePOSHighlight(category, trackIndex, true);
+        });
+
+        div.addEventListener('mouseout', () => {
+          highlightManager.togglePOSHighlight(category, trackIndex, false);
+        });
+
+        fragment.appendChild(div);
+      });
+
+    return fragment;
   },
 
   attachToTrack(trackElement, trackIndex, posCategories) {

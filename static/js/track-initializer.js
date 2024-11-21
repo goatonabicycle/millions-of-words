@@ -66,7 +66,11 @@ const trackInitializer = {
 
     const posCategories = compromiseAnalyzer.analyze(lyricsElement.textContent);
     const posContainer = compromiseAnalyzer.createPOSContainer(posCategories, trackIndex);
-    trackElement.querySelector('.track-info-card')?.appendChild(posContainer);
+
+    const posContainerElement = trackElement.querySelector('.pos-container');
+    if (posContainerElement) {
+      posContainerElement.appendChild(posContainer);
+    }
 
     compromiseAnalyzer.attachToTrack(trackElement, trackIndex, posCategories);
     this.attachWordCountListeners(trackElement);

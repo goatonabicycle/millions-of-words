@@ -63,13 +63,19 @@ const highlightManager = {
   },
 
   togglePOSHighlight(category, trackIndex, shouldAdd) {
-    const categorySelector = `.${DOM_CLASSES.trackInfoItem}[${DOM_ATTRIBUTES.category}="${category}"][${DOM_ATTRIBUTES.trackIndex}="${trackIndex}"]`;
-    const categoryElement = document.querySelector(categorySelector);
-    if (categoryElement) {
-      this.applyStyle(categoryElement, {
-        backgroundColor: shouldAdd ? COLORS[category] : '#374151',
-        color: shouldAdd ? '#000000' : '#d1d5db'
-      });
+    const posTagSelector = `.pos-tag[${DOM_ATTRIBUTES.category}="${category}"][${DOM_ATTRIBUTES.trackIndex}="${trackIndex}"]`;
+    const posTagElement = document.querySelector(posTagSelector);
+    if (posTagElement) {
+      if (shouldAdd) {
+        posTagElement.style.transform = 'scale(1.05)';
+        posTagElement.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+        const baseColor = COLORS[category];
+        posTagElement.style.background = `linear-gradient(135deg, ${baseColor}60, ${baseColor}70)`;
+      } else {
+        posTagElement.style.transform = '';
+        posTagElement.style.boxShadow = '';
+        posTagElement.style.background = `linear-gradient(135deg, ${baseColor}40, ${baseColor}50)`;
+      }
     }
 
     const wordSelector = `.${DOM_CLASSES.word}[${DOM_ATTRIBUTES.track}="${trackIndex}"]`;

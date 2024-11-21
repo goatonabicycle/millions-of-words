@@ -91,50 +91,54 @@
           <h3 class="text-2xl font-semibold text-center text-white">
             {{ $trackWithDetails.Track.Name }}
           </h3>
-          <div class="track-info-card bg-blue-600 text-white p-4 rounded-md shadow-md mt-2">
-            <div class="track-info-grid first-row">
-              <div class="track-info-item">
-                <span class="info-title">Length:</span>
-                <span class="info-value">{{ $trackWithDetails.Track.FormattedLength }}</span>
+          <div class="track-metadata bg-gray-900 text-white p-3 rounded-lg shadow-lg mb-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">              
+              <div class="flex flex-wrap items-center gap-2">
+                <div class="stat-chip">
+                  <span class="stat-value">{{ $trackWithDetails.Track.FormattedLength }}</span>
+                  <span class="stat-label">Length</span>
+                </div>
+                <div class="stat-chip">
+                  <span class="stat-value">{{ $trackWithDetails.TotalWords }}</span>
+                  <span class="stat-label">Words</span>
+                </div>
+                <div class="stat-chip">
+                  <span class="stat-value">{{ $trackWithDetails.UniqueWords }}</span>
+                  <span class="stat-label">Unique</span>
+                </div>
+                <div class="stat-chip">
+                  <span class="stat-value">{{ printf "%.1f" $trackWithDetails.WordsPerMinute }}</span>
+                  <span class="stat-label">WPM</span>
+                </div>
+                <div class="stat-chip">
+                  <span class="stat-value">{{ $trackWithDetails.TotalCharacters }}</span>
+                  <span class="stat-label">Chars</span>
+                </div>
+                <div class="stat-chip">
+                  <span class="stat-value">{{ $trackWithDetails.TotalLines }}</span>
+                  <span class="stat-label">Lines</span>
+                </div>
               </div>
-              <div class="track-info-item">
-                <span class="info-title">Total Words:</span>
-                <span class="info-value">{{ $trackWithDetails.TotalWords }}</span>
-              </div>
-              <div class="track-info-item">
-                <span class="info-title">Unique Words:</span>
-                <span class="info-value">{{ $trackWithDetails.UniqueWords }}</span>
-              </div>
-              <div class="track-info-item">
-                <span class="info-title">Words Per Minute:</span>
-                <span class="info-value">{{ printf "%.2f" $trackWithDetails.WordsPerMinute }}</span>
-              </div>
-              <div class="track-info-item">
-                <span class="info-title">Total Characters:</span>
-                <span class="info-value">{{ $trackWithDetails.TotalCharacters }}</span>
-              </div>
-              <div class="track-info-item">
-                <span class="info-title">Characters (No Spaces):</span>
-                <span class="info-value">{{ $trackWithDetails.TotalCharactersNoSpaces }}</span>
-              </div>
-              <div class="track-info-item">
-                <span class="info-title">Total Lines:</span>
-                <span class="info-value">{{ $trackWithDetails.TotalLines }}</span>
-              </div>
-            </div>
+              <div class="flex items-center gap-3">
+                <div class="pos-container flex flex-wrap gap-2 items-center">                  
+                </div>
 
-            <div class="flex items-center justify-center mt-2">
-              <input
-                type="checkbox"
-                id="highlightAll{{ $trackIndex }}"
-                class="highlight-all-checkbox mr-2"
-                data-track="{{ $trackIndex }}"
-              />
-              <label for="highlightAll{{ $trackIndex }}" class="text-white">Highlight All Words</label>
+                <div class="border-l border-gray-700 pl-4">
+                  <label class="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors">
+                    <input 
+                      type="checkbox"
+                      id="highlightAll{{ $trackIndex }}"
+                      class="highlight-all-checkbox accent-indigo-500 w-4 h-4 rounded" 
+                      data-track="{{ $trackIndex }}"
+                    />
+                    <span>Highlight All</span>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div id="trackDetails{{ $trackIndex }}" class="lg:flex mt-4 gap-2 flex-wrap">
+          <div id="trackDetails{{ $trackIndex }}" class="lg:flex gap-2 flex-wrap">
             <div
               class="lyrics bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1"
               id="lyricsText{{ $trackIndex }}"
