@@ -1,5 +1,5 @@
 const trackInitializer = {
-  initializeLyrics(lyricsElement, trackIndex, posCategorization) {
+  initializeLyrics(lyricsElement, trackIndex) {
     if (!lyricsElement) return;
 
     const words = lyricsElement.innerHTML
@@ -10,7 +10,7 @@ const trackInitializer = {
           .map(word => {
             const cleanedWord = cleanWord(word);
             if (cleanedWord.length > 0) {
-              return this.createWordSpan(cleanedWord, trackIndex, posCategorization);
+              return this.createWordSpan(cleanedWord, trackIndex);
             }
             return word;
           })
@@ -21,16 +21,14 @@ const trackInitializer = {
     lyricsElement.innerHTML = words;
   },
 
-  createWordSpan(cleanedWord, trackIndex, posCategorization) {
-    const posCategory = posCategorization[cleanedWord] || '';
+  createWordSpan(cleanedWord, trackIndex) {
     const wordCountElement = document.getElementById(`wordCount${trackIndex}-${escapeSelector(cleanedWord)}`);
     const count = wordCountElement?.getAttribute(DOM_ATTRIBUTES.count) || 0;
 
     return `<span class="${DOM_CLASSES.word}" 
                   ${DOM_ATTRIBUTES.word}="${cleanedWord}" 
                   ${DOM_ATTRIBUTES.track}="${trackIndex}" 
-                  ${DOM_ATTRIBUTES.count}="${count}" 
-                  data-pos-category="${posCategory}" 
+                  ${DOM_ATTRIBUTES.count}="${count}"                   
                   onmouseover="highlightManager.toggleWordHighlight(this, true); tooltip.show(this)" 
                   onmouseout="highlightManager.toggleWordHighlight(this, false); tooltip.hide()">${cleanedWord}</span>`;
   },
@@ -57,11 +55,11 @@ const trackInitializer = {
     });
   },
 
-  initializeTrack(trackIndex, posCategorization) {
+  initializeTrack(trackIndex) {
     const lyricsElement = document.getElementById(`lyrics${trackIndex}`);
     if (!lyricsElement) return;
 
-    this.initializeLyrics(lyricsElement, trackIndex, posCategorization);
+    this.initializeLyrics(lyricsElement, trackIndex);
 
     const trackElement = lyricsElement.closest('.track');
     if (!trackElement) return;

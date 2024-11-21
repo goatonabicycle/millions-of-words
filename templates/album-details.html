@@ -185,7 +185,6 @@
           {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
           {
             index: {{ $trackIndex }},
-            posCategorization: {{ $trackWithDetails.POSCategorization }},
           },
           {{ end }}
         ];
