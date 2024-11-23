@@ -5,16 +5,67 @@ const compromiseAnalyzer = {
 
   analyze(text) {
     const doc = nlp(text.toLowerCase());
-    return this.categories.reduce((acc, category) => {
-      let words;
-      if (category in doc) {
-        words = doc[category + 's']().out('array');
-      } else {
-        words = doc.match('#' + category.charAt(0).toUpperCase() + category.slice(1)).out('array');
-      }
-      acc[category] = words;
+    const debugData = { uncategorized: {} };
+    const results = this.categories.reduce((acc, category) => {
+      acc[category] = [];
       return acc;
     }, {});
+
+    const allTerms = doc.json();
+    allTerms.forEach(sentence => {
+      sentence.terms.forEach(term => {
+        const word = term.text.toLowerCase();
+        const tags = term.tags || [];
+        let categorized = false;
+
+        if (word === 'there' || word.startsWith('there')) {
+          results.auxiliary.push(word);
+          categorized = true;
+        } else if (word.includes('-')) {
+          if (tags.includes('Noun')) results.noun.push(word);
+          else if (tags.includes('Adjective')) results.adjective.push(word);
+          else if (tags.includes('Verb')) results.verb.push(word);
+          categorized = true;
+        } else if (tags.some(tag => ['Value', 'Cardinal', 'TextValue', 'Date', 'Duration'].includes(tag))) {
+          results.determiner.push(word);
+          categorized = true;
+        } else if (tags.includes('Pronoun') || (tags.includes('Possessive') && !tags.includes('Noun'))) {
+          results.pronoun.push(word);
+          categorized = true;
+        } else if (tags.includes('Preposition')) {
+          results.preposition.push(word);
+          categorized = true;
+        } else if (tags.includes('Conjunction')) {
+          results.conjunction.push(word);
+          categorized = true;
+        } else if (tags.includes('Determiner') || word === 'the') {
+          results.determiner.push(word);
+          categorized = true;
+        } else if (tags.includes('Verb') || tags.includes('Infinitive') || tags.includes('PastTense')) {
+          results.verb.push(word);
+          categorized = true;
+        } else if (tags.includes('Adverb') || tags.includes('Negative')) {
+          results.adverb.push(word);
+          categorized = true;
+        } else if (tags.includes('Adjective')) {
+          results.adjective.push(word);
+          categorized = true;
+        } else if (tags.includes('Expression')) {
+          results.interjection.push(word);
+          categorized = true;
+        } else if (tags.includes('Noun') || tags.includes('Singular') || tags.includes('Plural')) {
+          results.noun.push(word);
+          categorized = true;
+        }
+
+        if (!categorized) {
+          debugData.uncategorized[word] = tags;
+        }
+      });
+    });
+
+    console.log('Uncategorized words:', debugData.uncategorized);
+    return results;
   },
 
   createPOSContainer(posCategories, trackIndex) {

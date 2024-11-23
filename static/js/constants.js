@@ -8,7 +8,11 @@ const COLORS = {
   conjunction: '#ff8a65',
   determiner: '#80deea',
   auxiliary: '#ce93d8',
-  interjection: '#ffab91'
+  interjection: '#ffab91',
+  number: '#b388ff',
+  questionWord: '#80cbc4',
+  modal: '#fff176',
+  expression: '#ffab91'
 };
 
 const DOM_CLASSES = {
