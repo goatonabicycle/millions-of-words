@@ -66,10 +66,10 @@ const highlightManager = {
     const posTagSelector = `.pos-tag[${DOM_ATTRIBUTES.category}="${category}"][${DOM_ATTRIBUTES.trackIndex}="${trackIndex}"]`;
     const posTagElement = document.querySelector(posTagSelector);
     if (posTagElement) {
+      const baseColor = COLORS[category];
       if (shouldAdd) {
         posTagElement.style.transform = 'scale(1.05)';
         posTagElement.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-        const baseColor = COLORS[category];
         posTagElement.style.background = `linear-gradient(135deg, ${baseColor}60, ${baseColor}70)`;
       } else {
         posTagElement.style.transform = '';

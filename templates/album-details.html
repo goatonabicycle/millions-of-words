@@ -87,53 +87,46 @@
 
       <section class="mt-8">
         {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
-        <article class="track mb-6">
-          <h3 class="text-2xl font-semibold text-center text-white">
-            {{ $trackWithDetails.Track.Name }}
-          </h3>
-          <div class="track-metadata bg-gray-900 text-white p-3 rounded-lg shadow-lg mb-4">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">              
-              <div class="flex flex-wrap items-center gap-2">
-                <div class="stat-chip">
-                  <span class="stat-value">{{ $trackWithDetails.Track.FormattedLength }}</span>
-                  <span class="stat-label">Length</span>
-                </div>
-                <div class="stat-chip">
-                  <span class="stat-value">{{ $trackWithDetails.TotalWords }}</span>
-                  <span class="stat-label">Words</span>
-                </div>
-                <div class="stat-chip">
-                  <span class="stat-value">{{ $trackWithDetails.UniqueWords }}</span>
-                  <span class="stat-label">Unique</span>
-                </div>
-                <div class="stat-chip">
-                  <span class="stat-value">{{ printf "%.1f" $trackWithDetails.WordsPerMinute }}</span>
-                  <span class="stat-label">WPM</span>
-                </div>
-                <div class="stat-chip">
-                  <span class="stat-value">{{ $trackWithDetails.TotalCharacters }}</span>
-                  <span class="stat-label">Chars</span>
-                </div>
-                <div class="stat-chip">
-                  <span class="stat-value">{{ $trackWithDetails.TotalLines }}</span>
-                  <span class="stat-label">Lines</span>
-                </div>
+        <article class="track">
+          <h3 class="track-title">{{ $trackWithDetails.Track.Name }}</h3>
+          
+          <div class="track-metadata">            
+            <div class="track-stats">
+              <div class="stat-chip">
+                <span class="stat-value">{{ $trackWithDetails.Track.FormattedLength }}</span>
+                <span class="stat-label">Length</span>
               </div>
-              <div class="flex items-center gap-3">
-                <div class="pos-container flex flex-wrap gap-2 items-center">                  
-                </div>
-
-                <div class="border-l border-gray-700 pl-4">
-                  <label class="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors">
-                    <input 
-                      type="checkbox"
-                      id="highlightAll{{ $trackIndex }}"
-                      class="highlight-all-checkbox accent-indigo-500 w-4 h-4 rounded" 
-                      data-track="{{ $trackIndex }}"
-                    />
-                    <span>Highlight All</span>
-                  </label>
-                </div>
+              <div class="stat-chip">
+                <span class="stat-value">{{ $trackWithDetails.TotalWords }}</span>
+                <span class="stat-label">Words</span>
+              </div>
+              <div class="stat-chip">
+                <span class="stat-value">{{ $trackWithDetails.UniqueWords }}</span>
+                <span class="stat-label">Unique</span>
+              </div>
+              <div class="stat-chip">
+                <span class="stat-value">{{ printf "%.1f" $trackWithDetails.WordsPerMinute }}</span>
+                <span class="stat-label">WPM</span>
+              </div>
+              <div class="stat-chip">
+                <span class="stat-value">{{ $trackWithDetails.TotalCharacters }}</span>
+                <span class="stat-label">Chars</span>
+              </div>
+              <div class="stat-chip">
+                <span class="stat-value">{{ $trackWithDetails.TotalLines }}</span>
+                <span class="stat-label">Lines</span>
+              </div>
+            </div>
+            <div class="track-pos-section">
+              <div class="pos-container"></div>
+              <div class="highlight-controls">
+                <label class="highlight-checkbox-label">
+                  <input type="checkbox" 
+                        id="highlightAll{{ $trackIndex }}"
+                        class="highlight-all-checkbox accent-indigo-500"
+                        data-track="{{ $trackIndex }}" />
+                  <span>Highlight All</span>
+                </label>
               </div>
             </div>
           </div>

@@ -1,0 +1,14 @@
+:root {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #2d3748;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
+ 
+  --border-light: rgba(255, 255, 255, 0.05);
+  --border-radius-lg: 0.75rem;
+  --border-radius-md: 0.5rem;
+  --transition-base: all 0.2s ease;
+}
