@@ -130,7 +130,9 @@ func indexHandler(c echo.Context) error {
 
 func allAlbumsHandler(c echo.Context) error {
 	return renderTemplate(c, "all-albums.html", map[string]interface{}{
-		"albums": albums,
+		"albums":      albums,
+		"Title":       "All Albums - Millions of Words",
+		"IsAllAlbums": true,
 	})
 }
 
@@ -140,6 +142,7 @@ func albumDetailsHandler(c echo.Context) error {
 	for _, album := range albums {
 		if album.ID == id {
 			data := prepareAlbumDetails(album)
+			data["Title"] = fmt.Sprintf("%s - %s", album.ArtistName, album.AlbumName)
 			return renderTemplate(c, "album-details.html", data)
 		}
 	}
@@ -172,8 +175,10 @@ func allWordsHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to marshal word frequencies")
 	}
 
-	return c.Render(http.StatusOK, "all-words.html", map[string]interface{}{
+	return renderTemplate(c, "all-words.html", map[string]interface{}{
 		"wordFrequencies":     wordFrequencies,
 		"wordFrequenciesJSON": template.JS(wordFrequenciesJSON),
+		"Title":               "Word Frequencies - Millions of Words",
+		"IsAllWords":          true,
 	})
 }
