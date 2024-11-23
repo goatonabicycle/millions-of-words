@@ -115,6 +115,7 @@ func setupRoutes(e *echo.Echo) {
 	e.GET("/all-words", allWordsHandler)
 	e.GET("/all-albums", allAlbumsHandler)
 	e.GET("/album/:id", albumDetailsHandler)
+	e.GET("/edit-album/:id", editAlbumHandler)
 	e.GET("/search-albums", searchAlbumsHandler)
 }
 
@@ -144,6 +145,19 @@ func albumDetailsHandler(c echo.Context) error {
 			data := prepareAlbumDetails(album)
 			data["Title"] = fmt.Sprintf("%s - %s", album.ArtistName, album.AlbumName)
 			return renderTemplate(c, "album-details.html", data)
+		}
+	}
+	return echo.NewHTTPError(http.StatusNotFound, "Album not found")
+}
+
+func editAlbumHandler(c echo.Context) error {
+	id := c.Param("id")
+
+	for _, album := range albums {
+		if album.ID == id {
+			data := prepareAlbumDetails(album)
+			data["Title"] = fmt.Sprintf("%s - %s", album.ArtistName, album.AlbumName)
+			return renderTemplate(c, "edit-album.html", data)
 		}
 	}
 	return echo.NewHTTPError(http.StatusNotFound, "Album not found")
