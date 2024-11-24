@@ -1,0 +1,33 @@
+<div class="space-y-6">
+    <h2 class="text-xl font-bold text-gray-200">{{ .Album.ArtistName }} - {{ .Album.AlbumName }}</h2>
+    
+    {{ range $index, $track := .Album.Tracks }}
+    <div class="p-4 bg-gray-800 rounded border border-gray-600">
+        <h3 class="text-lg font-bold text-gray-200 mb-2">{{ $track.Name }}</h3>
+        <form id="track-form-{{ $index }}"
+              hx-post="/edit-albums/update-track"
+              hx-target="#status-{{ $index }}"              
+              hx-include="[name='authKey']">
+            
+            <input type="hidden" name="albumId" value="{{ $.Album.ID }}">
+            <input type="hidden" name="trackName" value="{{ $track.Name }}">
+            
+            <textarea 
+                name="lyrics"
+                class="w-full h-64 p-2 mb-4 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500"
+            >{{ $track.Lyrics }}</textarea>
+            
+            <div class="flex items-center gap-4">
+                <button type="submit" 
+                        class="px-4 py-2 bg-blue-600 text-gray-200 rounded hover:bg-blue-700">
+                    Save
+                </button>
+                                
+                <div id="status-{{ $index }}" 
+                     class="text-sm">
+                </div>
+            </div>
+        </form>
+    </div>
+    {{ end }}
+</div>

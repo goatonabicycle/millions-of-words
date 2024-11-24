@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+{{ template "header" . }}
+<body class="dark:bg-gray-900 dark:text-gray-200 flex flex-col items-center">
+    <main class="container mx-auto px-4 py-8 max-w-4xl">
+        <div id="auth-section" class="mb-8">
+            <input type="password" 
+                   name="authKey"                   
+                   class="w-full p-2 bg-gray-800 text-gray-200 rounded border border-gray-600 focus:border-blue-500" 
+                   placeholder="Auth Key"
+                   hx-post="/edit-albums/verify-auth"
+                   hx-target="#editor-section"
+                   hx-trigger="keyup changed delay:500ms">
+        </div>
+
+        <div id="editor-section"></div>
+    </main>
+</body>
+</html>

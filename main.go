@@ -115,8 +115,11 @@ func setupRoutes(e *echo.Echo) {
 	e.GET("/all-words", allWordsHandler)
 	e.GET("/all-albums", allAlbumsHandler)
 	e.GET("/album/:id", albumDetailsHandler)
-	e.GET("/edit-album/:id", editAlbumHandler)
 	e.GET("/search-albums", searchAlbumsHandler)
+	e.GET("/edit-albums", editAlbumsHandler)
+	e.POST("/edit-albums/verify-auth", verifyAuthHandler)
+	e.GET("/edit-albums/tracks", editAlbumTracksHandler)
+	e.POST("/edit-albums/update-track", updateTrackHandler)
 }
 
 func renderTemplate(c echo.Context, name string, data map[string]interface{}) error {
@@ -140,27 +143,14 @@ func allAlbumsHandler(c echo.Context) error {
 func albumDetailsHandler(c echo.Context) error {
 	id := c.Param("id")
 
-	for _, album := range albums {
-		if album.ID == id {
-			data := prepareAlbumDetails(album)
-			data["Title"] = fmt.Sprintf("%s - %s", album.ArtistName, album.AlbumName)
-			return renderTemplate(c, "album-details.html", data)
-		}
+	album, err := loader.GetAlbum(id)
+	if err != nil {
+		log.Printf("Error loading album %s: %v", id, err)
+		return echo.NewHTTPError(http.StatusNotFound, "Album not found")
 	}
-	return echo.NewHTTPError(http.StatusNotFound, "Album not found")
-}
 
-func editAlbumHandler(c echo.Context) error {
-	id := c.Param("id")
-
-	for _, album := range albums {
-		if album.ID == id {
-			data := prepareAlbumDetails(album)
-			data["Title"] = fmt.Sprintf("%s - %s", album.ArtistName, album.AlbumName)
-			return renderTemplate(c, "edit-album.html", data)
-		}
-	}
-	return echo.NewHTTPError(http.StatusNotFound, "Album not found")
+	data := prepareAlbumDetails(album)
+	return renderTemplate(c, "album-details.html", data)
 }
 
 func searchAlbumsHandler(c echo.Context) error {
@@ -195,4 +185,77 @@ func allWordsHandler(c echo.Context) error {
 		"Title":               "Word Frequencies - Millions of Words",
 		"IsAllWords":          true,
 	})
+}
+
+func editAlbumsHandler(c echo.Context) error {
+	log.Printf("Loading edit albums page")
+	return renderTemplate(c, "edit-albums.html", map[string]interface{}{
+		"albums": albums,
+		"Title":  "Edit Albums - Millions of Words",
+	})
+}
+
+func verifyAuthHandler(c echo.Context) error {
+	key := c.FormValue("authKey")
+
+	valid, err := loader.ValidateAuthKey(key)
+	if err != nil {
+		log.Printf("Error validating auth key: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	if !valid {
+		return c.NoContent(http.StatusUnauthorized)
+	}
+
+	return renderTemplate(c, "editor-section.html", map[string]interface{}{
+		"albums": albums,
+	})
+}
+
+func editAlbumTracksHandler(c echo.Context) error {
+	key := c.FormValue("authKey")
+	valid, err := loader.ValidateAuthKey(key)
+	if err != nil || !valid {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid auth key")
+	}
+
+	id := c.FormValue("albumId")
+	log.Printf("Loading tracks for album: %s", id)
+
+	if id == "" {
+		log.Printf("No album ID provided")
+		return echo.NewHTTPError(http.StatusBadRequest, "No album ID provided")
+	}
+
+	for _, album := range albums {
+		if album.ID == id {
+			return renderTemplate(c, "edit-album-tracks.html", map[string]interface{}{
+				"Album": album,
+			})
+		}
+	}
+	return echo.NewHTTPError(http.StatusNotFound, "Album not found")
+}
+
+func updateTrackHandler(c echo.Context) error {
+	var req models.UpdateLyricsRequest
+	if err := c.Bind(&req); err != nil {
+		log.Printf("Error binding request: %v", err)
+		return c.HTML(http.StatusOK, `<div class="text-red-500">Error: Failed to process request</div>`)
+	}
+
+	if err := loader.UpdateTrackLyrics(req); err != nil {
+		log.Printf("Error updating lyrics: %v", err)
+		return c.HTML(http.StatusOK, `<div class="text-red-500">Error: Failed to update lyrics</div>`)
+	}
+
+	if err := loadAlbums(); err != nil {
+		log.Printf("Error reloading albums: %v", err)
+		return c.HTML(http.StatusOK, `<div class="text-yellow-500">Saved but failed to refresh</div>`)
+	}
+
+	albumDetailsCache.Delete(req.AlbumID)
+
+	return c.HTML(http.StatusOK, `<div class="text-green-500">Updated successfully</div>`)
 }

@@ -57,3 +57,10 @@ type TrackWithDetails struct {
 	TotalCharactersNoSpaces int
 	TotalLines              int
 }
+
+type UpdateLyricsRequest struct {
+	AlbumID   string `json:"albumId" form:"albumId"`
+	TrackName string `json:"trackName" form:"trackName"`
+	Lyrics    string `json:"lyrics" form:"lyrics"`
+	AuthKey   string `json:"authKey" form:"authKey"`
+}

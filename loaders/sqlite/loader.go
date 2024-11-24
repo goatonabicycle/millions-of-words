@@ -148,3 +148,93 @@ func sortAlbums(albums []models.BandcampAlbumData) {
 		return artistI < artistJ
 	})
 }
+
+func ValidateAuthKey(key string) (bool, error) {
+	db, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		return false, fmt.Errorf("error opening database: %w", err)
+	}
+	defer db.Close()
+
+	var exists bool
+	err = db.QueryRow("SELECT EXISTS(SELECT 1 FROM auth_keys WHERE key = ?)", key).Scan(&exists)
+	if err != nil {
+		log.Printf("Error checking auth key: %v", err)
+		return false, fmt.Errorf("error checking auth key: %w", err)
+	}
+
+	return exists, nil
+}
+
+func UpdateTrackLyrics(req models.UpdateLyricsRequest) error {
+	valid, err := ValidateAuthKey(req.AuthKey)
+	if err != nil {
+		return fmt.Errorf("error validating auth: %w", err)
+	}
+	if !valid {
+		return fmt.Errorf("invalid auth key")
+	}
+
+	cleanLyrics := strings.TrimSpace(req.Lyrics)
+	if strings.HasPrefix(strings.ToLower(cleanLyrics), "lyrics") {
+		cleanLyrics = ""
+	}
+
+	log.Printf("Updating lyrics for album: %s, track: %s", req.AlbumID, req.TrackName)
+
+	db, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		return fmt.Errorf("error opening database: %w", err)
+	}
+	defer db.Close()
+
+	result, err := db.Exec("UPDATE tracks SET lyrics = ? WHERE album_id = ? AND name = ?",
+		cleanLyrics, req.AlbumID, req.TrackName)
+	if err != nil {
+		log.Printf("Error executing update: %v", err)
+		return fmt.Errorf("error updating lyrics: %w", err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		log.Printf("Error checking rows affected: %v", err)
+		return fmt.Errorf("error checking update result: %w", err)
+	}
+	if rows == 0 {
+		log.Printf("No track found for album: %s, track: %s", req.AlbumID, req.TrackName)
+		return fmt.Errorf("no matching track found")
+	}
+
+	log.Printf("Successfully updated lyrics for album: %s, track: %s", req.AlbumID, req.TrackName)
+	return nil
+}
+
+func GetAlbum(id string) (models.BandcampAlbumData, error) {
+	db, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		return models.BandcampAlbumData{}, fmt.Errorf("error opening database: %w", err)
+	}
+	defer db.Close()
+
+	var album models.BandcampAlbumData
+	err = db.QueryRow(`
+			SELECT id, artist_name, album_name, image_url, image_data, 
+						 album_color_average, bandcamp_url, ampwall_url, 
+						 total_length, formatted_length, date_added 
+			FROM albums WHERE id = ?`, id).Scan(
+		&album.ID, &album.ArtistName, &album.AlbumName, &album.ImageUrl,
+		&album.ImageData, &album.AlbumColorAverage, &album.BandcampUrl,
+		&album.AmpwallUrl, &album.TotalLength, &album.FormattedLength,
+		&album.DateAdded)
+	if err != nil {
+		return models.BandcampAlbumData{}, fmt.Errorf("error fetching album: %w", err)
+	}
+
+	if err := fetchTracks(db, &album); err != nil {
+		return models.BandcampAlbumData{}, fmt.Errorf("error fetching tracks: %w", err)
+	}
+
+	calculateAlbumMetrics(&album)
+
+	return album, nil
+}

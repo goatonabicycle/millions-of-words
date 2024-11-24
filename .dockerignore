@@ -6,4 +6,6 @@ tmp
 node_modules
 package.json 
 package-lock.json
-templates/edit-album.html
+templates/edit-albums.html
+templates/partial/editor-section.html
+templates/partial/edit-album-tracks.html

@@ -195,14 +195,6 @@
   border: 1px solid var(--border-light);
 }
 
-.edit-lyrics {
-  background-color: var(--bg-primary);
-  padding: 1.5rem;  
-  font-size: 0.775rem;
-  line-height: 1.5;
-  border: 1px solid var(--border-light);
-}
-
 .word-counts {
   background-color: var(--bg-primary);
   padding: 1.5rem;
