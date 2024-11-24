@@ -114,7 +114,7 @@ func setupRoutes(e *echo.Echo) {
 	e.GET("/", indexHandler)
 	e.GET("/all-words", allWordsHandler)
 	e.GET("/all-albums", allAlbumsHandler)
-	e.GET("/album/:id", albumDetailsHandler)
+	e.GET("/album/:slug", albumDetailsHandler)
 	e.GET("/search-albums", searchAlbumsHandler)
 	e.GET("/edit-albums", editAlbumsHandler)
 	e.POST("/edit-albums/verify-auth", verifyAuthHandler)
@@ -141,11 +141,11 @@ func allAlbumsHandler(c echo.Context) error {
 }
 
 func albumDetailsHandler(c echo.Context) error {
-	id := c.Param("id")
+	slug := c.Param("slug")
 
-	album, err := loader.GetAlbum(id)
+	album, err := loader.GetAlbumBySlug(slug)
 	if err != nil {
-		log.Printf("Error loading album %s: %v", id, err)
+		log.Printf("Error loading album with slug %s: %v", slug, err)
 		return echo.NewHTTPError(http.StatusNotFound, "Album not found")
 	}
 

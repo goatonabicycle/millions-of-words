@@ -9,6 +9,7 @@ type WordCount struct {
 
 type BandcampAlbumData struct {
 	ID                      string              `json:"id"`
+	Slug                    string              `json:"slug"`
 	ArtistName              string              `json:"artist_name"`
 	AlbumName               string              `json:"album_name"`
 	ImageUrl                string              `json:"image_url"`
@@ -16,6 +17,7 @@ type BandcampAlbumData struct {
 	ImageDataBase64         string              `json:"-"`
 	BandcampUrl             string              `json:"bandcamp_url"`
 	AmpwallUrl              string              `json:"ampwall_url"`
+	MetalArchivesURL        string              `json:"metal_archives_url"`
 	AlbumColorAverage       string              `json:"album_color_average"`
 	DateAdded               string              `json:"date_added"`
 	Tracks                  []BandcampTrackData `json:"tracks"`

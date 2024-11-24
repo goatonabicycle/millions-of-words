@@ -1,7 +1,7 @@
 {{ range .albums }}
 <article
   class="rounded-lg shadow overflow-hidden cursor-pointer bg-gray-800 hover:bg-gray-700 transform hover:-translate-y-1 hover:scale-105 transition-all duration-300">
-  <a href="/album/{{ .ID }}">
+  <a href="/album/{{ .Slug }}">
     <img
       src="{{ .ImageUrl }}"
       alt="Album cover for {{ .AlbumName }} by {{ .ArtistName }}"

@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -149,6 +150,7 @@ func fetchAlbumDataFromBandcamp(url string) (models.BandcampAlbumData, error) {
 
 	return models.BandcampAlbumData{
 		ID:                strings.TrimSpace(artistName) + " - " + strings.TrimSpace(albumName),
+		Slug:              generateSlug(strings.TrimSpace(artistName) + " - " + strings.TrimSpace(albumName)),
 		ArtistName:        strings.TrimSpace(artistName),
 		AlbumName:         strings.TrimSpace(albumName),
 		ImageUrl:          imageUrl,
@@ -266,6 +268,25 @@ func parseTrackDuration(durationStr string) (time.Duration, error) {
 	return time.Duration(minutes)*time.Minute + time.Duration(seconds)*time.Second, nil
 }
 
+var multipleHyphens = regexp.MustCompile(`-+`)
+
+func generateSlug(id string) string {
+	slug := strings.ToLower(id)
+	slug = strings.ReplaceAll(slug, "&", "and")
+	slug = strings.ReplaceAll(slug, ",", "")
+	slug = strings.ReplaceAll(slug, ".", "")
+	slug = strings.ReplaceAll(slug, ";", "")
+	slug = strings.ReplaceAll(slug, ":", "")
+	slug = strings.ReplaceAll(slug, "'", "")
+	slug = strings.ReplaceAll(slug, "(", "")
+	slug = strings.ReplaceAll(slug, ")", "")
+	slug = strings.ReplaceAll(slug, " ", "-")
+	slug = multipleHyphens.ReplaceAllString(slug, "-")
+	slug = strings.Trim(slug, "-")
+
+	return slug
+}
+
 func insertAlbumDataIntoSQLite(album models.BandcampAlbumData, dbPath string) error {
 	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
@@ -277,12 +298,21 @@ func insertAlbumDataIntoSQLite(album models.BandcampAlbumData, dbPath string) er
 	if err != nil {
 		return fmt.Errorf("error starting transaction: %w", err)
 	}
+
 	defer tx.Rollback()
 
-	_, err = tx.Exec(`INSERT INTO albums 
-		(id, artist_name, album_name, image_url, image_data, bandcamp_url, ampwall_url, album_color_average, total_length, formatted_length, date_added) 
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		album.ID, album.ArtistName, album.AlbumName, album.ImageUrl, album.ImageData, album.BandcampUrl, album.AmpwallUrl, album.AlbumColorAverage, album.TotalLength, album.FormattedLength, album.DateAdded)
+	slug := generateSlug(album.ID)
+
+	_, err = tx.Exec(`
+	INSERT INTO albums (
+			id, slug, artist_name, album_name, image_url, image_data,
+			bandcamp_url, ampwall_url, metal_archives_url,
+			album_color_average, total_length, formatted_length, date_added
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		album.ID, slug, album.ArtistName, album.AlbumName, album.ImageUrl,
+		album.ImageData, album.BandcampUrl, album.AmpwallUrl, album.MetalArchivesURL,
+		album.AlbumColorAverage, album.TotalLength, album.FormattedLength,
+		album.DateAdded)
 	if err != nil {
 		return fmt.Errorf("error inserting album data: %w", err)
 	}
@@ -302,12 +332,14 @@ func createTablesIfNotExist(db *sql.DB) error {
 	albumTable := `
 	CREATE TABLE IF NOT EXISTS albums (
 		id TEXT PRIMARY KEY,
+		slug TEXT,
 		artist_name TEXT,
 		album_name TEXT,
 		image_url TEXT,
 		image_data BLOB,
 		bandcamp_url TEXT,
 		ampwall_url TEXT,
+		metal_archives_url TEXT,
 		album_color_average TEXT,
 		total_length INTEGER,
 		formatted_length TEXT,
