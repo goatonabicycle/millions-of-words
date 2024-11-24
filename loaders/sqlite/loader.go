@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
-	"sort"
 	"strings"
 
 	"millions-of-words/models"
@@ -16,14 +15,14 @@ import (
 
 const dbPath = "data/db/albums.db"
 
-func LoadAlbumsData() ([]models.BandcampAlbumData, error) {
+func LoadAlbumsData(limit ...int) ([]models.BandcampAlbumData, error) {
 	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("error opening database at %s: %w", dbPath, err)
 	}
 	defer db.Close()
 
-	albums, err := fetchAlbums(db)
+	albums, err := fetchAlbums(db, limit...)
 	if err != nil {
 		return nil, err
 	}
@@ -35,16 +34,19 @@ func LoadAlbumsData() ([]models.BandcampAlbumData, error) {
 		}
 		calculateAlbumMetrics(&albums[i])
 	}
-
-	sortAlbums(albums)
 	return albums, nil
 }
 
-func fetchAlbums(db *sql.DB) ([]models.BandcampAlbumData, error) {
+func fetchAlbums(db *sql.DB, limit ...int) ([]models.BandcampAlbumData, error) {
 	query := `SELECT id, slug, artist_name, album_name, image_url, image_data, 
-									 album_color_average, bandcamp_url, ampwall_url, metal_archives_url,
-									 total_length, formatted_length, date_added 
-						FROM albums`
+        album_color_average, bandcamp_url, ampwall_url, metal_archives_url, 
+        total_length, formatted_length, date_added 
+        FROM albums 
+        ORDER BY date_added DESC`
+
+	if len(limit) > 0 && limit[0] > 0 {
+		query += fmt.Sprintf(" LIMIT %d", limit[0])
+	}
 
 	rows, err := db.Query(query)
 	if err != nil {
@@ -146,17 +148,6 @@ func calculateAverage(total, count int) int {
 		return total / count
 	}
 	return 0
-}
-
-func sortAlbums(albums []models.BandcampAlbumData) {
-	sort.Slice(albums, func(i, j int) bool {
-		artistI := strings.ToLower(albums[i].ArtistName)
-		artistJ := strings.ToLower(albums[j].ArtistName)
-		if artistI == artistJ {
-			return strings.ToLower(albums[i].AlbumName) < strings.ToLower(albums[j].AlbumName)
-		}
-		return artistI < artistJ
-	})
 }
 
 func ValidateAuthKey(key string) (bool, error) {

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	loader "millions-of-words/loaders/sqlite"
@@ -120,6 +121,8 @@ func setupRoutes(e *echo.Echo) {
 	e.POST("/edit-albums/verify-auth", verifyAuthHandler)
 	e.GET("/edit-albums/tracks", editAlbumTracksHandler)
 	e.POST("/edit-albums/update-track", updateTrackHandler)
+	e.GET("/all-albums/sort", sortAlbumsHandler)
+	e.GET("/all-albums/filter", filterAlbumsHandler)
 }
 
 func renderTemplate(c echo.Context, name string, data map[string]interface{}) error {
@@ -127,16 +130,14 @@ func renderTemplate(c echo.Context, name string, data map[string]interface{}) er
 }
 
 func indexHandler(c echo.Context) error {
+
+	albums, err := loader.LoadAlbumsData(18)
+	if err != nil {
+		return err
+	}
+
 	return renderTemplate(c, "index.html", map[string]interface{}{
 		"albums": albums,
-	})
-}
-
-func allAlbumsHandler(c echo.Context) error {
-	return renderTemplate(c, "all-albums.html", map[string]interface{}{
-		"albums":      albums,
-		"Title":       "All Albums - Millions of Words",
-		"IsAllAlbums": true,
 	})
 }
 
@@ -258,4 +259,132 @@ func updateTrackHandler(c echo.Context) error {
 	albumDetailsCache.Delete(req.AlbumID)
 
 	return c.HTML(http.StatusOK, `<div class="text-green-500">Updated successfully</div>`)
+}
+
+func allAlbumsHandler(c echo.Context) error {
+	albums, err := loader.LoadAlbumsData()
+	if err != nil {
+		return err
+	}
+
+	tableData := AlbumTableData{
+		Albums:      albums,
+		Sort:        "date_added",
+		SortDir:     "desc",
+		NextSortDir: "asc",
+	}
+
+	data := map[string]interface{}{
+		"Title":       "All Albums - Millions of Words",
+		"IsAllAlbums": true,
+		"TableData":   tableData,
+	}
+
+	return c.Render(http.StatusOK, "all-albums.html", data)
+}
+
+func sortAlbumsHandler(c echo.Context) error {
+	log.Printf("Sorting albums...")
+	allAlbums, err := loader.LoadAlbumsData()
+	if err != nil {
+		log.Printf("Error loading albums: %v", err)
+		return err
+	}
+	log.Printf("Loaded %d albums for sorting", len(allAlbums))
+
+	sort := c.QueryParam("sort")
+	dir := c.QueryParam("dir")
+
+	return renderAlbumsTable(c, sort, dir, "")
+}
+
+func filterAlbumsHandler(c echo.Context) error {
+	search := c.QueryParam("search")
+	return renderAlbumsTable(c, "date_added", "desc", search)
+}
+
+type AlbumTableData struct {
+	Albums      []models.BandcampAlbumData
+	Sort        string
+	SortDir     string
+	NextSortDir string
+}
+
+func renderAlbumsTable(c echo.Context, sortField, sortDir, search string) error {
+	log.Printf("renderAlbumsTable: sortField=%s, sortDir=%s, search=%s", sortField, sortDir, search)
+
+	allAlbums, err := loader.LoadAlbumsData()
+	if err != nil {
+		log.Printf("Error loading albums: %v", err)
+		return err
+	}
+	log.Printf("Loaded %d albums total", len(allAlbums))
+
+	nextSortDir := "asc"
+	if sortDir == "asc" {
+		nextSortDir = "desc"
+	}
+
+	filtered := filterAlbums(allAlbums, search)
+	log.Printf("After filtering: %d albums", len(filtered))
+
+	sortAlbums(filtered, sortField, sortDir)
+	log.Printf("After sorting by %s %s", sortField, sortDir)
+
+	data := AlbumTableData{
+		Albums:      filtered,
+		Sort:        sortField,
+		SortDir:     sortDir,
+		NextSortDir: nextSortDir,
+	}
+
+	return c.Render(http.StatusOK, "album-table.html", data)
+}
+
+func filterAlbums(albums []models.BandcampAlbumData, search string) []models.BandcampAlbumData {
+	if search == "" {
+		log.Printf("No search term, returning all %d albums", len(albums))
+		return albums
+	}
+
+	search = strings.ToLower(search)
+	var filtered []models.BandcampAlbumData
+
+	for _, album := range albums {
+		if strings.Contains(strings.ToLower(album.ArtistName), search) ||
+			strings.Contains(strings.ToLower(album.AlbumName), search) {
+			filtered = append(filtered, album)
+		}
+	}
+
+	log.Printf("Filtered albums by '%s': %d results", search, len(filtered))
+	return filtered
+}
+
+func sortAlbums(albums []models.BandcampAlbumData, sortField, sortDir string) {
+	sort.Slice(albums, func(i, j int) bool {
+		var result bool
+
+		switch sortField {
+		case "name":
+			nameI := albums[i].ArtistName + " " + albums[i].AlbumName
+			nameJ := albums[j].ArtistName + " " + albums[j].AlbumName
+			result = nameI < nameJ
+		case "words":
+			result = albums[i].TotalWords < albums[j].TotalWords
+		case "unique":
+			result = albums[i].TotalUniqueWords < albums[j].TotalUniqueWords
+		case "length":
+			result = albums[i].TotalLength < albums[j].TotalLength
+		case "wpt":
+			result = albums[i].AverageWordsPerTrack < albums[j].AverageWordsPerTrack
+		default:
+			result = albums[i].DateAdded < albums[j].DateAdded
+		}
+
+		if sortDir == "desc" {
+			result = !result
+		}
+		return result
+	})
 }

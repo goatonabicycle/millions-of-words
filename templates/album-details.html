@@ -4,14 +4,7 @@
   <body class="dark:bg-gray-900 dark:text-gray-200 flex flex-col items-center">
     <div id="tooltip" class="tooltip" aria-live="polite"></div>
 
-    <nav class="my-5">
-      <a
-        href="/"
-        class="px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-md transition transform hover:scale-105 hover:bg-gray-600"
-      >
-        Back to Home
-      </a>
-    </nav>
+     {{ template "back-button" }}
 
     <main id="album-details" class="text-center">
       <header>

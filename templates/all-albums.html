@@ -1,119 +1,27 @@
 <!DOCTYPE html>
-<html
-  lang="en"
-  class="dark">
-  <head>
-     {{ template "header" . }}
+<html lang="en" class="dark">
+{{ template "header" . }}
+<body class="mx-auto dark:bg-gray-900 dark:text-gray-200">
+    <div class="container mx-auto px-4 py-8">        
+        <div class="flex flex-col items-center mb-8">
+            {{ template "back-button" }}
+            
+            <div class="w-full max-w-2xl">
+                <input 
+                    type="text" 
+                    name="search" 
+                    placeholder="Search albums..." 
+                    class="w-full px-4 py-3 text-gray-200 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    hx-get="/all-albums/filter"
+                    hx-trigger="keyup changed delay:200ms"
+                    hx-target="#albums-table"
+                >
+            </div>
+        </div>
 
-    <link
-      href="https://unpkg.com/tabulator-tables@5.2.7/dist/css/tabulator.min.css"
-      rel="stylesheet" />
-    <style>
-      .tabulator .tabulator-header {
-        background-color: #1f2937;
-        color: #e5e7eb;
-      }
-
-      .tabulator .tabulator-header .tabulator-col {
-        background-color: #1f2937;
-        color: #e5e7eb;
-        border-right: 1px solid #374151;
-      }
-
-      .tabulator .tabulator-row {
-        background-color: #111827;
-        color: #d1d5db;
-        border-bottom: 2px solid #374151;
-      }
-
-      .tabulator .tabulator-row:hover {
-        background-color: #374151;
-      }
-
-      .tabulator-cell {
-        padding: 12px;
-        font-size: 16px;
-        white-space: normal;
-        word-wrap: break-word;
-      }
-
-      .tabulator-cell img {
-        width: 50px;
-        height: 40px;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-      }
-
-      .tabulator-cell img:hover {
-        transform: scale(1.2);
-      }
-    </style>
-    <script src="https://unpkg.com/tabulator-tables@5.2.7/dist/js/tabulator.min.js"></script>
-  </head>
-  <body class="mx-auto dark:bg-gray-900 dark:text-gray-200">
-    <a
-      href="/"
-      class="absolute top-4 left-4 px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-md transition transform hover:scale-105 hover:bg-gray-600"
-      >Back to Home</a
-    >
-
-    <div id="albums-table"></div>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        var tableData = [
-          {{ range .albums }}
-          {
-            id: "{{ .ID }}",
-            cover: "<a href='/album/{{ .ID }}'><img src='{{ .ImageUrl }}' alt='Album cover' class='rounded-lg w-10 h-10 transition-transform duration-300 ease-in-out hover:scale-200'/></a>",
-            album: "{{ .ArtistName }} - {{ .AlbumName }}",
-            totalLength: {{ .TotalLength }},
-            formattedLength: "{{ .FormattedLength }}",
-            totalWords: "{{ .TotalWords }}",
-            avgWordsTrack: "{{ .AverageWordsPerTrack }}",
-            uniqueWords: "{{ .TotalUniqueWords }}",
-            vowelCount: "{{ .TotalVowelCount }}",
-            consonantCount: "{{ .TotalConsonantCount }}"
-          },
-          {{ end }}
-        ];
-
-        var table = new Tabulator("#albums-table", {
-          data: tableData,
-          layout: "fitColumns",
-          responsiveLayout: "collapse",
-
-          history: true,
-          pagination: "local",
-          paginationSize: 100,
-          movableColumns: false,
-          resizableRows: false,
-
-          columns: [
-            { title: "Cover", field: "cover", formatter: "html", width: 10, responsive: 0 },
-            { title: "Album", field: "album", headerSort: true, widthGrow: 2, minWidth: 250, responsive: 0 },
-            {
-              title: "Total Length",
-              field: "totalLength",
-              headerSort: true,
-              widthGrow: 1,
-              responsive: 2,
-              sorter: "number",
-              formatter: function (cell, formatterParams, onRendered) {
-                // Use the formatted string for display
-                var data = cell.getRow().getData();
-                return data.formattedLength;
-              },
-
-            },
-            { title: "Total Words", field: "totalWords", headerSort: true, widthGrow: 1, responsive: 2 },
-            { title: "Avg. Words/Track", field: "avgWordsTrack", headerSort: true, widthGrow: 1, responsive: 3 },
-            { title: "Unique Words", field: "uniqueWords", headerSort: true, widthGrow: 1, responsive: 3 },
-            { title: "Vowel Count", field: "vowelCount", headerSort: true, widthGrow: 1, responsive: 3 },
-            { title: "Consonant Count", field: "consonantCount", headerSort: true, widthGrow: 1, responsive: 3 },
-          ],
-        });
-      });
-    </script>
-  </body>
+        <div id="albums-table">
+            {{ template "album-table.html" .TableData }}
+        </div>
+    </div>
+</body>
 </html>

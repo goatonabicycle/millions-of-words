@@ -29,11 +29,7 @@
   </head>
   <body
     class="dark:bg-gray-900 dark:text-gray-200 flex flex-col items-center p-8">
-    <a
-      href="/"
-      class="absolute top-4 left-4 px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-md transition transform hover:scale-105 hover:bg-gray-600"
-      >Back to Home</a
-    >
+    {{ template "back-button" }}
     <h1 class="fancy-header">All Words</h1>
 
     <div class="w-full md:w-2/3 mb-8">
