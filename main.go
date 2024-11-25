@@ -115,6 +115,8 @@ func loadAlbums() error {
 
 func setupRoutes(e *echo.Echo) {
 	e.GET("/", indexHandler)
+
+	e.GET("/about", aboutHandler)
 	e.GET("/all-words", allWordsHandler)
 	e.GET("/all-albums", allAlbumsHandler)
 	e.GET("/album/:slug", albumDetailsHandler)
@@ -134,6 +136,10 @@ func setupRoutes(e *echo.Echo) {
 
 func renderTemplate(c echo.Context, name string, data map[string]interface{}) error {
 	return c.Render(http.StatusOK, name, data)
+}
+
+func aboutHandler(c echo.Context) error {
+	return c.Render(http.StatusOK, "about.html", nil)
 }
 
 func indexHandler(c echo.Context) error {
