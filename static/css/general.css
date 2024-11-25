@@ -41,6 +41,13 @@ body {
   width: 100%;
 }
 
+.fancy-header {
+  font-family: "Open Sans", sans-serif;
+  font-size: 50px;
+  font-weight: bold;
+  text-align: center;
+}
+
 .fancy-header-album-title {
   font-family: "Open Sans", sans-serif;
   font-size: 50px;

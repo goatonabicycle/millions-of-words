@@ -114,36 +114,45 @@ func fetchTracks(db *sql.DB, album *models.BandcampAlbumData) error {
 
 func calculateAlbumMetrics(album *models.BandcampAlbumData) {
 	totalWords := 0
-	totalVowelCount := 0
-	totalConsonantCount := 0
+	totalVowels := 0
+	totalConsonants := 0
 	totalChars := 0
-	wordLengthDistribution := make(map[int]int)
-	uniqueWordsMap := make(map[string]struct{})
+	totalLines := 0
+	uniqueWords := make(map[string]struct{})
+	wordLengths := make(map[int]int)
 
-	for _, track := range album.Tracks {
-		sortedWordCounts, vowels, consonants, wordLengths := words.CalculateAndSortWordFrequencies(track.Lyrics)
-		wordCount := len(strings.Fields(track.Lyrics))
-		totalWords += wordCount
-		totalVowelCount += vowels
-		totalConsonantCount += consonants
+	for i, track := range album.Tracks {
+		wordCounts, vowels, consonants, lengths := words.CalculateAndSortWordFrequencies(track.Lyrics)
+		words := len(strings.Fields(track.Lyrics))
+
+		totalWords += words
+		totalVowels += vowels
+		totalConsonants += consonants
 		totalChars += len(track.Lyrics)
+		totalLines += len(strings.Split(track.Lyrics, "\n"))
 
-		for length, count := range wordLengths {
-			wordLengthDistribution[length] += count
+		for l, c := range lengths {
+			wordLengths[l] += c
+		}
+		for _, wc := range wordCounts {
+			uniqueWords[wc.Word] = struct{}{}
 		}
 
-		for _, wc := range sortedWordCounts {
-			uniqueWordsMap[wc.Word] = struct{}{}
-		}
+		track.TotalWords = words
+		track.TotalCharacters = len(track.Lyrics)
+		track.TotalCharactersNoSpaces = len(strings.ReplaceAll(strings.ReplaceAll(track.Lyrics, " ", ""), "\n", ""))
+		track.TotalLines = len(strings.Split(track.Lyrics, "\n"))
+		album.Tracks[i] = track
 	}
 
 	album.TotalWords = totalWords
-	album.AverageWordsPerTrack = calculateAverage(totalWords, len(album.Tracks))
-	album.TotalUniqueWords = len(uniqueWordsMap)
-	album.TotalVowelCount = totalVowelCount
-	album.TotalConsonantCount = totalConsonantCount
-	album.WordLengthDistribution = wordLengthDistribution
 	album.TotalCharacters = totalChars
+	album.TotalLines = totalLines
+	album.TotalVowelCount = totalVowels
+	album.TotalConsonantCount = totalConsonants
+	album.TotalUniqueWords = len(uniqueWords)
+	album.WordLengthDistribution = wordLengths
+	album.AverageWordsPerTrack = calculateAverage(totalWords, len(album.Tracks))
 }
 
 func calculateAverage(total, count int) int {

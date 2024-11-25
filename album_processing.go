@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"html/template"
 	"strings"
 	"sync"
@@ -40,48 +39,14 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 	}
 
 	tracksWithDetails := make([]models.TrackWithDetails, 0, len(album.Tracks))
-	var totalWords, totalCharacters, totalCharactersNoSpaces, totalLines int
-	var totalVowelCount, totalConsonantCount int
-	uniqueWordsMap := make(map[string]struct{})
-	wordLengthDistribution := make(map[int]int)
-
 	for _, track := range album.Tracks {
-		trackDetails := calculateTrackDetails(track)
-		tracksWithDetails = append(tracksWithDetails, trackDetails)
-
-		totalWords += trackDetails.TotalWords
-		totalVowelCount += trackDetails.VowelCount
-		totalConsonantCount += trackDetails.ConsonantCount
-		totalCharacters += trackDetails.TotalCharacters
-		totalCharactersNoSpaces += trackDetails.TotalCharactersNoSpaces
-		totalLines += trackDetails.TotalLines
-
-		for length, count := range trackDetails.WordLengthDistribution {
-			wordLengthDistribution[length] += count
-		}
-
-		for _, wc := range trackDetails.SortedWordCounts {
-			uniqueWordsMap[wc.Word] = struct{}{}
-		}
+		tracksWithDetails = append(tracksWithDetails, calculateTrackDetails(track))
 	}
-
-	album.TotalWords = totalWords
-	album.TotalCharacters = totalCharacters
-	album.TotalCharactersNoSpaces = totalCharactersNoSpaces
-	album.TotalLines = totalLines
-	album.AverageWordsPerTrack = calculateAverage(totalWords, len(album.Tracks))
-	album.TotalUniqueWords = len(uniqueWordsMap)
-	album.TotalVowelCount = totalVowelCount
-	album.TotalConsonantCount = totalConsonantCount
-	album.WordLengthDistribution = wordLengthDistribution
-	album.ImageDataBase64 = base64.StdEncoding.EncodeToString(album.ImageData)
-
-	albumWPM := calculateWPM(float64(totalWords), float64(album.TotalLength))
 
 	result := map[string]interface{}{
 		"Album":             album,
 		"TracksWithDetails": tracksWithDetails,
-		"AlbumWPM":          albumWPM,
+		"AlbumWPM":          calculateWPM(float64(album.TotalWords), float64(album.TotalLength)),
 	}
 
 	albumDetailsCache.Store(album.ID, result)
@@ -118,13 +83,6 @@ func calculateTrackDetails(track models.BandcampTrackData) models.TrackWithDetai
 		TotalCharactersNoSpaces: totalCharactersNoSpaces,
 		TotalLines:              totalLines,
 	}
-}
-
-func calculateAverage(total, count int) int {
-	if count > 0 {
-		return total / count
-	}
-	return 0
 }
 
 func calculateWPM(words, minutes float64) float64 {

@@ -43,6 +43,7 @@ type BandcampTrackData struct {
 	TotalCharacters         int    `json:"-"`
 	TotalCharactersNoSpaces int    `json:"-"`
 	TotalLines              int    `json:"-"`
+	TotalWords              int    `json:"-"`
 }
 
 type TrackWithDetails struct {
