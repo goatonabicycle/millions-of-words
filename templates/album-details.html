@@ -89,6 +89,7 @@
                 <span class="stat-value">{{ $trackWithDetails.Track.FormattedLength }}</span>
                 <span class="stat-label">Length</span>
               </div>
+               {{ if $trackWithDetails.Track.Lyrics }}
               <div class="stat-chip">
                 <span class="stat-value">{{ $trackWithDetails.TotalWords }}</span>
                 <span class="stat-label">Words</span>
@@ -109,7 +110,9 @@
                 <span class="stat-value">{{ $trackWithDetails.TotalLines }}</span>
                 <span class="stat-label">Lines</span>
               </div>
+              {{ end }}
             </div>
+            {{ if $trackWithDetails.Track.Lyrics }}
             <div class="track-pos-section">
               <div class="pos-container"></div>
               <div class="highlight-controls">
@@ -122,22 +125,22 @@
                 </label>
               </div>
             </div>
+            {{ end }}
           </div>
 
+        {{ if $trackWithDetails.Track.Lyrics }}
           <div id="trackDetails{{ $trackIndex }}" class="lg:flex gap-2 flex-wrap">
             <div
               class="lyrics bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1"
               id="lyricsText{{ $trackIndex }}"
             >
-              {{ if $trackWithDetails.Track.Lyrics }}
+             
               <pre class="whitespace-pre-wrap text-xs leading-4" id="lyrics{{ $trackIndex }}">
 {{ $trackWithDetails.FormattedLyrics }}</pre>
-              {{ else }}
-              <p>This track has no lyrics.</p>
-              {{ end }}
+             
             </div>
 
-            {{ if $trackWithDetails.Track.Lyrics }}
+            {{/* {{ if $trackWithDetails.Track.Lyrics }} */}}
             <div class="word-counts bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1">
               <div class="sticky-container">
                 <h4 class="font-semibold mb-2 text-indigo-600">Word Counts</h4>
@@ -155,6 +158,10 @@
                   {{ end }}
                 </div>
               </div>
+            </div>
+            {{ else }}
+            <div class="text-center">
+              <p>This track has no lyrics.</p>
             </div>
             {{ end }}
           </div>
