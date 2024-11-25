@@ -116,6 +116,7 @@ func calculateAlbumMetrics(album *models.BandcampAlbumData) {
 	totalWords := 0
 	totalVowelCount := 0
 	totalConsonantCount := 0
+	totalChars := 0
 	wordLengthDistribution := make(map[int]int)
 	uniqueWordsMap := make(map[string]struct{})
 
@@ -125,6 +126,7 @@ func calculateAlbumMetrics(album *models.BandcampAlbumData) {
 		totalWords += wordCount
 		totalVowelCount += vowels
 		totalConsonantCount += consonants
+		totalChars += len(track.Lyrics)
 
 		for length, count := range wordLengths {
 			wordLengthDistribution[length] += count
@@ -141,6 +143,7 @@ func calculateAlbumMetrics(album *models.BandcampAlbumData) {
 	album.TotalVowelCount = totalVowelCount
 	album.TotalConsonantCount = totalConsonantCount
 	album.WordLengthDistribution = wordLengthDistribution
+	album.TotalCharacters = totalChars
 }
 
 func calculateAverage(total, count int) int {

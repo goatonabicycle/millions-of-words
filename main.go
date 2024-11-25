@@ -130,14 +130,31 @@ func renderTemplate(c echo.Context, name string, data map[string]interface{}) er
 }
 
 func indexHandler(c echo.Context) error {
-
-	albums, err := loader.LoadAlbumsData(18)
+	allAlbums, err := loader.LoadAlbumsData()
 	if err != nil {
 		return err
 	}
 
+	displayAlbums := allAlbums
+	if len(allAlbums) > 18 {
+		displayAlbums = allAlbums[:18]
+	}
+
+	totalSongs := 0
+	totalWords := 0
+	totalChars := 0
+	for _, album := range allAlbums {
+		totalSongs += len(album.Tracks)
+		totalWords += album.TotalWords
+		totalChars += album.TotalCharacters
+	}
+
 	return renderTemplate(c, "index.html", map[string]interface{}{
-		"albums": albums,
+		"albums":      displayAlbums,
+		"TotalAlbums": len(allAlbums),
+		"TotalSongs":  totalSongs,
+		"TotalWords":  totalWords,
+		"TotalChars":  totalChars,
 	})
 }
 
