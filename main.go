@@ -384,8 +384,8 @@ func sortAlbums(albums []models.BandcampAlbumData, sortField, sortDir string) {
 
 		switch sortField {
 		case "name":
-			nameI := albums[i].ArtistName + " " + albums[i].AlbumName
-			nameJ := albums[j].ArtistName + " " + albums[j].AlbumName
+			nameI := strings.ToLower(albums[i].ArtistName + " " + albums[i].AlbumName)
+			nameJ := strings.ToLower(albums[j].ArtistName + " " + albums[j].AlbumName)
 			result = nameI < nameJ
 		case "words":
 			result = albums[i].TotalWords < albums[j].TotalWords
