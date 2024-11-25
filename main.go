@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strings"
 
+	"millions-of-words/fetch"
 	loader "millions-of-words/loaders/sqlite"
 	"millions-of-words/models"
 	"millions-of-words/words"
@@ -118,12 +119,17 @@ func setupRoutes(e *echo.Echo) {
 	e.GET("/all-albums", allAlbumsHandler)
 	e.GET("/album/:slug", albumDetailsHandler)
 	e.GET("/search-albums", searchAlbumsHandler)
+	e.GET("/all-albums/sort", sortAlbumsHandler)
+	e.GET("/all-albums/filter", filterAlbumsHandler)
+
 	e.GET("/edit-albums", editAlbumsHandler)
 	e.POST("/edit-albums/verify-auth", verifyAuthHandler)
 	e.GET("/edit-albums/tracks", editAlbumTracksHandler)
 	e.POST("/edit-albums/update-track", updateTrackHandler)
-	e.GET("/all-albums/sort", sortAlbumsHandler)
-	e.GET("/all-albums/filter", filterAlbumsHandler)
+
+	e.GET("/edit-albums/lyrics-tab", lyricsTabHandler)
+	e.GET("/edit-albums/import-tab", importTabHandler)
+	e.POST("/edit-albums/import-album", importAlbumHandler)
 }
 
 func renderTemplate(c echo.Context, name string, data map[string]interface{}) error {
@@ -237,24 +243,6 @@ func editAlbumsHandler(c echo.Context) error {
 	return renderTemplate(c, "edit-albums.html", map[string]interface{}{
 		"albums": albums,
 		"Title":  "Edit Albums - Millions of Words",
-	})
-}
-
-func verifyAuthHandler(c echo.Context) error {
-	key := c.FormValue("authKey")
-
-	valid, err := loader.ValidateAuthKey(key)
-	if err != nil {
-		log.Printf("Error validating auth key: %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	if !valid {
-		return c.NoContent(http.StatusUnauthorized)
-	}
-
-	return renderTemplate(c, "editor-section.html", map[string]interface{}{
-		"albums": albums,
 	})
 }
 
@@ -431,4 +419,127 @@ func sortAlbums(albums []models.BandcampAlbumData, sortField, sortDir string) {
 		}
 		return result
 	})
+}
+
+func verifyAuthHandler(c echo.Context) error {
+	key := c.FormValue("authKey")
+
+	valid, err := loader.ValidateAuthKey(key)
+	if err != nil {
+		log.Printf("Error validating auth key: %v", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	if !valid {
+		return c.NoContent(http.StatusUnauthorized)
+	}
+
+	return c.Render(http.StatusOK, "partial/editor-verified.html", map[string]interface{}{
+		"albums": albums,
+	})
+}
+
+func lyricsTabHandler(c echo.Context) error {
+	key := c.QueryParam("authKey")
+	valid, err := loader.ValidateAuthKey(key)
+	if err != nil || !valid {
+		return c.NoContent(http.StatusUnauthorized)
+	}
+
+	return c.Render(http.StatusOK, "editor-section.html", map[string]interface{}{
+		"albums": albums,
+	})
+}
+
+func importTabHandler(c echo.Context) error {
+	key := c.QueryParam("authKey")
+	valid, err := loader.ValidateAuthKey(key)
+	if err != nil || !valid {
+		return c.NoContent(http.StatusUnauthorized)
+	}
+
+	return c.Render(http.StatusOK, "partial/import-tab.html", nil)
+}
+
+func importAlbumHandler(c echo.Context) error {
+	key := c.FormValue("authKey")
+	valid, err := loader.ValidateAuthKey(key)
+	if err != nil || !valid {
+		return c.HTML(http.StatusUnauthorized, `
+					<div class="bg-red-500/10 border border-red-500 text-red-500 p-4 rounded">
+							Invalid authentication
+					</div>
+			`)
+	}
+
+	urls := strings.Split(c.FormValue("bandcampUrls"), "\n")
+	var results []string
+	total := len(urls)
+
+	for i, url := range urls {
+		url = strings.TrimSpace(url)
+		if url == "" {
+			continue
+		}
+
+		if !strings.Contains(url, "bandcamp.com") {
+			results = append(results, fmt.Sprintf(`
+							<div class="bg-red-500/10 border border-red-500 text-red-500 p-2 rounded text-sm">
+									Invalid Bandcamp URL: %s
+							</div>`, url))
+			continue
+		}
+
+		exists, err := loader.AlbumUrlExists(url)
+		if err != nil {
+			results = append(results, fmt.Sprintf(`
+							<div class="bg-red-500/10 border border-red-500 text-red-500 p-2 rounded text-sm">
+									Error checking database for %s: %v
+							</div>`, url, err))
+			continue
+		}
+
+		if exists {
+			results = append(results, fmt.Sprintf(`
+							<div class="bg-yellow-500/10 border border-yellow-500 text-yellow-500 p-2 rounded text-sm">
+									%s has already been imported
+							</div>`, url))
+			continue
+		}
+
+		albumData, err := fetch.FetchFromBandcamp(url)
+		if err != nil {
+			results = append(results, fmt.Sprintf(`
+							<div class="bg-red-500/10 border border-red-500 text-red-500 p-2 rounded text-sm">
+									Error fetching %s: %v
+							</div>`, url, err))
+			continue
+		}
+
+		if err := loader.SaveAlbum(albumData); err != nil {
+			results = append(results, fmt.Sprintf(`
+							<div class="bg-red-500/10 border border-red-500 text-red-500 p-2 rounded text-sm">
+									Error saving %s: %v
+							</div>`, url, err))
+			continue
+		}
+
+		results = append(results, fmt.Sprintf(`
+					<div class="bg-green-500/10 border border-green-500 text-green-500 p-2 rounded text-sm">
+							Successfully imported %s - %s
+					</div>`, albumData.ArtistName, albumData.AlbumName))
+
+		c.Response().Write([]byte(fmt.Sprintf(`
+					<div class="text-gray-400 text-sm text-right">
+							Processed %d of %d
+					</div>
+			`, i+1, total)))
+		c.Response().Flush()
+	}
+
+	if err := loadAlbums(); err != nil {
+		log.Printf("Error reloading albums after import: %v", err)
+	}
+
+	return c.HTML(http.StatusOK, strings.Join(results, "\n"))
 }

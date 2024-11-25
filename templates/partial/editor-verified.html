@@ -1,0 +1,28 @@
+{{ define "partial/editor-verified.html" }}
+<div class="bg-gray-800 rounded-lg p-4">
+    <div class="border-b border-gray-700">
+        <nav class="flex space-x-4" aria-label="Tabs">
+            <button
+                class="px-4 py-2 text-sm font-medium rounded-t-lg hover:bg-gray-700 hover:text-white"
+                hx-get="/edit-albums/lyrics-tab"
+                hx-target="#tab-content"
+                hx-include="[name='authKey']"
+                hx-trigger="click, load"
+                id="lyrics-tab">
+                Edit Lyrics
+            </button>
+            <button
+                class="px-4 py-2 text-sm font-medium rounded-t-lg hover:bg-gray-700 hover:text-white"
+                hx-get="/edit-albums/import-tab"
+                hx-target="#tab-content"
+                hx-include="[name='authKey']"
+                hx-trigger="click"
+                id="import-tab">
+                Import Album
+            </button>
+        </nav>
+    </div>
+
+    <div id="tab-content" class="mt-4"></div>
+</div>
+{{ end }}

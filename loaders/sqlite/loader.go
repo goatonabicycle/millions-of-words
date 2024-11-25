@@ -265,3 +265,61 @@ func GetAlbumBySlug(slug string) (models.BandcampAlbumData, error) {
 	calculateAlbumMetrics(&album)
 	return album, nil
 }
+
+func AlbumUrlExists(url string) (bool, error) {
+	db, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		return false, fmt.Errorf("error opening database: %w", err)
+	}
+	defer db.Close()
+
+	var exists bool
+	query := "SELECT EXISTS(SELECT 1 FROM albums WHERE bandcamp_url=? LIMIT 1)"
+	err = db.QueryRow(query, url).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("error checking if URL exists: %w", err)
+	}
+	return exists, nil
+}
+
+func SaveAlbum(album models.BandcampAlbumData) error {
+	db, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		return fmt.Errorf("error opening database: %w", err)
+	}
+	defer db.Close()
+
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("error starting transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(`
+			INSERT INTO albums (
+					id, slug, artist_name, album_name, image_url, image_data,
+					bandcamp_url, album_color_average, total_length, formatted_length,
+					date_added
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		album.ID, album.Slug, album.ArtistName, album.AlbumName,
+		album.ImageUrl, album.ImageData, album.BandcampUrl,
+		album.AlbumColorAverage, album.TotalLength, album.FormattedLength,
+		album.DateAdded,
+	)
+	if err != nil {
+		return fmt.Errorf("error inserting album: %w", err)
+	}
+
+	for _, track := range album.Tracks {
+		_, err = tx.Exec(`
+					INSERT INTO tracks (album_id, name, total_length, formatted_length, lyrics)
+					VALUES (?, ?, ?, ?, ?)`,
+			album.ID, track.Name, track.TotalLength, track.FormattedLength, track.Lyrics,
+		)
+		if err != nil {
+			return fmt.Errorf("error inserting track: %w", err)
+		}
+	}
+
+	return tx.Commit()
+}
