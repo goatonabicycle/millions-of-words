@@ -14,7 +14,8 @@ import (
 	"strings"
 
 	"millions-of-words/fetch"
-	loader "millions-of-words/loaders/sqlite"
+	// loader "millions-of-words/loaders/sqlite"
+	loader "millions-of-words/loaders/supabase"
 	"millions-of-words/models"
 	"millions-of-words/words"
 
@@ -160,7 +161,6 @@ func indexHandler(c echo.Context) error {
 	totalConsonants := 0
 	totalLines := 0
 	totalDuration := 0
-	// totalSongsWithNoLyrics := 0
 
 	for _, album := range allAlbums {
 		totalSongs += len(album.Tracks)
@@ -173,10 +173,28 @@ func indexHandler(c echo.Context) error {
 	}
 
 	albumCount := len(allAlbums)
-	avgWordsPerAlbum := totalWords / albumCount
-	avgSongsPerAlbum := math.Round(float64(totalSongs)/float64(albumCount)*100) / 100
-	avgWordLength := math.Round(float64(totalChars)/float64(totalWords)*100) / 100
-	projectedAlbums := ((1000000 - totalWords) / avgWordsPerAlbum) + albumCount
+	var avgWordsPerAlbum int
+	var avgSongsPerAlbum float64
+	var avgWordLength float64
+	var projectedAlbums float64
+	var wpm int
+
+	if albumCount > 0 {
+		avgWordsPerAlbum = totalWords / albumCount
+		avgSongsPerAlbum = math.Round(float64(totalSongs)/float64(albumCount)*100) / 100
+
+		if totalWords > 0 {
+			avgWordLength = math.Round(float64(totalChars)/float64(totalWords)*100) / 100
+		}
+
+		if avgWordsPerAlbum > 0 {
+			projectedAlbums = float64(((1000000 - totalWords) / avgWordsPerAlbum)) + float64(albumCount)
+		}
+
+		if totalDuration > 0 {
+			wpm = totalWords / (totalDuration / 60)
+		}
+	}
 
 	return renderTemplate(c, "index.html", map[string]interface{}{
 		"albums":           displayAlbums,
@@ -189,10 +207,10 @@ func indexHandler(c echo.Context) error {
 		"TotalLines":       totalLines,
 		"TotalDuration":    totalDuration / 60,
 		"AvgWordsPerAlbum": avgWordsPerAlbum,
-		"AvgCharsPerAlbum": totalChars / albumCount,
+		"AvgCharsPerAlbum": totalChars / max(albumCount, 1),
 		"AvgWordLength":    avgWordLength,
 		"AvgSongsPerAlbum": avgSongsPerAlbum,
-		"WPM":              totalWords / (totalDuration / 60),
+		"WPM":              wpm,
 		"ProjectedAlbums":  projectedAlbums,
 	})
 }
@@ -548,4 +566,11 @@ func importAlbumHandler(c echo.Context) error {
 	}
 
 	return c.HTML(http.StatusOK, strings.Join(results, "\n"))
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }

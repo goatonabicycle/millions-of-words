@@ -62,8 +62,7 @@
         </div>
 
         <div class="album-cover-container">
-          <img
-            src="data:image/jpeg;base64,{{ .Album.ImageDataBase64 }}"
+          <img src="{{ .Album.ImageUrl }}"
             alt="{{ .Album.AlbumName }} Cover"
             class="album-cover rounded-md shadow-md block mx-auto"
           />

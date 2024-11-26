@@ -13,6 +13,7 @@ type BandcampAlbumData struct {
 	ArtistName              string              `json:"artist_name"`
 	AlbumName               string              `json:"album_name"`
 	ImageUrl                string              `json:"image_url"`
+	ImageStoragePath        string              `json:"image_storage_path"`
 	ImageData               []byte              `json:"-"`
 	ImageDataBase64         string              `json:"-"`
 	BandcampUrl             string              `json:"bandcamp_url"`
