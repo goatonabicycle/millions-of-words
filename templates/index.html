@@ -39,7 +39,6 @@
 
     <h2 class="text-2xl font-bold mt-8 text-center">Latest Albums</h2>
 
-
     <main class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6 p-4">
         {{ template "album-grid.html" . }}
     </main>
@@ -62,8 +61,7 @@
                 `;
             }
         }
-
-        // Set initial state for first item
+        
         const firstItem = document.querySelector('[data-value]');
         updateDisplay(firstItem);
 
