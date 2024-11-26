@@ -19,7 +19,6 @@ type SupabaseConfig struct {
 	URL        string `json:"supabase_url"`
 	ServiceKey string `json:"service_role_key"`
 	AnonKey    string `json:"supabase_key"`
-	AdminEmail string `json:"admin_email"`
 }
 
 var (
@@ -45,6 +44,14 @@ func init() {
 }
 
 func loadConfig(path string) (SupabaseConfig, error) {
+	if url := os.Getenv("SUPABASE_URL"); url != "" {
+		return SupabaseConfig{
+			URL:        url,
+			ServiceKey: os.Getenv("SUPABASE_SERVICE_KEY"),
+			AnonKey:    os.Getenv("SUPABASE_ANON_KEY"),
+		}, nil
+	}
+
 	file, err := os.ReadFile(path)
 	if err != nil {
 		return SupabaseConfig{}, fmt.Errorf("error reading config file: %w", err)
