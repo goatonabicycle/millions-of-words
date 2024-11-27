@@ -18,6 +18,10 @@ RUN update-ca-certificates
 
 COPY --from=builder /run-app /usr/local/bin/
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+COPY ca-bundle.crt /etc/ssl/certs/ca-bundle.crt
+COPY ca-bundle.trust.crt /etc/ssl/certs/ca-bundle.trust.crt 
+
 COPY templates /templates
 COPY static /static
 COPY data data
