@@ -12,6 +12,8 @@ RUN go build -v -o /run-app .
 FROM debian:bookworm
 
 RUN apt-get update && apt-get install -y ca-certificates
+COPY certs/prod-ca-2021.crt /usr/local/share/ca-certificates
+RUN chmod 644 /usr/local/share/ca-certificates/prod-ca-2021.crt
 RUN update-ca-certificates
 
 COPY --from=builder /run-app /usr/local/bin/
