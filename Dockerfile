@@ -11,17 +11,10 @@ RUN go build -v -o /run-app .
 
 FROM debian:bookworm
 
-RUN apt update && apt install -y ca-certificates && rm -rf /var/lib/apt/lists/ 
-COPY certs/prod-ca-2021.crt /usr/local/share/ca-certificates
-RUN chmod 644 /usr/local/share/ca-certificates/prod-ca-2021.crt
+RUN apt-get update && apt-get install -y ca-certificates
 RUN update-ca-certificates
 
 COPY --from=builder /run-app /usr/local/bin/
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-
-COPY ca-bundle.crt /etc/ssl/certs/ca-bundle.crt
-COPY ca-bundle.trust.crt /etc/ssl/certs/ca-bundle.trust.crt 
-
 COPY templates /templates
 COPY static /static
 COPY data data
