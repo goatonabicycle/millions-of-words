@@ -1,0 +1,39 @@
+{{ define "album-details/album-info-grid-hover.html" }}
+  <div class="flex flex-col lg:flex-row bg-gray-800/50 rounded-lg border border-gray-700 backdrop-blur-sm p-2 my-4 mx-auto max-w-4xl">
+    <div class="w-[300px] grid grid-cols-2 gap-x-5 gap-y-0.5 text-sm text-gray-400 px-3 py-3">
+      
+      <div class="cursor-pointer hover:text-white text-white" data-value="{{.Album.FormattedLength}}" data-desc="Total duration of the album.">Total Duration</div>      
+      <div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalWords}}" data-desc="Total number of words on this album.">Total Words</div>    
+      <div class="cursor-pointer hover:text-white" data-value="{{.Album.AverageWordsPerTrack}}" data-desc="The average number of words per track.">Words per track</div>
+      <div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalUniqueWords}}" data-desc="The number of unique words on this album. Words that are no used twice.">Unique Words</div>
+      <div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalVowelCount}}" data-desc="The number of vowels used in all the words on this album.">Vowel Count</div>
+      <div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalConsonantCount}}" data-desc="The number of consonants used in all the words on this album.">Consonant Count</div>
+      <div class="cursor-pointer hover:text-white" data-value='{{printf "%.2f" .AlbumWPM}}' data-desc="For each minute of each song, there are this many words.">Words Per Minute</div>
+      <div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalCharacters}}" data-desc="The total number of characters. Including weird non-alphanumeric stuff.">Total Characters</div>
+      <div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalCharactersNoSpaces}}" data-desc="The total number of characters. But without spaces.">Total Characters (no spaces)</div>
+      <div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalLines}}" data-desc="The total number of lines of lyrics on this album">Total Lines</div>
+
+      <div class="cursor-pointer hover:text-white" data-value="Top 20" data-content='        
+        {{ range $index, $wordCount := .Album.AlbumWordFrequencies }}
+        <span>
+          <span>{{ $wordCount.Word }}:</span>
+          <span>{{ $wordCount.Count }}</span>
+        </span>
+        {{ end }}
+      '>Top 20 words</div>
+
+      <div class="cursor-pointer hover:text-white" data-value="Word Distribution" data-content='                           
+        {{ range $length, $count := .Album.WordLengthDistribution }}
+        <span>
+          <span>{{ $length }}:</span>
+          <span>{{ $count }}</span>
+        </span>
+        {{ end }}          
+      '>Word Length Distribution</div>
+    </div>
+        
+    <div class="w-[200px] flex flex-col items-start justify-center lg:pl-6 border-t lg:border-t-0 lg:border-l border-gray-700 pt-3 lg:pt-0">
+        <div id="stats-display" class="w-full"></div>
+    </div>
+  </div>
+{{ end }}

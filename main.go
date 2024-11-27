@@ -14,8 +14,9 @@ import (
 	"strings"
 
 	"millions-of-words/fetch"
-	// loader "millions-of-words/loaders/sqlite"
-	loader "millions-of-words/loaders/supabase"
+
+	loader "millions-of-words/loaders/sqlite"
+	//loader "millions-of-words/loaders/supabase"
 	"millions-of-words/models"
 	"millions-of-words/words"
 

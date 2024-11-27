@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
    {{ template "header" . }}
-  <body class="dark:bg-gray-900 dark:text-gray-200 flex flex-col items-center">
+  <body class="dark:bg-gray-900 dark:text-gray-200  items-center">
     <div id="tooltip" class="tooltip" aria-live="polite"></div>
 
      {{ template "back-button" }}
@@ -17,50 +17,18 @@
             href="{{ .Album.AmpwallUrl }}"
             target="_blank"
             class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105"
-          >
-            See on Ampwall
-          </a>
+          >See on Ampwall</a>
           {{ end }}
           <a
             href="{{ .Album.BandcampUrl }}"
             target="_blank"
             class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105"
-          >
-            See on Bandcamp
-          </a>
+          >See on Bandcamp</a>
         </div>
       </header>
 
       <section class="album-details-container">
-        <div class="details-section">
-          <h2>Album Details</h2>
-          <div class="album-details-grid">
-            {{ template "album-details/album-info-grid.html" . }}
-          </div>
-        </div>
-
-        <div class="details-section">
-          <h2>Top 20 Words</h2>
-          <div class="flex-grid">
-            {{ range $index, $wordCount := .Album.AlbumWordFrequencies }}
-            <div>
-              <span>{{ $wordCount.Word }}:</span>
-              <span>{{ $wordCount.Count }}</span>
-            </div>
-            {{ end }}
-          </div>
-
-          <h2 class="mt-4">Word Length Distribution</h2>
-          <div class="flex-grid">
-            {{ range $length, $count := .Album.WordLengthDistribution }}
-            <div>
-              <span>{{ $length }}:</span>
-              <span>{{ $count }}</span>
-            </div>
-            {{ end }}
-          </div>
-        </div>
-
+      {{ template "album-details/album-info-grid-hover.html" . }}              
         <div class="album-cover-container">
           <img src="{{ .Album.ImageUrl }}"
             alt="{{ .Album.AlbumName }} Cover"
@@ -170,6 +138,7 @@
     </main>
 
     <script src="/static/js/constants.js"></script>
+    <script src="/static/js/hover-show-data.js"></script>
     <script src="/static/js/highlight-manager.js"></script>
     <script src="/static/js/tooltip.js"></script>
     <script src="/static/js/compromise-analyzer.js"></script>
@@ -187,6 +156,6 @@
 
         trackInitializer.initialize(trackData);
       });
-    </script>
+    </script>  
   </body>
 </html>
