@@ -17,6 +17,7 @@ RUN chmod 644 /usr/local/share/ca-certificates/prod-ca-2021.crt
 RUN update-ca-certificates
 
 COPY --from=builder /run-app /usr/local/bin/
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY templates /templates
 COPY static /static
 COPY data data
