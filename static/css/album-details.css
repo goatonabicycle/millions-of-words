@@ -49,11 +49,9 @@
 .track {
   background-color: var(--bg-secondary);
   border-radius: var(--border-radius-lg);
-  padding: 1.5rem;
-  margin:2rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--border-light);
-  max-width: 100%;
+  padding: 0.2rem;
+  margin:1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);  
 }
 
 .track-title {
@@ -92,7 +90,8 @@
   padding: 0.5rem 0.75rem;
   border-radius: var(--border-radius-md);  
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  gap:2px;
   align-items: center;
   transition: var(--transition-base);
 }
@@ -202,6 +201,13 @@
   column-count: 2;
   column-gap: 2rem;
   border: 1px solid var(--border-light);
+  max-width: 100%;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  column-width: auto;
+  column-fill: balance;  
+  width: 100%;    
+  box-sizing: border-box;
 }
 
 .word-counts {
@@ -267,11 +273,6 @@
 
   .lyrics {
     column-count: 1;
-  }
-
-  .track-stats {
-    display: block;
-    padding-bottom: 0.5rem;
   }
 
   .stat-chip {    
