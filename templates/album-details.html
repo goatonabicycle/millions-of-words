@@ -1,161 +1,145 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
-   {{ template "header" . }}
-  <body class="dark:bg-gray-900 dark:text-gray-200  items-center">
-    <div id="tooltip" class="tooltip" aria-live="polite"></div>
+<html lang="en">
+    {{ template "header" . }}
+    <body class="items-center">
+        <div id="tooltip" class="tooltip" aria-live="polite"></div>
+        {{ template "back-button" }}
 
-     {{ template "back-button" }}
+        <main class="flex flex-col lg:flex-row mx-4 md:mx-8 gap-8 relative">            
+            <div class="lg:w-[30%] lg:sticky lg:top-8 lg:self-start lg:max-h-[90vh] lg:min-h-[600px] lg:overflow-y-auto">
+                <header class="mb-8">
+                    <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold max-w-[350px]">
+                        {{ .Album.ArtistName }} - {{ .Album.AlbumName }}
+                    </h1>
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        {{ if .Album.AmpwallUrl }}
+                        <a href="{{ .Album.AmpwallUrl }}" target="_blank" class="px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105">See on Ampwall</a>
+                        {{ end }}
+                        <a href="{{ .Album.BandcampUrl }}" target="_blank" class="px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105">See on Bandcamp</a>
+                    </div>
+                </header>
 
-    <main id="album-details" class="text-center">
-      <header>
-        <h1 class="fancy-header-album-title">
-          {{ .Album.ArtistName }} - {{ .Album.AlbumName }}
-        </h1>
-        <div class="text-center">
-          {{ if .Album.AmpwallUrl }}
-          <a
-            href="{{ .Album.AmpwallUrl }}"
-            target="_blank"
-            class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105"
-          >See on Ampwall</a>
-          {{ end }}
-          <a
-            href="{{ .Album.BandcampUrl }}"
-            target="_blank"
-            class="mt-4 mb-5 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md transition transform hover:scale-105"
-          >See on Bandcamp</a>
-        </div>
-      </header>
-
-      <section class="album-details-container">
-      {{ template "album-details/album-info-grid-hover.html" . }}              
-        <div class="album-cover-container">
-          <img src="{{ .Album.ImageUrl }}"
-            alt="{{ .Album.AlbumName }} Cover"
-            class="album-cover rounded-md shadow-md block mx-auto"
-          />
-          <div class="text-center mt-2">
-            <span class="text-white font-semibold">Average color:</span>
-            <span class="font-semibold">{{ .Album.AlbumColorAverage }}</span>
-          </div>
-          <div
-            class="album-color-block rounded-md shadow-md"
-            style="background-color: {{ .Album.AlbumColorAverage }}; width: 100%; height: 50px; margin-top: 10px;"
-          ></div>
-        </div>
-      </section>
-
-      <section class="mt-8">
-        {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
-        <article class="track">
-          <h3 class="track-title">{{ $trackWithDetails.Track.Name }}</h3>
-          
-          <div class="track-metadata">            
-            <div class="track-stats">
-              <div class="stat-chip">
-                <span class="stat-value">{{ $trackWithDetails.Track.FormattedLength }}</span>
-                <span class="stat-label">Length</span>
-              </div>
-               {{ if $trackWithDetails.Track.Lyrics }}
-              <div class="stat-chip">
-                <span class="stat-value">{{ $trackWithDetails.TotalWords }}</span>
-                <span class="stat-label">Words</span>
-              </div>
-              <div class="stat-chip">
-                <span class="stat-value">{{ $trackWithDetails.UniqueWords }}</span>
-                <span class="stat-label">Unique</span>
-              </div>
-              <div class="stat-chip">
-                <span class="stat-value">{{ printf "%.1f" $trackWithDetails.WordsPerMinute }}</span>
-                <span class="stat-label">WPM</span>
-              </div>
-              <div class="stat-chip">
-                <span class="stat-value">{{ $trackWithDetails.TotalCharacters }}</span>
-                <span class="stat-label">Chars</span>
-              </div>
-              <div class="stat-chip">
-                <span class="stat-value">{{ $trackWithDetails.TotalLines }}</span>
-                <span class="stat-label">Lines</span>
-              </div>
-              {{ end }}
-            </div>
-            {{ if $trackWithDetails.Track.Lyrics }}
-            <div class="track-pos-section">
-              <div class="pos-container"></div>
-              <div class="highlight-controls">
-                <label class="highlight-checkbox-label">
-                  <input type="checkbox" 
-                        id="highlightAll{{ $trackIndex }}"
-                        class="highlight-all-checkbox accent-indigo-500"
-                        data-track="{{ $trackIndex }}" />
-                  <span>Highlight All</span>
-                </label>
-              </div>
-            </div>
-            {{ end }}
-          </div>
-
-        {{ if $trackWithDetails.Track.Lyrics }}
-          <div id="trackDetails{{ $trackIndex }}" class="lg:flex gap-2 flex-wrap">
-            <div
-              class="lyrics bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1"
-              id="lyricsText{{ $trackIndex }}"
-            >
-             
-              <pre class="whitespace-pre-wrap text-xs leading-4" id="lyrics{{ $trackIndex }}">
-{{ $trackWithDetails.FormattedLyrics }}</pre>
-             
-            </div>
-
-            {{/* {{ if $trackWithDetails.Track.Lyrics }} */}}
-            <div class="word-counts bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1">
-              <div class="sticky-container">
-                <h4 class="font-semibold mb-2 text-indigo-600">Word Counts</h4>
-                <div class="flex flex-wrap gap-2">
-                  {{ range $wordIndex, $wordCount := $trackWithDetails.SortedWordCounts }}
-                  <div
-                    class="inline-flex items-center bg-indigo-600 text-white rounded-full px-2 py-1 text-xs font-medium cursor-pointer shadow-md transition-colors"
-                    id="wordCount{{ $trackIndex }}-{{ $wordCount.Word }}"
-                    data-word="{{ $wordCount.Word }}"
-                    data-track="{{ $trackIndex }}"
-                    data-count="{{ $wordCount.Count }}"
-                  >
-                    {{ $wordCount.Word }}: {{ $wordCount.Count }}
-                  </div>
-                  {{ end }}
+                <div class="album-cover-container mb-8 max-w-[350px]">
+                    <img src="{{ .Album.ImageUrl }}" alt="{{ .Album.AlbumName }} Cover" class="album-cover rounded-md shadow-md" />
+                    <div class="text-center mt-2">
+                        <span class="text-white font-semibold">Average color:</span>
+                        <span class="font-semibold">{{ .Album.AlbumColorAverage }}</span>
+                    </div>
+                    <div class="album-color-block rounded-md shadow-md" style="background-color: {{ .Album.AlbumColorAverage }}; width: 100%; height: 50px; margin-top: 10px;"></div>
                 </div>
-              </div>
+
+                <section class="track mb-8 max-w-[350px]">
+                    <div class="flex flex-col lg:flex-row rounded-lg border border-gray-700 p-2">
+                        <div class="gap-y-0.5 text-sm text-gray-400 px-3 py-3 w-[175px] shrink-0">
+                            {{ template "stats-grid-album-details-items" . }}
+                        </div>
+                        
+                        <div class="flex flex-col items-start justify-center lg:pl-6 border-t lg:border-t-0 lg:border-l border-gray-700 pt-3 lg:pt-0 flex-1">
+                            <div id="stats-display" class="w-full"></div>
+                        </div>
+                    </div>
+                </section>
             </div>
-            {{ else }}
-            <div class="text-center">
-              <p>This track has no lyrics.</p>
+            
+            <div class="lg:w-[70%] lg:min-w-0">
+                <section class="space-y-8">
+                    {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
+                    <article class="track">
+                        <h3 class="track-title">{{ $trackWithDetails.Track.Name }}</h3>
+
+                        <div class="track-metadata">
+                            <div class="track-stats">
+                                <div class="stat-chip">
+                                    <span class="stat-value">{{ $trackWithDetails.Track.FormattedLength }}</span>
+                                    <span class="stat-label">Length</span>
+                                </div>
+                                {{ if $trackWithDetails.Track.Lyrics }}
+                                <div class="stat-chip">
+                                    <span class="stat-value">{{ $trackWithDetails.TotalWords }}</span>
+                                    <span class="stat-label">Words</span>
+                                </div>
+                                <div class="stat-chip">
+                                    <span class="stat-value">{{ $trackWithDetails.UniqueWords }}</span>
+                                    <span class="stat-label">Unique</span>
+                                </div>
+                                <div class="stat-chip">
+                                    <span class="stat-value">{{ printf "%.1f" $trackWithDetails.WordsPerMinute }}</span>
+                                    <span class="stat-label">WPM</span>
+                                </div>
+                                <div class="stat-chip">
+                                    <span class="stat-value">{{ $trackWithDetails.TotalCharacters }}</span>
+                                    <span class="stat-label">Chars</span>
+                                </div>
+                                <div class="stat-chip">
+                                    <span class="stat-value">{{ $trackWithDetails.TotalLines }}</span>
+                                    <span class="stat-label">Lines</span>
+                                </div>
+                                {{ end }}
+                            </div>
+
+                            {{ if $trackWithDetails.Track.Lyrics }}
+                            <div class="track-pos-section">
+                                <div class="pos-container"></div>
+                                <div class="highlight-controls">
+                                    <label class="highlight-checkbox-label">
+                                        <input type="checkbox" id="highlightAll{{ $trackIndex }}" class="highlight-all-checkbox accent-indigo-500" data-track="{{ $trackIndex }}" />
+                                        <span>Highlight All</span>
+                                    </label>
+                                </div>
+                            </div>
+                            {{ end }}
+                        </div>
+
+                        {{ if $trackWithDetails.Track.Lyrics }}
+                        <div id="trackDetails{{ $trackIndex }}" class="lg:flex gap-2 flex-wrap">
+                            <div class="lyrics bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1" id="lyricsText{{ $trackIndex }}">
+                                <pre class="whitespace-pre-wrap text-xs leading-4" id="lyrics{{ $trackIndex }}">{{ $trackWithDetails.FormattedLyrics }}</pre>
+                            </div>
+
+                            <div class="word-counts bg-gray-100 dark:bg-gray-700 p-4 rounded-md shadow-md flex-1">
+                                <div class="sticky-container">
+                                    <h4 class="font-semibold mb-2 text-indigo-600">Word Counts</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        {{ range $wordIndex, $wordCount := $trackWithDetails.SortedWordCounts }}
+                                        <div class="inline-flex items-center bg-indigo-600 text-white rounded-full px-2 py-1 text-xs font-medium cursor-pointer shadow-md transition-colors"
+                                             id="wordCount{{ $trackIndex }}-{{ $wordCount.Word }}"
+                                             data-word="{{ $wordCount.Word }}"
+                                             data-track="{{ $trackIndex }}"
+                                             data-count="{{ $wordCount.Count }}">
+                                            {{ $wordCount.Word }}: {{ $wordCount.Count }}
+                                        </div>
+                                        {{ end }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {{ else }}
+                        <div class="text-center">
+                            <p>This track has no lyrics.</p>
+                        </div>
+                        {{ end }}
+                    </article>
+                    {{ end }}
+                </section>
             </div>
-            {{ end }}
-          </div>
-        </article>
-        {{ end }}
-      </section>
-    </main>
+        </main>
 
-    <script src="/static/js/constants.js"></script>
-    <script src="/static/js/hover-show-data.js"></script>
-    <script src="/static/js/highlight-manager.js"></script>
-    <script src="/static/js/tooltip.js"></script>
-    <script src="/static/js/compromise-analyzer.js"></script>
-    <script src="/static/js/track-initializer.js"></script>
+        <script src="/static/js/constants.js"></script>
+        <script src="/static/js/hover-show-data.js"></script>
+        <script src="/static/js/highlight-manager.js"></script>
+        <script src="/static/js/tooltip.js"></script>
+        <script src="/static/js/compromise-analyzer.js"></script>
+        <script src="/static/js/track-initializer.js"></script>
 
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        const trackData = [
-          {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
-          {
-            index: {{ $trackIndex }},
-          },
-          {{ end }}
-        ];
-
-        trackInitializer.initialize(trackData);
-      });
-    </script>  
-  </body>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const trackData = [
+                    {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
+                    { index: {{ $trackIndex }}, },
+                    {{ end }}
+                ];
+                trackInitializer.initialize(trackData);
+            });
+        </script>
+    </body>
 </html>

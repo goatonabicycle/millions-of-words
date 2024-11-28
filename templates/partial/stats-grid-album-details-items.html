@@ -1,0 +1,15 @@
+{{ define "stats-grid-album-details-items" }}
+<div class="cursor-pointer hover:text-white text-white" data-value="{{.Album.FormattedLength}}" data-desc="Total duration of the album.">Total Duration</div>  
+<div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalWords}}" data-desc="Total number of words on this album.">Total Words</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.Album.AverageWordsPerTrack}}" data-desc="The average number of words per track.">Words per track</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalUniqueWords}}" data-desc="The number of unique words on this album. Words that are no used twice.">Unique Words</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalVowelCount}}" data-desc="The number of vowels used in all the words on this album.">Vowel Count</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalConsonantCount}}" data-desc="The number of consonants used in all the words on this album.">Consonant Count</div>
+<div class="cursor-pointer hover:text-white" data-value='{{printf "%.2f" .AlbumWPM}}' data-desc="For each minute of each song, there are this many words.">Words Per Minute</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalCharacters}}" data-desc="The total number of characters. Including weird non-alphanumeric stuff.">Total Characters</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalCharactersNoSpaces}}" data-desc="The total number of characters. But without spaces.">Total Characters (no spaces)</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalLines}}" data-desc="The total number of lines of lyrics on this album">Total Lines</div>
+<div class="cursor-pointer hover:text-white" data-value="Top 20" data-content='<div class="grid grid-cols-2 gap-4">{{ range $index, $wordCount := .Album.AlbumWordFrequencies }}<div class="flex justify-between"><span>{{ $wordCount.Word }}</span><span>{{ $wordCount.Count }}</span></div>{{ end }}</div>'>Top 20 words</div>
+<div class="cursor-pointer hover:text-white" data-value="Word Distribution" data-content='<div class="grid grid-cols-2 gap-4">{{ range $length, $count := .Album.WordLengthDistribution }}<div class="flex justify-between"><span>{{ $length }} letters:</span><span>{{ $count }} words</span></div>{{ end }}</div>'>Word Length Distribution</div>
+
+{{ end }}

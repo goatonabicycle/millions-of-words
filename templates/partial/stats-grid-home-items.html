@@ -1,0 +1,16 @@
+{{ define "stats-grid-home-items" }}
+<div class="cursor-pointer hover:text-white bg-gray-700/50 text-white" data-value="{{.TotalAlbums}}" data-desc="Total number of unique albums">Total Albums</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.TotalSongs}}" data-desc="Total number of individual songs across all albums">Total Songs</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.TotalWords}}" data-desc="Total count of all words in lyrics across all songs">Total Words</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.TotalChars}}" data-desc="Total characters in all lyrics, including spaces">Total Characters</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.AvgSongsPerAlbum}}" data-desc="Average songs per album">Songs per Album</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.AvgWordsPerAlbum}}" data-desc="Average words per album">Words per Album</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.AvgWordLength}}" data-desc="Average word length across all albums">Average Word Length</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.AvgCharsPerAlbum}}" data-desc="Average characters per album">Characters per Album</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.TotalDuration}}" data-desc="Total duration of all songs in minutes">Total Minutes</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.WPM}}" data-desc="Average words per minute across all songs">Words per Minute</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.TotalVowels}}" data-desc="Total vowels in all lyrics">Total Vowels</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.TotalConsonants}}" data-desc="Total consonants in all lyrics">Total Consonants</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.TotalLines}}" data-desc="Total lines of lyrics">Total Lines</div>
+<div class="cursor-pointer hover:text-white" data-value="{{.ProjectedAlbums}}" data-desc="The estimated number of albums still needed to reach 1 million words">Albums to 1 million</div>
+{{ end }}
