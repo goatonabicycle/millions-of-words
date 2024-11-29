@@ -136,6 +136,9 @@ func setupRoutes(e *echo.Echo) {
 	admin.POST("/import", importAlbumHandler)
 	admin.GET("/content/editor/album", adminAlbumEditorHandler)
 
+	admin.POST("/fetch/metal-archives", fetchMetalArchivesHandler)
+	admin.POST("/validate/metal-archives-url", validateMetalArchivesUrlHandler)
+
 }
 
 func renderTemplate(c echo.Context, name string, data map[string]interface{}) error {
@@ -589,6 +592,7 @@ func adminAlbumEditorHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "No album ID provided")
 	}
 
+	authKey := c.QueryParam("authKey")
 	albums, err := loader.LoadAlbumsData()
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Error loading albums")
@@ -597,10 +601,81 @@ func adminAlbumEditorHandler(c echo.Context) error {
 	for _, album := range albums {
 		if album.ID == albumID {
 			return renderTemplate(c, "admin/components/album-editor-content.html", map[string]interface{}{
-				"Album": album,
+				"Album":   album,
+				"AuthKey": authKey,
 			})
 		}
 	}
 
 	return echo.NewHTTPError(http.StatusNotFound, "Album not found")
+}
+
+func fetchMetalArchivesHandler(c echo.Context) error {
+	authKey := c.FormValue("authKey")
+	url := c.FormValue("metalArchivesUrl")
+
+	log.Printf("Fetching from Metal Archives: %s", url)
+
+	valid, err := loader.ValidateAuthKey(authKey)
+	if err != nil || !valid {
+		log.Printf("Auth error: %v", err)
+		return renderTemplate(c, "admin/components/metal-archives-preview.html", map[string]interface{}{
+			"Error": "Authentication failed",
+		})
+	}
+
+	if url == "" {
+		return renderTemplate(c, "admin/components/metal-archives-preview.html", map[string]interface{}{
+			"Error": "No Metal Archives URL provided",
+		})
+	}
+
+	data, err := fetch.FetchFromMetalArchives(url)
+	if err != nil {
+		log.Printf("Error fetching from Metal Archives: %v", err)
+		return renderTemplate(c, "admin/components/metal-archives-preview.html", map[string]interface{}{
+			"Error": fmt.Sprintf("Error fetching data: %v", err),
+		})
+	}
+
+	jsonData := map[string]string{
+		"releaseDate": data.ReleaseDate,
+		"genre":       data.Genre,
+		"country":     data.Country,
+		"label":       data.Label,
+	}
+
+	jsonBytes, err := json.Marshal(jsonData)
+	if err != nil {
+		return renderTemplate(c, "admin/components/metal-archives-preview.html", map[string]interface{}{
+			"Error": "Error processing data",
+		})
+	}
+
+	return renderTemplate(c, "admin/components/metal-archives-preview.html", map[string]interface{}{
+		"ReleaseDate": data.ReleaseDate,
+		"Genre":       data.Genre,
+		"Country":     data.Country,
+		"Label":       data.Label,
+		"JsonData":    template.JS(string(jsonBytes)),
+	})
+}
+
+func validateMetalArchivesUrlHandler(c echo.Context) error {
+	url := c.FormValue("metalArchivesUrl")
+	isValid := strings.Contains(url, "metal-archives.com")
+
+	if !isValid {
+		return c.HTML(http.StatusOK, `
+					<button class="px-4 py-2 bg-purple-600 text-gray-200 rounded hover:bg-purple-700 opacity-50" disabled>
+							Fetch Metal Archives Data
+					</button>
+			`)
+	}
+
+	return c.HTML(http.StatusOK, `
+			<button class="px-4 py-2 bg-purple-600 text-gray-200 rounded hover:bg-purple-700">
+					Fetch Metal Archives Data
+			</button>
+	`)
 }

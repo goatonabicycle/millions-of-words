@@ -107,10 +107,6 @@ func fetchAlbums(limit ...int) ([]models.BandcampAlbumData, error) {
 		if albums[i].ImageStoragePath != "" {
 			publicURL := adminClient.Storage.GetPublicUrl("album-covers", albums[i].ImageStoragePath)
 			albums[i].ImageUrl = publicURL.SignedURL
-			log.Printf("Album: %s, Storage Path: %s, URL: %s",
-				albums[i].AlbumName,
-				albums[i].ImageStoragePath,
-				albums[i].ImageUrl)
 		}
 	}
 
