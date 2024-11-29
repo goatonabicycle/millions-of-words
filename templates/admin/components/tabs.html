@@ -1,0 +1,29 @@
+{{ define "admin/components/tabs" }}
+<input type="hidden" name="authKey" value="{{ .AuthKey }}">
+<div class="border-b border-gray-700 mb-6">
+    <nav class="flex space-x-4" aria-label="Tabs">
+        <button 
+            class="px-4 py-2 text-sm font-medium rounded-t-lg hover:bg-gray-700 hover:text-white" 
+            hx-get="/admin/content/editor" 
+            hx-target="#admin-content" 
+            hx-include="[name='authKey']"
+            id="editor-tab"
+        >
+            Album Editor
+        </button>
+        <button 
+            class="px-4 py-2 text-sm font-medium rounded-t-lg hover:bg-gray-700 hover:text-white" 
+            hx-get="/admin/content/import" 
+            hx-target="#admin-content" 
+            hx-include="[name='authKey']"
+            id="import-tab"
+        >
+            Import Albums
+        </button>
+    </nav>
+</div>
+
+<div id="tab-status" class="mb-4"></div>
+
+<div id="admin-content" class="mt-4"></div>
+{{ end }}

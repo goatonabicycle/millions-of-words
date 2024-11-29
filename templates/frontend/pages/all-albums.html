@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+{{ template "header" . }}
+<body class="mx-auto dark:bg-gray-900 dark:text-gray-200">
+    <div class="container mx-auto px-4 py-8">        
+        <div class="flex flex-col items-center mb-8">
+            {{ template "back-button" }}
+            
+            <div class="w-full max-w-2xl">
+                <input 
+                    type="text" 
+                    name="search" 
+                    placeholder="Search albums..." 
+                    class="w-full px-4 py-3 text-gray-200 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    hx-get="/all-albums/filter"
+                    hx-trigger="keyup changed delay:200ms"
+                    hx-target="#albums-table"
+                >
+            </div>
+        </div>
+
+        <div id="albums-table">
+          <table class="w-full text-sm text-left">
+            <thead class="text-xs uppercase bg-gray-800 text-gray-200">
+                <tr>
+                    <th class="px-4 py-3 min-w-[300px]">
+                        <button 
+                            class="flex items-center gap-1 hover:text-white w-full"
+                            hx-get="/all-albums/sort"
+                            hx-target="#albums-table"
+                            hx-vals='{"sort": "name", "dir": "{{ .NextSortDir }}"}'
+                        >
+                            Album
+                            {{ if eq .Sort "name" }}
+                                {{ if eq .SortDir "asc" }}↑{{ else }}↓{{ end }}
+                            {{ end }}
+                        </button>
+                    </th>
+                    <th class="px-4 py-3 min-w-[100px]">
+                        <button 
+                            class="flex items-center gap-1 hover:text-white w-full"
+                            hx-get="/all-albums/sort"
+                            hx-target="#albums-table"
+                            hx-vals='{"sort": "words", "dir": "{{ .NextSortDir }}"}'
+                        >
+                            Words
+                            {{ if eq .Sort "words" }}
+                                {{ if eq .SortDir "asc" }}↑{{ else }}↓{{ end }}
+                            {{ end }}
+                        </button>
+                    </th>
+                    <th class="px-4 py-3 min-w-[100px]">
+                        <button 
+                            class="flex items-center gap-1 hover:text-white w-full"
+                            hx-get="/all-albums/sort"
+                            hx-target="#albums-table"
+                            hx-vals='{"sort": "unique", "dir": "{{ .NextSortDir }}"}'
+                        >
+                            Unique Words
+                            {{ if eq .Sort "unique" }}
+                                {{ if eq .SortDir "asc" }}↑{{ else }}↓{{ end }}
+                            {{ end }}
+                        </button>
+                    </th>
+                    <th class="px-4 py-3 min-w-[80px]">
+                        <button 
+                            class="flex items-center gap-1 hover:text-white w-full"
+                            hx-get="/all-albums/sort"
+                            hx-target="#albums-table"
+                            hx-vals='{"sort": "length", "dir": "{{ .NextSortDir }}"}'
+                        >
+                            Length
+                            {{ if eq .Sort "length" }}
+                                {{ if eq .SortDir "asc" }}↑{{ else }}↓{{ end }}
+                            {{ end }}
+                        </button>
+                    </th>
+                    <th class="px-4 py-3 min-w-[100px]">
+                        <button 
+                            class="flex items-center gap-1 hover:text-white w-full"
+                            hx-get="/all-albums/sort"
+                            hx-target="#albums-table"
+                            hx-vals='{"sort": "wpt", "dir": "{{ .NextSortDir }}"}'
+                        >
+                            Words/Track
+                            {{ if eq .Sort "wpt" }}
+                                {{ if eq .SortDir "asc" }}↑{{ else }}↓{{ end }}
+                            {{ end }}
+                        </button>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700">
+                {{ range .Albums }}
+                <tr class="bg-gray-900 hover:bg-gray-800">
+                    <td class="px-4 py-3">
+                        <a href="/album/{{ .Slug }}" class="hover:text-indigo-400 transition-colors">
+                            {{ .ArtistName }} - {{ .AlbumName }}
+                        </a>
+                    </td>
+                    <td class="px-4 py-3">{{ .TotalWords }}</td>
+                    <td class="px-4 py-3">{{ .TotalUniqueWords }}</td>
+                    <td class="px-4 py-3">{{ .FormattedLength }}</td>
+                    <td class="px-4 py-3">{{ .AverageWordsPerTrack }}</td>
+                </tr>
+                {{ end }}
+            </tbody>
+        </table>
+        </div>
+    </div>
+</body>
+</html>

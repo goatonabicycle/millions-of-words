@@ -1,0 +1,37 @@
+{{ define "admin/components/import-form" }}
+<div class="bg-gray-800 p-4 rounded-lg">
+    <form hx-post="/admin/import" hx-target="#import-status" hx-include="[name='authKey']">
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-2">Bandcamp URLs (one per line)</label>
+                <textarea 
+                    name="bandcampUrls" 
+                    rows="5" 
+                    class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500"
+                    placeholder="https://artist1.bandcamp.com/album/name1&#10;https://artist2.bandcamp.com/album/name2"
+                    required
+                ></textarea>
+            </div>
+            <button 
+                type="submit" 
+                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                hx-indicator="#importing-indicator"
+            >
+                Import Albums
+            </button>
+        </div>
+    </form>
+
+    <div id="importing-indicator" class="htmx-indicator">
+        <div class="flex items-center justify-center space-x-2 text-gray-400 mt-4">
+            <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Starting imports...</span>
+        </div>
+    </div>
+
+    <div id="import-status" class="mt-4 space-y-2"></div>
+</div>
+{{ end }}

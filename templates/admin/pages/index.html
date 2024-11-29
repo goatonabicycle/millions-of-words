@@ -1,0 +1,9 @@
+{{ define "admin/pages/index.html" }}
+    {{ template "admin/layout/base.html" . }}
+{{ end }}
+
+{{ define "content" }}
+    {{ if .Authenticated }}
+        {{ template "admin/components/tabs" . }}
+    {{ end }}
+{{ end }}

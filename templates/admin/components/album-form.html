@@ -1,0 +1,18 @@
+{{ define "admin/components/album-form" }}
+<div class="space-y-4">
+    <select 
+        name="albumId" 
+        hx-get="/admin/content/editor/album" 
+        hx-target="#album-editor-content" 
+        hx-include="[name='authKey']" 
+        class="w-full p-2 bg-gray-800 text-gray-200 rounded border border-gray-600 focus:border-blue-500"
+    >
+        <option value="">Select an album to edit...</option>
+        {{ range .Albums }}
+            <option value="{{ .ID }}">{{ .ArtistName }} - {{ .AlbumName }}</option>
+        {{ end }}
+    </select>
+
+    <div id="album-editor-content" class="space-y-6"></div>
+</div>
+{{ end }}

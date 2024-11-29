@@ -126,15 +126,16 @@ func setupRoutes(e *echo.Echo) {
 	e.GET("/all-albums/sort", sortAlbumsHandler)
 	e.GET("/all-albums/filter", filterAlbumsHandler)
 
-	e.GET("/edit-albums", editAlbumsHandler)
-	e.POST("/edit-albums/verify-auth", verifyAuthHandler)
-	e.GET("/edit-albums/tracks", editAlbumTracksHandler)
-	e.POST("/edit-albums/update-album", updateAlbumHandler)
-	e.POST("/edit-albums/update-track", updateTrackHandler)
+	admin := e.Group("/admin")
+	admin.GET("", adminHandler)
+	admin.POST("/auth", adminAuthHandler)
+	admin.GET("/content/editor", adminEditorHandler)
+	admin.GET("/content/import", adminImportHandler)
+	admin.POST("/update/album", updateAlbumHandler)
+	admin.POST("/update/track", updateTrackHandler)
+	admin.POST("/import", importAlbumHandler)
+	admin.GET("/content/editor/album", adminAlbumEditorHandler)
 
-	e.GET("/edit-albums/lyrics-tab", lyricsTabHandler)
-	e.GET("/edit-albums/import-tab", importTabHandler)
-	e.POST("/edit-albums/import-album", importAlbumHandler)
 }
 
 func renderTemplate(c echo.Context, name string, data map[string]interface{}) error {
@@ -262,46 +263,6 @@ func allWordsHandler(c echo.Context) error {
 		"Title":               "Word Frequencies - Millions of Words",
 		"IsAllWords":          true,
 	})
-}
-
-func editAlbumsHandler(c echo.Context) error {
-	log.Printf("Loading edit albums page")
-	return renderTemplate(c, "edit-albums.html", map[string]interface{}{
-		"albums": albums,
-		"Title":  "Edit Albums - Millions of Words",
-	})
-}
-
-func editAlbumTracksHandler(c echo.Context) error {
-	key := c.FormValue("authKey")
-	valid, err := loader.ValidateAuthKey(key)
-	if err != nil || !valid {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid auth key")
-	}
-
-	id := c.FormValue("albumId")
-	log.Printf("Loading tracks for album: %s", id)
-
-	if id == "" {
-		log.Printf("No album ID provided")
-		return echo.NewHTTPError(http.StatusBadRequest, "No album ID provided")
-	}
-
-	albums, err = loader.LoadAlbumsData()
-	if err != nil {
-		log.Printf("Error reloading albums: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, "Error loading albums")
-	}
-
-	for _, album := range albums {
-		if album.ID == id {
-			log.Printf("Found album: %+v", album)
-			return renderTemplate(c, "edit-album-tracks.html", map[string]interface{}{
-				"Album": album,
-			})
-		}
-	}
-	return echo.NewHTTPError(http.StatusNotFound, "Album not found")
 }
 
 func updateTrackHandler(c echo.Context) error {
@@ -454,46 +415,6 @@ func sortAlbums(albums []models.BandcampAlbumData, sortField, sortDir string) {
 	})
 }
 
-func verifyAuthHandler(c echo.Context) error {
-	key := c.FormValue("authKey")
-
-	valid, err := loader.ValidateAuthKey(key)
-	if err != nil {
-		log.Printf("Error validating auth key: %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	if !valid {
-		return c.NoContent(http.StatusUnauthorized)
-	}
-
-	return c.Render(http.StatusOK, "partial/editor-verified.html", map[string]interface{}{
-		"albums": albums,
-	})
-}
-
-func lyricsTabHandler(c echo.Context) error {
-	key := c.QueryParam("authKey")
-	valid, err := loader.ValidateAuthKey(key)
-	if err != nil || !valid {
-		return c.NoContent(http.StatusUnauthorized)
-	}
-
-	return c.Render(http.StatusOK, "editor-section.html", map[string]interface{}{
-		"albums": albums,
-	})
-}
-
-func importTabHandler(c echo.Context) error {
-	key := c.QueryParam("authKey")
-	valid, err := loader.ValidateAuthKey(key)
-	if err != nil || !valid {
-		return c.NoContent(http.StatusUnauthorized)
-	}
-
-	return c.Render(http.StatusOK, "partial/import-tab.html", nil)
-}
-
 func importAlbumHandler(c echo.Context) error {
 	key := c.FormValue("authKey")
 	valid, err := loader.ValidateAuthKey(key)
@@ -602,4 +523,84 @@ func updateAlbumHandler(c echo.Context) error {
 	}
 
 	return c.HTML(http.StatusOK, `<div class="text-green-500">Album updated successfully</div>`)
+}
+
+func adminHandler(c echo.Context) error {
+	log.Printf("Admin handler called")
+	err := renderTemplate(c, "admin/pages/index.html", map[string]interface{}{
+		"Title":         "Admin - Millions of Words",
+		"Authenticated": false,
+	})
+	if err != nil {
+		log.Printf("Error rendering template: %v", err)
+	}
+	return err
+}
+
+func adminAuthHandler(c echo.Context) error {
+	key := c.FormValue("authKey")
+	valid, err := loader.ValidateAuthKey(key)
+	if err != nil || !valid {
+		return c.HTML(http.StatusUnauthorized, `
+					<div class="text-red-500 text-center p-2">Invalid authentication key</div>
+			`)
+	}
+
+	return renderTemplate(c, "admin/pages/index.html", map[string]interface{}{
+		"Title":         "Admin - Millions of Words",
+		"Authenticated": true,
+		"AuthKey":       key,
+		"Albums":        albums,
+	})
+}
+
+func adminEditorHandler(c echo.Context) error {
+	if err := validateAuth(c); err != nil {
+		return err
+	}
+	return renderTemplate(c, "admin/components/album-form", map[string]interface{}{
+		"Albums": albums,
+	})
+}
+
+func adminImportHandler(c echo.Context) error {
+	if err := validateAuth(c); err != nil {
+		return err
+	}
+	return renderTemplate(c, "admin/components/import-form", nil)
+}
+
+func validateAuth(c echo.Context) error {
+	key := c.QueryParam("authKey")
+	valid, err := loader.ValidateAuthKey(key)
+	if err != nil || !valid {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid auth key")
+	}
+	return nil
+}
+
+func adminAlbumEditorHandler(c echo.Context) error {
+	if err := validateAuth(c); err != nil {
+		return err
+	}
+
+	albumID := c.QueryParam("albumId")
+	if albumID == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "No album ID provided")
+	}
+
+	albums, err := loader.LoadAlbumsData()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error loading albums")
+	}
+
+	for _, album := range albums {
+		if album.ID == albumID {
+			return renderTemplate(c, "admin/components/album-editor-content.html", map[string]interface{}{
+				"Album": album,
+			})
+		}
+	}
+
+	return echo.NewHTTPError(http.StatusNotFound, "Album not found")
 }

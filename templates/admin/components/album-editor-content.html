@@ -1,0 +1,87 @@
+{{ define "admin/components/album-editor-content.html" }}
+<div class="space-y-6">
+    <h2 class="text-xl font-bold text-gray-200">{{ .Album.ArtistName }} - {{ .Album.AlbumName }}</h2>
+
+    <div class="p-4 bg-gray-800 rounded border border-gray-600">
+        <h3 class="text-lg font-bold text-gray-200 mb-4">Album Details</h3>
+        <form id="album-form" hx-post="/admin/update/album" hx-target="#album-status" hx-include="[name='authKey']">
+            <input type="hidden" name="albumId" value="{{ .Album.ID }}">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-300">Metal Archives URL</label>
+                    <input type="text" name="metalArchivesUrl" value="{{ .Album.MetalArchivesURL }}"
+                        class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-300">Release Date</label>
+                    <input type="date" name="releaseDate" value="{{ .Album.ReleaseDate }}"
+                        class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-300">Genre</label>
+                    <input type="text" name="genre" value="{{ if .Album.Genre }}{{ .Album.Genre }}{{ else }}metal{{ end }}"
+                        class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500"
+                        placeholder="Separate multiple genres with commas">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-300">Country</label>
+                    <input type="text" name="country" value="{{ .Album.Country }}"
+                        class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-300">Label</label>
+                    <input type="text" name="label" value="{{ .Album.Label }}"
+                        class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-300">Ignored Words</label>
+                    <input type="text" name="ignoredWords" value="{{ .Album.IgnoredWords }}"
+                        class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500"
+                        placeholder="Separate words with commas">
+                </div>
+            </div>
+
+            <div class="space-y-2 mt-4">
+                <label class="block text-sm font-medium text-gray-300">Notes</label>
+                <textarea name="notes" rows="4"
+                    class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500"
+                >{{ .Album.Notes }}</textarea>
+            </div>
+
+            <div class="flex items-center gap-4 mt-4">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-gray-200 rounded hover:bg-blue-700">
+                    Save Album Details
+                </button>
+                <div id="album-status" class="text-sm"></div>
+            </div>
+        </form>
+    </div>
+    
+    {{ range $index, $track := .Album.Tracks }}
+    <div class="p-4 bg-gray-800 rounded border border-gray-600">
+        <h3 class="text-lg font-bold text-gray-200 mb-2">{{ $track.Name }}</h3>
+        <form hx-post="/admin/update/track" hx-target="#track-status-{{ $index }}" hx-include="[name='authKey']">
+            <input type="hidden" name="albumId" value="{{ $.Album.ID }}">
+            <input type="hidden" name="trackName" value="{{ $track.Name }}">
+
+            <textarea name="lyrics" 
+                class="w-full h-64 p-2 mb-4 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500"
+            >{{ $track.Lyrics }}</textarea>
+
+            <div class="flex items-center gap-4">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-gray-200 rounded hover:bg-blue-700">
+                    Save
+                </button>
+                <div id="track-status-{{ $index }}" class="text-sm"></div>
+            </div>
+        </form>
+    </div>
+    {{ end }}
+</div>
+{{ end }}
