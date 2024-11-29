@@ -34,6 +34,11 @@ const highlightManager = {
   },
 
   highlightWordAndRelated(word, track, categories, shouldAdd = true) {
+    const highlightAllCheckbox = document.querySelector(`input[id="highlightAll${track}"]`);
+    if (highlightAllCheckbox?.checked) {
+      shouldAdd = true;
+    }
+
     const wordSelector = `[${DOM_ATTRIBUTES.word}="${escapeSelector(word)}"][${DOM_ATTRIBUTES.track}="${track}"]`;
     document.querySelectorAll(wordSelector).forEach(el => {
       this.highlightElement(el, categories, shouldAdd);
