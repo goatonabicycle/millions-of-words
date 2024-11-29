@@ -21,6 +21,12 @@ type BandcampAlbumData struct {
 	MetalArchivesURL        string              `json:"metal_archives_url"`
 	AlbumColorAverage       string              `json:"album_color_average"`
 	DateAdded               string              `json:"date_added"`
+	ReleaseDate             string              `json:"release_date"`
+	Genre                   string              `json:"genre"`
+	Country                 string              `json:"country"`
+	Label                   string              `json:"label"`
+	IgnoredWords            string              `json:"ignored_words"`
+	Notes                   string              `json:"notes"`
 	Tracks                  []BandcampTrackData `json:"tracks"`
 	TotalLength             int                 `json:"total_length"`
 	FormattedLength         string              `json:"formatted_length"`
@@ -67,4 +73,16 @@ type UpdateLyricsRequest struct {
 	TrackName string `json:"trackName" form:"trackName"`
 	Lyrics    string `json:"lyrics" form:"lyrics"`
 	AuthKey   string `json:"authKey" form:"authKey"`
+}
+
+type UpdateAlbumRequest struct {
+	AlbumID          string `json:"albumId" form:"albumId"`
+	MetalArchivesURL string `json:"metalArchivesUrl" form:"metalArchivesUrl"`
+	ReleaseDate      string `json:"releaseDate" form:"releaseDate"`
+	Genre            string `json:"genre" form:"genre"`
+	Country          string `json:"country" form:"country"`
+	Label            string `json:"label" form:"label"`
+	IgnoredWords     string `json:"ignoredWords" form:"ignoredWords"`
+	Notes            string `json:"notes" form:"notes"`
+	AuthKey          string `json:"authKey" form:"authKey"`
 }

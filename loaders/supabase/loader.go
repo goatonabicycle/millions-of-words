@@ -66,6 +66,7 @@ func loadConfig(path string) (SupabaseConfig, error) {
 }
 
 func LoadAlbumsData(limit ...int) ([]models.BandcampAlbumData, error) {
+	log.Printf("Loading albums data...")
 	albums, err := fetchAlbums(limit...)
 	if err != nil {
 		return nil, err
@@ -80,7 +81,6 @@ func LoadAlbumsData(limit ...int) ([]models.BandcampAlbumData, error) {
 	}
 	return albums, nil
 }
-
 func fetchAlbums(limit ...int) ([]models.BandcampAlbumData, error) {
 	query := publicClient.From("albums").
 		Select("*", "exact", false).
@@ -261,6 +261,13 @@ func SaveAlbum(album models.BandcampAlbumData) error {
 		"total_length":        album.TotalLength,
 		"formatted_length":    album.FormattedLength,
 		"date_added":          album.DateAdded,
+		"metal_archives_url":  album.MetalArchivesURL,
+		"release_date":        album.ReleaseDate,
+		"genre":               album.Genre,
+		"country":             album.Country,
+		"label":               album.Label,
+		"ignored_words":       album.IgnoredWords,
+		"notes":               album.Notes,
 	}
 
 	_, _, err := adminClient.From("albums").
@@ -338,4 +345,55 @@ func calculateAverage(total, count int) int {
 		return total / count
 	}
 	return 0
+}
+
+func UpdateAlbum(req models.UpdateAlbumRequest) error {
+	valid, err := ValidateAuthKey(req.AuthKey)
+	if err != nil {
+		return fmt.Errorf("error validating auth: %w", err)
+	}
+	if !valid {
+		return fmt.Errorf("invalid auth key")
+	}
+
+	log.Printf("Updating album: %s", req.AlbumID)
+	log.Printf("Update data: %+v", req)
+
+	updates := map[string]interface{}{
+		"metal_archives_url": req.MetalArchivesURL,
+		"release_date":       req.ReleaseDate,
+		"genre":              req.Genre,
+		"country":            req.Country,
+		"label":              req.Label,
+		"ignored_words":      req.IgnoredWords,
+		"notes":              req.Notes,
+	}
+
+	_, _, err = adminClient.From("albums").
+		Update(updates, "albums", "id").
+		Eq("id", req.AlbumID).
+		Execute()
+
+	if err != nil {
+		return fmt.Errorf("error updating album: %w", err)
+	}
+
+	// Verify the update by fetching the album
+	data, _, err := adminClient.From("albums").
+		Select("*", "exact", false).
+		Eq("id", req.AlbumID).
+		Single().
+		Execute()
+
+	if err != nil {
+		return fmt.Errorf("error verifying update: %w", err)
+	}
+
+	var album models.BandcampAlbumData
+	if err := json.Unmarshal(data, &album); err != nil {
+		return fmt.Errorf("error scanning updated album: %w", err)
+	}
+
+	log.Printf("Verified updated album values: %+v", album)
+	return nil
 }

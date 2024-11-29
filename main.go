@@ -129,6 +129,7 @@ func setupRoutes(e *echo.Echo) {
 	e.GET("/edit-albums", editAlbumsHandler)
 	e.POST("/edit-albums/verify-auth", verifyAuthHandler)
 	e.GET("/edit-albums/tracks", editAlbumTracksHandler)
+	e.POST("/edit-albums/update-album", updateAlbumHandler)
 	e.POST("/edit-albums/update-track", updateTrackHandler)
 
 	e.GET("/edit-albums/lyrics-tab", lyricsTabHandler)
@@ -286,8 +287,15 @@ func editAlbumTracksHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "No album ID provided")
 	}
 
+	albums, err = loader.LoadAlbumsData()
+	if err != nil {
+		log.Printf("Error reloading albums: %v", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error loading albums")
+	}
+
 	for _, album := range albums {
 		if album.ID == id {
+			log.Printf("Found album: %+v", album)
 			return renderTemplate(c, "edit-album-tracks.html", map[string]interface{}{
 				"Album": album,
 			})
@@ -574,4 +582,24 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func updateAlbumHandler(c echo.Context) error {
+	var req models.UpdateAlbumRequest
+	if err := c.Bind(&req); err != nil {
+		log.Printf("Error binding request: %v", err)
+		return c.HTML(http.StatusOK, `<div class="text-red-500">Error: Failed to process request</div>`)
+	}
+
+	if err := loader.UpdateAlbum(req); err != nil {
+		log.Printf("Error updating album: %v", err)
+		return c.HTML(http.StatusOK, `<div class="text-red-500">Error: Failed to update album</div>`)
+	}
+
+	if err := loadAlbums(); err != nil {
+		log.Printf("Error reloading albums: %v", err)
+		return c.HTML(http.StatusOK, `<div class="text-yellow-500">Saved but failed to refresh</div>`)
+	}
+
+	return c.HTML(http.StatusOK, `<div class="text-green-500">Album updated successfully</div>`)
 }

@@ -1,6 +1,8 @@
 <div class="space-y-6">
     <h2 class="text-xl font-bold text-gray-200">{{ .Album.ArtistName }} - {{ .Album.AlbumName }}</h2>
     
+    {{ template "partial/edit-album-details.html" . }}
+
     {{ range $index, $track := .Album.Tracks }}
     <div class="p-4 bg-gray-800 rounded border border-gray-600">
         <h3 class="text-lg font-bold text-gray-200 mb-2">{{ $track.Name }}</h3>
