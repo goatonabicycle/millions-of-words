@@ -50,13 +50,19 @@ const highlightManager = {
     }
 
     categories.forEach(category => {
-      const categorySelector = `.${DOM_CLASSES.trackInfoItem}[${DOM_ATTRIBUTES.category}="${category}"][${DOM_ATTRIBUTES.trackIndex}="${track}"]`;
-      const categoryElement = document.querySelector(categorySelector);
-      if (categoryElement) {
-        this.applyStyle(categoryElement, {
-          backgroundColor: shouldAdd ? COLORS[category] : '#374151',
-          color: shouldAdd ? '#000000' : '#d1d5db'
-        });
+      const posTagSelector = `.pos-tag[${DOM_ATTRIBUTES.category}="${category}"][${DOM_ATTRIBUTES.trackIndex}="${track}"]`;
+      const posTagElement = document.querySelector(posTagSelector);
+      if (posTagElement) {
+        const baseColor = COLORS[category];
+        if (shouldAdd) {
+          posTagElement.style.transform = 'scale(1.09)';
+          posTagElement.style.boxShadow = '10px 20px 10px rgba(0, 0, 0, 0.6)';
+          posTagElement.style.background = `linear-gradient(135deg, ${baseColor}60, ${baseColor}70)`;
+        } else {
+          posTagElement.style.transform = '';
+          posTagElement.style.boxShadow = '';
+          posTagElement.style.background = `linear-gradient(135deg, ${baseColor}40, ${baseColor}50)`;
+        }
       }
     });
   },
