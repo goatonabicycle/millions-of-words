@@ -1,18 +1,13 @@
 const COLORS = {
-  noun: '#ffb3aa',
-  verb: '#90caf9',
-  adjective: '#a5d6a7',
-  adverb: '#fff59d',
-  pronoun: '#e1bee7',
-  preposition: '#ffcc80',
-  conjunction: '#ff8a65',
-  determiner: '#80deea',
-  auxiliary: '#ce93d8',
-  interjection: '#ffab91',
-  number: '#b388ff',
-  questionWord: '#80cbc4',
-  modal: '#fff176',
-  expression: '#ffab91'
+  noun: '#ffb3aa',       // nouns, including proper nouns
+  verb: '#90caf9',       // all verb forms
+  adjective: '#a5d6a7',  // descriptive words
+  adverb: '#fff59d',     // modifiers
+  pronoun: '#e1bee7',    // personal, possessive, etc.
+  preposition: '#ffcc80', // relationship words
+  conjunction: '#ff8a65', // connecting words
+  determiner: '#80deea',  // articles, numbers, quantifiers
+  interjection: '#ffab91' // exclamations
 };
 
 const DOM_CLASSES = {
