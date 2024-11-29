@@ -4,24 +4,23 @@ const trackInitializer = {
 
     const words = lyricsElement.innerHTML
       .split(/\n/)
-      .map(line =>
-        line.trim()
-          .split(/(\s+)/)
-          .map(word => {
-            const cleanedWord = cleanWord(word);
-            if (cleanedWord.length > 0) {
-              return this.createWordSpan(cleanedWord, trackIndex);
-            }
-            return word;
-          })
-          .join('')
+      .map(line => line.trim()
+        .split(/(\s+)/)
+        .map(word => {
+          const cleanedWord = cleanWord(word);
+          if (cleanedWord.length > 0) {
+            return this.createWordSpan(word, cleanedWord, trackIndex);
+          }
+          return word;
+        })
+        .join('')
       )
       .join('\n');
 
     lyricsElement.innerHTML = words;
   },
 
-  createWordSpan(cleanedWord, trackIndex) {
+  createWordSpan(originalWord, cleanedWord, trackIndex) {
     const wordCountElement = document.getElementById(`wordCount${trackIndex}-${escapeSelector(cleanedWord)}`);
     const count = wordCountElement?.getAttribute(DOM_ATTRIBUTES.count) || 0;
 
@@ -30,7 +29,7 @@ const trackInitializer = {
                   ${DOM_ATTRIBUTES.track}="${trackIndex}" 
                   ${DOM_ATTRIBUTES.count}="${count}"                   
                   onmouseover="highlightManager.toggleWordHighlight(this, true); tooltip.show(this)" 
-                  onmouseout="highlightManager.toggleWordHighlight(this, false); tooltip.hide()">${cleanedWord}</span>`;
+                  onmouseout="highlightManager.toggleWordHighlight(this, false); tooltip.hide()">${originalWord}</span>`;
   },
 
   attachWordCountListeners(trackElement) {
