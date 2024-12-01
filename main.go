@@ -433,11 +433,15 @@ func importAlbumHandler(c echo.Context) error {
 	var results []string
 	total := len(urls)
 
+	log.Printf("Starting import of %d URLs", total)
+
 	for i, url := range urls {
 		url = strings.TrimSpace(url)
 		if url == "" {
 			continue
 		}
+
+		log.Printf("Processing URL %d/%d: %s", i+1, total, url)
 
 		if !strings.Contains(url, "bandcamp.com") {
 			results = append(results, fmt.Sprintf(`
@@ -486,11 +490,20 @@ func importAlbumHandler(c echo.Context) error {
 							Successfully imported %s - %s
 					</div>`, albumData.ArtistName, albumData.AlbumName))
 
-		c.Response().Write([]byte(fmt.Sprintf(`
+		// Send progress update immediately after each success
+		progressMsg := fmt.Sprintf(`
 					<div class="text-gray-400 text-sm text-right">
 							Processed %d of %d
 					</div>
-			`, i+1, total)))
+			`, i+1, total)
+
+		log.Printf("Writing progress update to response")
+		_, err = c.Response().Write([]byte(strings.Join(results, "\n") + progressMsg))
+		if err != nil {
+			log.Printf("Error writing progress: %v", err)
+		}
+
+		log.Printf("Flushing response")
 		c.Response().Flush()
 	}
 
@@ -498,6 +511,7 @@ func importAlbumHandler(c echo.Context) error {
 		log.Printf("Error reloading albums after import: %v", err)
 	}
 
+	log.Printf("Import complete")
 	return c.HTML(http.StatusOK, strings.Join(results, "\n"))
 }
 
