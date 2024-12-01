@@ -1,5 +1,5 @@
 {{ define "stats-grid-album-details-items" }}
-<div class="cursor-pointer hover:text-white text-white" data-value="{{.Album.FormattedLength}}" data-desc="Total duration of the album.">Total Duration</div>  
+<div class="cursor-pointer hover:text-white text-white" data-value="{{.Album.FormattedLength}}" data-desc="Total duration of the album.">Total Duration</div>
 <div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalWords}}" data-desc="Total number of words on this album.">Total Words</div>
 <div class="cursor-pointer hover:text-white" data-value="{{.Album.AverageWordsPerTrack}}" data-desc="The average number of words per track.">Words per track</div>
 <div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalUniqueWords}}" data-desc="The number of unique words on this album. Words that are no used twice.">Unique Words</div>
@@ -9,7 +9,28 @@
 <div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalCharacters}}" data-desc="The total number of characters. Including weird non-alphanumeric stuff.">Total Characters</div>
 <div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalCharactersNoSpaces}}" data-desc="The total number of characters. But without spaces.">Total Characters (no spaces)</div>
 <div class="cursor-pointer hover:text-white" data-value="{{.Album.TotalLines}}" data-desc="The total number of lines of lyrics on this album">Total Lines</div>
-<div class="cursor-pointer hover:text-white" data-value="Top 20" data-content='<div class="grid grid-cols-2 gap-4">{{ range $index, $wordCount := .Album.AlbumWordFrequencies }}<div class="flex justify-between"><span>{{ $wordCount.Word }}</span><span>{{ $wordCount.Count }}</span></div>{{ end }}</div>'>Top 20 words</div>
-<div class="cursor-pointer hover:text-white" data-value="Word Distribution" data-content='<div class="grid grid-cols-2 gap-4">{{ range $length, $count := .Album.WordLengthDistribution }}<div class="flex justify-between"><span>{{ $length }} letters:</span><span>{{ $count }} words</span></div>{{ end }}</div>'>Word Length Distribution</div>
-
+<div class="cursor-pointer hover:text-white" data-value="Top 20" data-content='
+<div class="space-y-2">
+    <div class="grid grid-cols-2 gap-x-12 text-sm">
+        {{ range $index, $wordCount := .Album.AlbumWordFrequencies }}
+        <div class="whitespace-nowrap">
+            <span>{{ $wordCount.Word }}</span>
+            <span class="text-gray-400">{{ $wordCount.Count }}</span>
+        </div>
+        {{ end }}
+    </div>
+    <div class="text-gray-400 text-sm">Most frequent words in the album lyrics</div>
+</div>'>Top 20 words</div>
+<div class="cursor-pointer hover:text-white" data-value="Word Distribution" data-content='
+<div class="space-y-2">
+    <div class="grid grid-cols-2 gap-x-12 text-sm">
+        {{ range $length, $count := .Album.WordLengthDistribution }}
+        <div class="whitespace-nowrap">
+            <span>{{ $length }} letters</span>
+            <span class="text-gray-400">{{ $count }}</span>
+        </div>
+        {{ end }}
+    </div>
+    <div class="text-gray-400 text-sm">Distribution of words by length</div>
+</div>'>Word Length Distribution</div>
 {{ end }}

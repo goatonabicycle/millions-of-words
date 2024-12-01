@@ -58,7 +58,8 @@
               {{ end }}
 
               <div class="space-y-1">
-                <span class="text-gray-400">Average Color:</span>
+                <span class="text-gray-400">Average Color: </span>
+                <span class="text-gray-200">{{ .Album.AlbumColorAverage }}</span>                
                 <div class="h-6 rounded w-full" style="background-color: {{ .Album.AlbumColorAverage }};"></div>
               </div>
             </div>
