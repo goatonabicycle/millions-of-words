@@ -296,20 +296,14 @@ func allAlbumsHandler(c echo.Context) error {
 		return err
 	}
 
-	tableData := AlbumTableData{
-		Albums:      albums,
-		Sort:        "date_added",
-		SortDir:     "desc",
-		NextSortDir: "asc",
-	}
-
-	data := map[string]interface{}{
+	return c.Render(http.StatusOK, "all-albums.html", map[string]interface{}{
 		"Title":       "All Albums - Millions of Words",
 		"IsAllAlbums": true,
-		"TableData":   tableData,
-	}
-
-	return c.Render(http.StatusOK, "all-albums.html", data)
+		"Albums":      albums,
+		"Sort":        "date_added",
+		"SortDir":     "desc",
+		"NextSortDir": "asc",
+	})
 }
 
 func sortAlbumsHandler(c echo.Context) error {
@@ -319,17 +313,41 @@ func sortAlbumsHandler(c echo.Context) error {
 		log.Printf("Error loading albums: %v", err)
 		return err
 	}
-	log.Printf("Loaded %d albums for sorting", len(allAlbums))
 
 	sort := c.QueryParam("sort")
 	dir := c.QueryParam("dir")
+	log.Printf("Sort: %s, Dir: %s", sort, dir)
 
-	return renderAlbumsTable(c, sort, dir, "")
+	nextSortDir := "asc"
+	if dir == "asc" {
+		nextSortDir = "desc"
+	}
+
+	sortAlbums(allAlbums, sort, dir)
+
+	return c.Render(http.StatusOK, "album-table.html", map[string]interface{}{
+		"Albums":      allAlbums,
+		"Sort":        sort,
+		"SortDir":     dir,
+		"NextSortDir": nextSortDir,
+	})
 }
 
 func filterAlbumsHandler(c echo.Context) error {
+	allAlbums, err := loader.LoadAlbumsData()
+	if err != nil {
+		return err
+	}
+
 	search := c.QueryParam("search")
-	return renderAlbumsTable(c, "date_added", "desc", search)
+	filtered := filterAlbums(allAlbums, search)
+
+	return c.Render(http.StatusOK, "album-table.html", map[string]interface{}{
+		"Albums":      filtered,
+		"Sort":        "date_added",
+		"SortDir":     "desc",
+		"NextSortDir": "asc",
+	})
 }
 
 type AlbumTableData struct {
