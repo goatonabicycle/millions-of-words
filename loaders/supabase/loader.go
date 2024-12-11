@@ -81,6 +81,7 @@ func LoadAlbumsData(limit ...int) ([]models.BandcampAlbumData, error) {
 	}
 	return albums, nil
 }
+
 func fetchAlbums(limit ...int) ([]models.BandcampAlbumData, error) {
 	query := publicClient.From("albums").
 		Select("*", "exact", false).
@@ -298,6 +299,7 @@ func calculateAlbumMetrics(album *models.BandcampAlbumData) {
 	totalVowels := 0
 	totalConsonants := 0
 	totalChars := 0
+	totalCharsNoSpaces := 0
 	totalLines := 0
 	uniqueWords := make(map[string]struct{})
 	wordLengths := make(map[int]int)
@@ -310,6 +312,7 @@ func calculateAlbumMetrics(album *models.BandcampAlbumData) {
 		totalVowels += vowels
 		totalConsonants += consonants
 		totalChars += len(track.Lyrics)
+		totalCharsNoSpaces += len(track.Lyrics) - strings.Count(track.Lyrics, " ")
 		totalLines += len(strings.Split(track.Lyrics, "\n"))
 
 		for l, c := range lengths {
@@ -328,6 +331,7 @@ func calculateAlbumMetrics(album *models.BandcampAlbumData) {
 
 	album.TotalWords = totalWords
 	album.TotalCharacters = totalChars
+	album.TotalCharactersNoSpaces = totalCharsNoSpaces
 	album.TotalLines = totalLines
 	album.TotalVowelCount = totalVowels
 	album.TotalConsonantCount = totalConsonants

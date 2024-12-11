@@ -163,6 +163,7 @@ func indexHandler(c echo.Context) error {
 	totalSongs := 0
 	totalWords := 0
 	totalChars := 0
+	totalCharsNoSpaces := 0
 	totalVowels := 0
 	totalConsonants := 0
 	totalLines := 0
@@ -172,6 +173,7 @@ func indexHandler(c echo.Context) error {
 		totalSongs += len(album.Tracks)
 		totalWords += album.TotalWords
 		totalChars += album.TotalCharacters
+		totalCharsNoSpaces += album.TotalCharactersNoSpaces
 		totalVowels += album.TotalVowelCount
 		totalConsonants += album.TotalConsonantCount
 		totalLines += album.TotalLines
@@ -203,21 +205,22 @@ func indexHandler(c echo.Context) error {
 	}
 
 	return renderTemplate(c, "index.html", map[string]interface{}{
-		"albums":           displayAlbums,
-		"TotalAlbums":      albumCount,
-		"TotalSongs":       totalSongs,
-		"TotalWords":       totalWords,
-		"TotalChars":       totalChars,
-		"TotalVowels":      totalVowels,
-		"TotalConsonants":  totalConsonants,
-		"TotalLines":       totalLines,
-		"TotalDuration":    totalDuration / 60,
-		"AvgWordsPerAlbum": avgWordsPerAlbum,
-		"AvgCharsPerAlbum": totalChars / max(albumCount, 1),
-		"AvgWordLength":    avgWordLength,
-		"AvgSongsPerAlbum": avgSongsPerAlbum,
-		"WPM":              wpm,
-		"ProjectedAlbums":  projectedAlbums,
+		"albums":             displayAlbums,
+		"TotalAlbums":        albumCount,
+		"TotalSongs":         totalSongs,
+		"TotalWords":         totalWords,
+		"TotalChars":         totalChars,
+		"TotalCharsNoSpaces": totalCharsNoSpaces,
+		"TotalVowels":        totalVowels,
+		"TotalConsonants":    totalConsonants,
+		"TotalLines":         totalLines,
+		"TotalDuration":      totalDuration / 60,
+		"AvgWordsPerAlbum":   avgWordsPerAlbum,
+		"AvgCharsPerAlbum":   totalChars / max(albumCount, 1),
+		"AvgWordLength":      avgWordLength,
+		"AvgSongsPerAlbum":   avgSongsPerAlbum,
+		"WPM":                wpm,
+		"ProjectedAlbums":    projectedAlbums,
 	})
 }
 
