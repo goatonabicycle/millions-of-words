@@ -21,7 +21,8 @@ func filterAlbumsByQuery(query string) []models.BandcampAlbumData {
 	var filtered []models.BandcampAlbumData
 	query = strings.ToLower(query)
 	for _, album := range albums {
-		if strings.Contains(strings.ToLower(album.ArtistName), query) || strings.Contains(strings.ToLower(album.AlbumName), query) {
+		if strings.Contains(strings.ToLower(album.ArtistName), query) ||
+			strings.Contains(strings.ToLower(album.AlbumName), query) {
 			filtered = append(filtered, album)
 		}
 	}
@@ -38,13 +39,21 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 		album.AlbumWordFrequencies = album.AlbumWordFrequencies[:maxTopWords]
 	}
 
+	displayTitle := album.ArtistName + " - " + album.AlbumName
+	if len(album.ReleaseDate) >= 4 {
+		displayTitle += " (" + album.ReleaseDate[:4] + ")"
+	}
+
 	tracksWithDetails := make([]models.TrackWithDetails, 0, len(album.Tracks))
-	for _, track := range album.Tracks {
-		tracksWithDetails = append(tracksWithDetails, calculateTrackDetails(track))
+	for i, track := range album.Tracks {
+		trackDetails := calculateTrackDetails(track)
+		trackDetails.TrackNumber = i + 1
+		tracksWithDetails = append(tracksWithDetails, trackDetails)
 	}
 
 	result := map[string]interface{}{
 		"Album":             album,
+		"DisplayTitle":      displayTitle,
 		"TracksWithDetails": tracksWithDetails,
 		"AlbumWPM":          calculateWPM(float64(album.TotalWords), float64(album.TotalLength)),
 	}

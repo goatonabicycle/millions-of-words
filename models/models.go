@@ -55,6 +55,7 @@ type BandcampTrackData struct {
 
 type TrackWithDetails struct {
 	Track                   BandcampTrackData
+	TrackNumber             int
 	FormattedLyrics         template.HTML
 	SortedWordCounts        []WordCount
 	WordsPerMinute          float64
