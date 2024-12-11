@@ -46,8 +46,14 @@
               </div>
 
             <div class="flex gap-3">
-                <div class="flex-1">
-                    <img src="{{ .Album.ImageUrl }}" alt="{{ .Album.AlbumName }} Cover" class="w-full rounded shadow-lg" />
+                <div class="flex-1">                
+                    <div id="img-container">
+                        <img id="album-cover"
+                            src="{{ .Album.ImageUrl }}" 
+                            alt="{{ .Album.AlbumName }} Cover"                         
+                            class="w-full rounded shadow-lg"                         
+                            />
+                    </div>
                 </div>
 
                 <div class="w-48 shrink-0 space-y-2">
@@ -199,9 +205,13 @@
     <script src="/static/js/highlight-manager.js"></script>
     <script src="/static/js/tooltip.js"></script>
     <script src="/static/js/compromise-analyzer.js"></script>
-    <script src="/static/js/track-initializer.js"></script>
+    <script src="/static/js/track-initializer.js"></script>    
 
-    <script>
+    <script>        
+        new ImageZoom(document.getElementById("img-container"), {
+            fillContainer: true
+        });
+
         document.addEventListener('DOMContentLoaded', function () {
             const trackData = [
                 {{ range $trackIndex, $trackWithDetails := .TracksWithDetails }}
