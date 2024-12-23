@@ -118,6 +118,8 @@ func loadAlbums() error {
 func setupRoutes(e *echo.Echo) {
 	e.GET("/", indexHandler)
 
+	e.GET("/pos", partsOfSpeechHandler)
+
 	e.GET("/about", aboutHandler)
 	e.GET("/all-words", allWordsHandler)
 	e.GET("/all-albums", allAlbumsHandler)
@@ -713,4 +715,11 @@ func validateMetalArchivesUrlHandler(c echo.Context) error {
 					Fetch Metal Archives Data
 			</button>
 	`)
+}
+
+func partsOfSpeechHandler(c echo.Context) error {
+	return renderTemplate(c, "pos.html", map[string]interface{}{
+		"Title":         "Parts of Speech Analyzer",
+		"IsPOSAnalyzer": true,
+	})
 }

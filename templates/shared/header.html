@@ -16,7 +16,7 @@
     <meta name="twitter:site" content="@millionsofwords">
     <meta name="description" content="Millions of Words is another way to celebrate awesome music.">
         
-    {{if .Album}}    
+    {{if or .Album .IsPOSAnalyzer}}
         {{/* <meta property="og:image" content="{{.Album.AlbumArtURL}}" />                 */}}
         <script src="https://unpkg.com/compromise"></script>
         <script src="https://unpkg.com/js-image-zoom@0.7.0/js-image-zoom.js" type="application/javascript"></script>        

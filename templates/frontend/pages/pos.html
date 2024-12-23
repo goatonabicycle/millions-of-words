@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+{{ template "header" . }}
+<body class="items-center">
+    <div class="flex flex-col lg:flex-row gap-4 mx-4 my-4">
+        <div class="lg:w-6/12 w-full p-3">
+            <h1 class="text-2xl font-bold mb-3">Parts of Speech Analyzer</h1>
+            <textarea 
+                id="text-input"
+                class="w-full h-96 p-4 bg-gray-800 text-white rounded-lg border border-gray-700"
+                placeholder="Enter or paste your text here..."
+            ></textarea>
+        </div>
+        
+        <div class="lg:w-6/12 w-full p-3">
+            <div id="analysis-output" class="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                <h2 class="text-xl font-bold mb-3">Analysis Results</h2>
+                <pre id="pos-results" class="text-sm whitespace-pre-wrap"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/constants.js"></script>
+    <script src="/static/js/pos-core-analyzer.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const textInput = document.getElementById('text-input');
+            const posResults = document.getElementById('pos-results');
+            let debounceTimeout;
+
+            function updateAnalysis() {
+                const text = textInput.value;
+                if (!text.trim()) {
+                    posResults.textContent = 'Enter some text to analyze...';
+                    return;
+                }
+
+                const results = posAnalyzer.analyze(text);
+                let output = '';
+                
+                for (const [category, words] of Object.entries(results)) {
+                    if (words.length > 0) {
+                        output += `${category}: ${words.length}\n`;
+                        output += `${words.join(', ')}\n\n`;
+                    }
+                }
+
+                posResults.textContent = output || 'No results found';
+            }
+
+            textInput.addEventListener('input', function() {
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(updateAnalysis, 300);
+            });
+        });
+    </script>
+</body>
+</html>
