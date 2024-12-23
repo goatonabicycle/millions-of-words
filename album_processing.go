@@ -34,6 +34,10 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 		return cachedDetails.(map[string]interface{})
 	}
 
+	for i := range album.Tracks {
+		album.Tracks[i].Lyrics = words.NormalizeText(album.Tracks[i].Lyrics)
+	}
+
 	album.AlbumWordFrequencies = words.AggregateWordFrequencies(album)
 	if len(album.AlbumWordFrequencies) > maxTopWords {
 		album.AlbumWordFrequencies = album.AlbumWordFrequencies[:maxTopWords]

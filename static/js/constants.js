@@ -26,4 +26,4 @@ const DOM_ATTRIBUTES = {
 };
 
 const cleanWord = (word) => word.toLowerCase().replace(/^[^a-zA-Z0-9À-ž'-]+|[^a-zA-Z0-9À-ž'-]+$/g, '');
-const escapeSelector = (word) => word.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+const escapeSelector = (word) => word.replace(/[']/g, '_');

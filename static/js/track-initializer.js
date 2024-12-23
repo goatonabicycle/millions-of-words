@@ -21,7 +21,7 @@ const trackInitializer = {
   },
 
   createWordSpan(originalWord, cleanedWord, trackIndex) {
-    const wordCountElement = document.getElementById(`wordCount${trackIndex}-${escapeSelector(cleanedWord)}`);
+    const wordCountElement = document.getElementById(`wordCount${trackIndex}-${cleanedWord}`);
     const count = wordCountElement?.getAttribute(DOM_ATTRIBUTES.count) || 0;
 
     return `<span class="${DOM_CLASSES.word}" 
@@ -37,7 +37,7 @@ const trackInitializer = {
       const word = wordCountElement.getAttribute(DOM_ATTRIBUTES.word);
       const track = wordCountElement.getAttribute(DOM_ATTRIBUTES.track);
       const wordElement = trackElement.querySelector(
-        `.${DOM_CLASSES.word}[${DOM_ATTRIBUTES.word}="${escapeSelector(word)}"][${DOM_ATTRIBUTES.track}="${track}"]`
+        `.${DOM_CLASSES.word}[${DOM_ATTRIBUTES.word}="${word}"][${DOM_ATTRIBUTES.track}="${track}"]`
       );
 
       if (wordElement) {

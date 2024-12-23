@@ -39,7 +39,7 @@ const highlightManager = {
       shouldAdd = true;
     }
 
-    const wordSelector = `[${DOM_ATTRIBUTES.word}="${escapeSelector(word)}"][${DOM_ATTRIBUTES.track}="${track}"]`;
+    const wordSelector = `[${DOM_ATTRIBUTES.word}="${word}"][${DOM_ATTRIBUTES.track}="${track}"]`;
     document.querySelectorAll(wordSelector).forEach(el => {
       this.highlightElement(el, categories, shouldAdd);
     });

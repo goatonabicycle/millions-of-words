@@ -7,6 +7,11 @@ import (
 	"unicode"
 )
 
+func NormalizeText(text string) string {
+	//Some albums have weird apostrophes. This replaces smart (’) with ASCII (')
+	return strings.ReplaceAll(text, "\u2019", "'")
+}
+
 func CalculateAndSortWordFrequencies(lyrics string) ([]models.WordCount, int, int, map[int]int) {
 	if lyrics == "" {
 		return nil, 0, 0, nil

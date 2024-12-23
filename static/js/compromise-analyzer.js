@@ -11,17 +11,6 @@ const compromiseAnalyzer = {
 
   analyze(text) {
     const doc = nlp(text.toLowerCase());
-    const debugData = {
-      allWords: {},
-      uncategorized: {},
-      specialCases: {
-        questionWords: {},
-        existential: {},
-        contractions: {}
-      },
-      traditionalMappings: {}
-    };
-
     const results = this.categories.reduce((acc, category) => {
       acc[category] = [];
       return acc;
@@ -35,36 +24,16 @@ const compromiseAnalyzer = {
         const tags = term.tags || [];
         let categorized = false;
 
-        // Store all words and their tags for debugging
-        if (!debugData.allWords[word]) {
-          debugData.allWords[word] = tags;
-        }
-
-        // Handle traditional mappings first
         if (this.TRADITIONAL_MAPPINGS.INTERROGATIVE_PRONOUNS.includes(word)) {
           results.pronoun.push(word);
-          debugData.traditionalMappings[word] = 'interrogative_pronoun';
           categorized = true;
         }
         else if (this.TRADITIONAL_MAPPINGS.INTERROGATIVE_ADVERBS.includes(word) ||
           this.TRADITIONAL_MAPPINGS.EXISTENTIAL_ADVERBS.includes(word)) {
           results.adverb.push(word);
-          debugData.traditionalMappings[word] = word.includes('there') ? 'existential_adverb' : 'interrogative_adverb';
           categorized = true;
         }
 
-        // Store special cases for debugging
-        if (tags.includes('QuestionWord')) {
-          debugData.specialCases.questionWords[word] = tags;
-        }
-        if (tags.includes('There')) {
-          debugData.specialCases.existential[word] = tags;
-        }
-        if (word.includes("'")) {
-          debugData.specialCases.contractions[word] = tags;
-        }
-
-        // Regular categorization logic
         if (!categorized) {
           if (word.includes('-')) {
             if (tags.includes('Noun')) results.noun.push(word);
@@ -124,23 +93,8 @@ const compromiseAnalyzer = {
           }
         }
 
-        // Track uncategorized words
-        if (!categorized) {
-          debugData.uncategorized[word] = tags;
-        }
       });
     });
-
-    // One-time console output
-    if (!window.hasLoggedCompromise) {
-      console.log('Compromise Analysis Debug:', JSON.stringify({
-        traditionalMappings: debugData.traditionalMappings,
-        specialCases: debugData.specialCases,
-        uncategorized: debugData.uncategorized,
-        allWords: debugData.allWords
-      }, null, 2));
-      window.hasLoggedCompromise = true;
-    }
 
     return results;
   },
