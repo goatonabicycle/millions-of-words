@@ -8,8 +8,11 @@ import (
 )
 
 func NormalizeText(text string) string {
-	//Some albums have weird apostrophes. This replaces smart (’) with ASCII (')
-	return strings.ReplaceAll(text, "\u2019", "'")
+	//Some albums have weird apostrophes. This replaces ’ and ‘ with ASCII (')
+
+	result := strings.ReplaceAll(text, "\u2019", "'")
+	result = strings.ReplaceAll(result, "‘", "'")
+	return result
 }
 
 func CalculateAndSortWordFrequencies(lyrics string) ([]models.WordCount, int, int, map[int]int) {
