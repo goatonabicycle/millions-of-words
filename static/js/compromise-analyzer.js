@@ -1,26 +1,47 @@
+const POS_DESCRIPTIONS = {
+  noun: "Words for people, places, things, or ideas (e.g., 'tree', 'freedom', 'Alex')",
+  verb: "Action or state words (e.g., 'run', 'think', 'is')",
+  adjective: "Words that describe nouns (e.g., 'blue', 'tall', 'angry')",
+  adverb: "Words that modify verbs, adjectives, or other adverbs (e.g., 'quickly', 'very')",
+  pronoun: "Words that replace nouns (e.g., 'he', 'which', 'someone')",
+  preposition: "Words that show relationships (e.g., 'in', 'on', 'with')",
+  conjunction: "Words that connect other words or phrases (e.g., 'and', 'but')",
+  determiner: "Words that introduce nouns (e.g., 'the', 'some', 'many')",
+  interjection: "Exclamations or expressions (e.g., 'oh!', 'wow')"
+};
+
 const compromiseAnalyzer = {
   ...posAnalyzer,
 
   createPOSContainer(posCategories, trackIndex) {
     const fragment = document.createDocumentFragment();
 
+    // Sort by total count
     const sortedCategories = Object.entries(posCategories)
-      .filter(([_, words]) => words.length > 0)
-      .sort((a, b) => b[1].length - a[1].length);
+      .filter(([_, data]) => data.total > 0)
+      .sort((a, b) => b[1].total - a[1].total);
 
-    sortedCategories.forEach(([category, words]) => {
+    sortedCategories.forEach(([category, data]) => {
       const div = document.createElement('div');
       div.className = 'pos-tag';
       div.setAttribute(DOM_ATTRIBUTES.category, category);
       div.setAttribute(DOM_ATTRIBUTES.trackIndex, trackIndex);
+      div.setAttribute('title', POS_DESCRIPTIONS[category]);
 
       const baseColor = COLORS[category];
       div.style.background = `linear-gradient(135deg, ${baseColor}40, ${baseColor}50)`;
 
       div.innerHTML = `
-              <span class="pos-category">${category.charAt(0).toUpperCase() + category.slice(1)}</span>
-              <span class="pos-count">${words.length}</span>
-          `;
+        <span class="pos-category">${category.charAt(0).toUpperCase() + category.slice(1)}</span>
+        <span class="pos-count">
+          
+          <span class="total-count">${data.total}</span>
+        </span>
+      `;
+
+      // I'll do something with the unique count later
+      // <span class="unique-count font-bold">${data.unique.length}</span>
+      // <span class="count-separator text-opacity-75">/</span>
 
       div.addEventListener('mouseover', () => {
         highlightManager.togglePOSHighlight(category, trackIndex, true);
@@ -41,8 +62,8 @@ const compromiseAnalyzer = {
       const word = wordElement.getAttribute(DOM_ATTRIBUTES.word);
       if (word) {
         const matchingCategories = [];
-        Object.entries(posCategories).forEach(([category, words]) => {
-          if (words.includes(word.toLowerCase())) {
+        Object.entries(posCategories).forEach(([category, data]) => {
+          if (data.unique.includes(word.toLowerCase())) {
             matchingCategories.push(category);
           }
         });

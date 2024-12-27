@@ -6,7 +6,10 @@ const posAnalyzer = {
   analyze(text) {
     const doc = nlp(text.toLowerCase());
     const results = this.categories.reduce((acc, category) => {
-      acc[category] = [];
+      acc[category] = {
+        words: [],
+        frequencies: {}
+      };
       return acc;
     }, {});
 
@@ -22,29 +25,29 @@ const posAnalyzer = {
 
         if (!word) return;
 
-        if (tags.includes('Date')) {
-          if (!results.noun.includes(word)) {
-            results.noun.push(word);
+        const addToCategory = (category, word) => {
+          if (!results[category].frequencies[word]) {
+            results[category].frequencies[word] = 0;
+            results[category].words.push(word);
           }
+          results[category].frequencies[word]++;
+        };
+
+        if (tags.includes('Date')) {
+          addToCategory('noun', word);
           return;
         }
 
         if (tags.includes('There')) {
-          if (!results.adverb.includes(word)) {
-            results.adverb.push(word);
-          }
+          addToCategory('adverb', word);
           return;
         }
 
         if (tags.includes('QuestionWord')) {
           if (['who', 'whom', 'whose', 'what'].includes(word)) {
-            if (!results.pronoun.includes(word)) {
-              results.pronoun.push(word);
-            }
+            addToCategory('pronoun', word);
           } else {
-            if (!results.adverb.includes(word)) {
-              results.adverb.push(word);
-            }
+            addToCategory('adverb', word);
           }
           return;
         }
@@ -63,88 +66,72 @@ const posAnalyzer = {
           const tagArray = Array.from(hyphenatedTags);
 
           if (tagArray.includes('Adjective')) {
-            if (!results.adjective.includes(fullWord)) {
-              results.adjective.push(fullWord);
-            }
+            addToCategory('adjective', fullWord);
           } else if (tagArray.includes('Verb')) {
-            if (!results.verb.includes(fullWord)) {
-              results.verb.push(fullWord);
-            }
+            addToCategory('verb', fullWord);
           } else if (tagArray.includes('Noun')) {
-            if (!results.noun.includes(fullWord)) {
-              results.noun.push(fullWord);
-            }
+            addToCategory('noun', fullWord);
           } else if (tagArray.includes('Adverb') || tagArray.includes('Negative')) {
-            if (!results.adverb.includes(fullWord)) {
-              results.adverb.push(fullWord);
-            }
+            addToCategory('adverb', fullWord);
           }
 
           hyphenatedWord = '';
           hyphenatedTags.clear();
         }
 
+        if (tags.includes('Pronoun') ||
+          (tags.includes('Noun') && tags.includes('Possessive'))) {
+          addToCategory('pronoun', word);
+          return;
+        }
+
         if (tags.includes('Verb') || tags.includes('Modal') ||
           tags.includes('Auxiliary') || tags.includes('Copula')) {
-          if (!results.verb.includes(word)) {
-            results.verb.push(word);
-          }
+          addToCategory('verb', word);
         }
 
         if (tags.includes('Adjective')) {
-          if (!results.adjective.includes(word)) {
-            results.adjective.push(word);
-          }
+          addToCategory('adverb', word);
         }
 
         if (tags.includes('Adverb') || tags.includes('Negative')) {
-          if (!results.adverb.includes(word)) {
-            results.adverb.push(word);
-          }
-        }
-
-        if (tags.includes('Pronoun')) {
-          if (!results.pronoun.includes(word)) {
-            results.pronoun.push(word);
-          }
+          addToCategory('adverb', word);
         }
 
         if (tags.includes('Preposition')) {
-          if (!results.preposition.includes(word)) {
-            results.preposition.push(word);
-          }
+          addToCategory('preposition', word);
         }
 
         if (tags.includes('Conjunction')) {
-          if (!results.conjunction.includes(word)) {
-            results.conjunction.push(word);
-          }
+          addToCategory('conjunction', word);
         }
 
         if (tags.includes('Determiner') || tags.includes('Article') ||
           tags.some(tag => ['Value', 'Cardinal', 'TextValue'].includes(tag))) {
-          if (!results.determiner.includes(word)) {
-            results.determiner.push(word);
-          }
+          addToCategory('determiner', word);
         }
 
         if (tags.includes('Expression') || tags.includes('Interjection')) {
-          if (!results.interjection.includes(word)) {
-            results.interjection.push(word);
-          }
+          addToCategory('interjection', word);
         }
 
         if ((tags.includes('Noun') || tags.includes('Singular') ||
           tags.includes('Plural') || tags.includes('Uncountable')) &&
           !tags.includes('Pronoun')) {
-          if (!results.noun.includes(word)) {
-            results.noun.push(word);
-          }
+          addToCategory('noun', word);
         }
       });
     });
 
-    return results;
+    const finalResults = {};
+    Object.entries(results).forEach(([category, data]) => {
+      finalResults[category] = {
+        unique: data.words,
+        total: Object.values(data.frequencies).reduce((sum, count) => sum + count, 0)
+      };
+    });
+
+    return finalResults;
   }
 };
 

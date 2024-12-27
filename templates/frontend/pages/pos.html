@@ -2,118 +2,130 @@
 <html lang="en">
 {{ template "header" . }}
 <body class="items-center">
-    <div class="flex flex-col gap-4 mx-4 my-4">
-        <div class="w-full p-3">
-            <h1 class="text-2xl font-bold mb-3">Parts of Speech Analyzer</h1>
-            <textarea 
-                id="text-input"
-                class="w-full h-48 p-4 bg-gray-800 text-white rounded-lg border border-gray-700"
-                placeholder="Enter or paste your text here..."
-            ></textarea>
-        </div>
-
-        <div class="w-full p-3">
-            <div class="mb-4 border-b border-gray-700">
-                <nav class="-mb-px flex">
-                    <button class="tab-button active px-4 py-2 text-sm font-medium" data-tab="categorized">
-                        Categorized Analysis
-                    </button>
-                    <button class="tab-button px-4 py-2 text-sm font-medium" data-tab="raw">
-                        Raw Compromise Output
-                    </button>
-                </nav>
-            </div>
-
-            <div id="categorized-output" class="tab-content bg-gray-800 p-4 rounded-lg border border-gray-700">
-                <h2 class="text-xl font-bold mb-3">Analysis Results</h2>
-                <pre id="pos-results" class="text-sm whitespace-pre-wrap"></pre>
-            </div>
-
-            <div id="raw-output" class="tab-content hidden bg-gray-800 p-4 rounded-lg border border-gray-700">
-                <h2 class="text-xl font-bold mb-3">Raw Compromise.js Output</h2>
-                <pre id="raw-results" class="text-sm whitespace-pre-wrap"></pre>
-            </div>
-        </div>
+  <div class="flex flex-col gap-4 mx-4 my-4">
+    <div class="w-full p-3">
+      <div class="flex justify-between items-center mb-3">
+        <h1 class="text-2xl font-bold">Parts of Speech Analyzer</h1>
+        <button id="export-debug" class="px-3 py-1 text-sm bg-indigo-600 hover:bg-indigo-700 rounded text-white">
+          Copy Debug Info
+        </button>
+      </div>
+      <textarea id="text-input" class="w-full h-48 p-4 bg-gray-800 text-white rounded-lg border border-gray-700" 
+        placeholder="Enter or paste your text here..."></textarea>
     </div>
 
-    <script src="/static/js/constants.js"></script>
-    <script src="/static/js/pos-core-analyzer.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const textInput = document.getElementById('text-input');
-            const posResults = document.getElementById('pos-results');
-            const rawResults = document.getElementById('raw-results');
-            let debounceTimeout;
-            
-            document.querySelectorAll('.tab-button').forEach(button => {
-                button.addEventListener('click', () => {                    
-                    document.querySelectorAll('.tab-button').forEach(btn => {
-                        btn.classList.remove('active', 'border-b-2', 'border-indigo-500', 'text-indigo-500');
-                        btn.classList.add('text-gray-400', 'hover:text-gray-300');
-                    });
-                    button.classList.add('active', 'border-b-2', 'border-indigo-500', 'text-indigo-500');
-                    button.classList.remove('text-gray-400', 'hover:text-gray-300');
+    <div class="w-full p-3">
+      <div class="mb-4 border-b border-gray-700">
+        <nav class="-mb-px flex">
+          <button class="tab-button active px-4 py-2 text-sm font-medium" data-tab="categorized">
+            Categorized Analysis
+          </button>
+          <button class="tab-button px-4 py-2 text-sm font-medium" data-tab="raw">
+            Raw Compromise Output
+          </button>
+        </nav>
+      </div>
 
-                    document.querySelectorAll('.tab-content').forEach(content => {
-                        content.classList.add('hidden');
-                    });
-                    document.getElementById(`${button.dataset.tab}-output`).classList.remove('hidden');
-                });
-            });
+      <div id="categorized-output" class="tab-content bg-gray-800 p-4 rounded-lg border border-gray-700">
+        <h2 class="text-xl font-bold mb-3">Analysis Results</h2>
+        <pre id="pos-results" class="text-sm whitespace-pre-wrap"></pre>
+      </div>
 
-            function updateAnalysis() {
-                const text = textInput.value;
-                if (!text.trim()) {
-                    posResults.textContent = 'Enter some text to analyze...';
-                    rawResults.textContent = 'Enter some text to analyze...';
-                    return;
-                }
-                
-                const results = posAnalyzer.analyze(text);
-                let output = '';
-                for (const [category, words] of Object.entries(results)) {
-                    if (words.length > 0) {
-                        output += `${category}: ${words.length}\n`;
-                        output += `${words.join(', ')}\n\n`;
-                    }
-                }
-                posResults.textContent = output || 'No results found';
+      <div id="raw-output" class="tab-content hidden bg-gray-800 p-4 rounded-lg border border-gray-700">
+        <h2 class="text-xl font-bold mb-3">Raw Compromise.js Output</h2>
+        <pre id="raw-results" class="text-sm whitespace-pre-wrap"></pre>
+      </div>
+    </div>
+  </div>
 
-                const doc = nlp(text);
-                const rawOutput = doc.json().map(sentence => ({
-                    text: sentence.text,
-                    terms: sentence.terms.map(term => ({
-                        text: term.text,
-                        tags: term.tags
-                    }))
-                }));
-                rawResults.textContent = JSON.stringify(rawOutput, null, 2);
-            }
+  <script src="/static/js/constants.js"></script>
+  <script src="/static/js/pos-core-analyzer.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const textInput = document.getElementById('text-input');
+      const posResults = document.getElementById('pos-results');
+      const rawResults = document.getElementById('raw-results');
+      const exportBtn = document.getElementById('export-debug');
+      let debounceTimeout;
 
-            textInput.addEventListener('input', function() {
-                clearTimeout(debounceTimeout);
-                debounceTimeout = setTimeout(updateAnalysis, 300);
-            });
-            
-            document.querySelector('.tab-button[data-tab="categorized"]').click();
+      function updateAnalysis() {
+        const text = textInput.value;
+        if (!text.trim()) {
+          posResults.textContent = 'Enter some text to analyze...';
+          rawResults.textContent = 'Enter some text to analyze...';
+          return;
+        }
+
+        const results = posAnalyzer.analyze(text);
+        let output = '';
+        for (const [category, words] of Object.entries(results)) {
+          if (words.length > 0) {
+            output += `${category}: ${words.length}\n`;
+            output += `${words.join(', ')}\n\n`;
+          }
+        }
+        posResults.textContent = output || 'No results found';
+
+        const doc = nlp(text);
+        rawResults.textContent = JSON.stringify(doc.json(), null, 2);
+      }
+
+      exportBtn.addEventListener('click', () => {
+        const debug = `INPUT TEXT:
+${textInput.value}
+
+ANALYSIS OUTPUT:
+${posResults.textContent}
+
+RAW COMPROMISE OUTPUT:
+${rawResults.textContent}`;
+        
+        navigator.clipboard.writeText(debug).then(() => {
+          exportBtn.textContent = 'Copied!';
+          setTimeout(() => exportBtn.textContent = 'Copy Debug Info', 1500);
         });
-    </script>
+      });
+      
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', () => {
+          document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active', 'border-b-2', 'border-indigo-500', 'text-indigo-500');
+            btn.classList.add('text-gray-400', 'hover:text-gray-300');
+          });
+          button.classList.add('active', 'border-b-2', 'border-indigo-500', 'text-indigo-500');
+          button.classList.remove('text-gray-400', 'hover:text-gray-300');
 
-    <style>
-        .tab-button {
-            margin-right: 1rem;
-            transition: all 0.2s;
-        }
-        .tab-button:not(.active) {
-            color: #94a3b8;
-        }
-        .tab-button:not(.active):hover {
-            color: #e2e8f0;
-        }
-        .tab-button.active {
-            color: #6366f1;
-            border-bottom: 2px solid #6366f1;
-        }
-    </style>
+          document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.add('hidden');
+          });
+          document.getElementById(`${button.dataset.tab}-output`).classList.remove('hidden');
+        });
+      });
+
+      textInput.addEventListener('input', function() {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(updateAnalysis, 300);
+      });
+
+      document.querySelector('.tab-button[data-tab="categorized"]').click();
+    });
+  </script>
+
+  <style>
+    .tab-button {
+      margin-right: 1rem;
+      transition: all 0.2s;
+    }
+    .tab-button:not(.active) {
+      color: #94a3b8;
+    }
+    .tab-button:not(.active):hover {
+      color: #e2e8f0;
+    }
+    .tab-button.active {
+      color: #6366f1;
+      border-bottom: 2px solid #6366f1;
+    }
+  </style>
 </body>
 </html>
