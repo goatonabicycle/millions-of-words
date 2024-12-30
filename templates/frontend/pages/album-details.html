@@ -153,7 +153,7 @@
                             </div>
                         </div>
 
-                        {{ if .Track.Lyrics }}
+                        {{ if and .Track.Lyrics (ne .Track.Lyrics "Instrumental") (ne .Track.Lyrics "Unknown") }}
                         <div class="track-pos-section mt-3 border-t border-gray-600 pt-3">
                             <div class="pos-container flex flex-wrap justify-center gap-2"></div>
                             <div class="highlight-controls mt-2">
@@ -169,7 +169,7 @@
                         {{ end }}
                     </div>
 
-                    {{ if .Track.Lyrics }}
+                    {{ if and .Track.Lyrics (ne .Track.Lyrics "Instrumental") (ne .Track.Lyrics "Unknown") }}
                     <div id="trackDetails{{ $trackIndex }}" class="lg:flex gap-4 p-4">
                         <div class="lyrics p-4 rounded-lg shadow-md flex-1" id="lyricsText{{ $trackIndex }}">
                             <pre class="whitespace-pre-wrap text-xs leading-4" id="lyrics{{ $trackIndex }}">{{ .FormattedLyrics }}</pre>
