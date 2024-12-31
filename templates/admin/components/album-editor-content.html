@@ -109,7 +109,7 @@
         <form hx-post="/admin/update/track" 
               hx-target="#track-status-{{ $index }}" 
               hx-include="[name='authKey']">
-            <input type="hidden" name="albumId" value="{{ $.Album.ID }}">
+            <input type="hidden" name="albumId" value="{{ $.Album.ArtistName }} - {{ $.Album.AlbumName }}">
             <input type="hidden" name="trackName" value="{{ $track.Name }}">
 
             <textarea name="lyrics" 
