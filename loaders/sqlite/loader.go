@@ -122,7 +122,7 @@ func calculateAlbumMetrics(album *models.BandcampAlbumData) {
 	wordLengths := make(map[int]int)
 
 	for i, track := range album.Tracks {
-		wordCounts, vowels, consonants, lengths := words.CalculateAndSortWordFrequencies(track.Lyrics)
+		wordCounts, vowels, consonants, lengths := words.CalculateAndSortWordFrequencies(track.Lyrics, track.IgnoredWords)
 		words := len(strings.Fields(track.Lyrics))
 
 		totalWords += words
@@ -179,7 +179,7 @@ func ValidateAuthKey(key string) (bool, error) {
 	return exists, nil
 }
 
-func UpdateTrackLyrics(req models.UpdateLyricsRequest) error {
+func UpdateTrackLyrics(req models.UpdateTrackRequest) error {
 	valid, err := ValidateAuthKey(req.AuthKey)
 	if err != nil {
 		return fmt.Errorf("error validating auth: %w", err)

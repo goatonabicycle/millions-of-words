@@ -69,6 +69,7 @@ func processTracklist(doc *goquery.Document) ([]models.BandcampTrackData, time.D
 	var tracklist []models.BandcampTrackData
 	var totalAlbumDuration time.Duration
 
+	trackNumber := 1
 	doc.Find("tr.track_row_view").Each(func(i int, s *goquery.Selection) {
 		trackTitle := s.Find(".title-col .track-title").Text()
 		trackDurationStr := strings.TrimSpace(s.Find(".title-col .time").Text())
@@ -91,12 +92,15 @@ func processTracklist(doc *goquery.Document) ([]models.BandcampTrackData, time.D
 
 		track := models.BandcampTrackData{
 			Name:            strings.TrimSpace(trackTitle),
+			TrackNumber:     trackNumber,
 			TotalLength:     int(trackDuration.Seconds()),
 			FormattedLength: formatDuration(int(trackDuration.Seconds())),
 			Lyrics:          lyrics,
+			IgnoredWords:    "",
 		}
 
 		tracklist = append(tracklist, track)
+		trackNumber++
 	})
 
 	return tracklist, totalAlbumDuration

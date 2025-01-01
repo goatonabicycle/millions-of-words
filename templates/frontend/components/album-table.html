@@ -65,10 +65,13 @@
     </thead>
     <tbody class="divide-y divide-gray-700">
         {{ range .Albums }}
-        <tr class="bg-gray-900 hover:bg-gray-800">
+       <tr class="bg-gray-900 hover:bg-gray-800 {{ if not .Enabled }}opacity-50{{ end }}">
             <td class="px-4 py-3">
                 <a href="/album/{{ .Slug }}" class="hover:text-indigo-400 transition-colors">
                     {{ .ArtistName }} - {{ .AlbumName }}
+                    {{ if not .Enabled }}
+                    <span class="text-xs text-gray-400">[Disabled]</span>
+                    {{ end }}
                 </a>
             </td>
             <td class="px-4 py-3">{{ .TotalWords }}</td>

@@ -15,9 +15,19 @@ func NormalizeText(text string) string {
 	return result
 }
 
-func CalculateAndSortWordFrequencies(lyrics string) ([]models.WordCount, int, int, map[int]int) {
+func CalculateAndSortWordFrequencies(lyrics string, ignoredWords string) ([]models.WordCount, int, int, map[int]int) {
 	if lyrics == "" {
 		return nil, 0, 0, nil
+	}
+
+	ignoredWordsMap := make(map[string]bool)
+	if ignoredWords != "" {
+		for _, word := range strings.Split(ignoredWords, ",") {
+			word = strings.TrimSpace(word)
+			if word != "" {
+				ignoredWordsMap[word] = true
+			}
+		}
 	}
 
 	wordCounts := make(map[string]int)
@@ -29,7 +39,7 @@ func CalculateAndSortWordFrequencies(lyrics string) ([]models.WordCount, int, in
 
 	for _, word := range words {
 		cleanedWord := CleanWord(word)
-		if cleanedWord != "" {
+		if cleanedWord != "" && !ignoredWordsMap[cleanedWord] {
 			wordCounts[cleanedWord]++
 			vowels, consonants := countVowelsAndConsonants(cleanedWord)
 			vowelCount += vowels
@@ -123,7 +133,7 @@ func removeItalics(text string) string {
 func AggregateWordFrequencies(album models.BandcampAlbumData) []models.WordCount {
 	wordFreqMap := make(map[string]int)
 	for _, track := range album.Tracks {
-		wordCounts, _, _, _ := CalculateAndSortWordFrequencies(track.Lyrics)
+		wordCounts, _, _, _ := CalculateAndSortWordFrequencies(track.Lyrics, track.IgnoredWords)
 		for _, wc := range wordCounts {
 			wordFreqMap[wc.Word] += wc.Count
 		}

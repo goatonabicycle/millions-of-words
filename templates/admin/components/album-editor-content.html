@@ -83,6 +83,13 @@
                            class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500" 
                            placeholder="Separate words with commas">
                 </div>
+
+                <div class="space-y-2">
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" name="enabled" value="true" {{ if .Album.Enabled }}checked{{ end }} class="w-4 h-4 accent-blue-500">
+                        <span class="text-sm font-medium text-gray-300">Album Enabled</span>
+                    </label>
+                </div>
             </div>
 
             <div class="space-y-2 mt-4 hidden">
@@ -106,19 +113,42 @@
     {{ range $index, $track := .Album.Tracks }}
     <div class="p-4 bg-gray-800 rounded border border-gray-600">
         <h3 class="text-lg font-bold text-gray-200 mb-2">{{ $track.Name }}</h3>
-        <form hx-post="/admin/update/track" 
-              hx-target="#track-status-{{ $index }}" 
-              hx-include="[name='authKey']">
+        <form hx-post="/admin/update/track" hx-target="#track-status-{{ $index }}" hx-include="[name='authKey']">
             <input type="hidden" name="albumId" value="{{ $.Album.ArtistName }} - {{ $.Album.AlbumName }}">
             <input type="hidden" name="trackName" value="{{ $track.Name }}">
+            
+            <div class="space-y-4">
+                <div class="flex gap-4">
+                    <div class="w-24">
+                        <label class="block text-sm font-medium text-gray-300">Track #</label>
+                        <input type="number" 
+                            name="trackNumber" 
+                            value="{{ $track.TrackNumber }}" 
+                            class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500"
+                            min="1">
+                    </div>
+                </div>
 
-            <textarea name="lyrics" 
-                      class="w-full h-64 p-2 mb-4 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500"
-            >{{ $track.Lyrics }}</textarea>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300">Ignored Words</label>
+                    <textarea 
+                        name="ignoredWords" 
+                        class="w-full h-24 p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500"
+                        placeholder="Enter words to ignore, separated by commas"
+                    >{{ $track.IgnoredWords }}</textarea>
+                </div>
 
-            <div class="flex items-center gap-4">
-                <button type="submit" 
-                        class="px-4 py-2 bg-blue-600 text-gray-200 rounded hover:bg-blue-700">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300">Lyrics</label>
+                    <textarea 
+                        name="lyrics" 
+                        class="w-full h-64 p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500"
+                    >{{ $track.Lyrics }}</textarea>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 mt-4">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-gray-200 rounded hover:bg-blue-700">
                     Save
                 </button>
                 <div id="track-status-{{ $index }}" class="text-sm"></div>

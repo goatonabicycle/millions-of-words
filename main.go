@@ -252,7 +252,7 @@ func allWordsHandler(c echo.Context) error {
 
 	for _, album := range albums {
 		for _, track := range album.Tracks {
-			wordCounts, _, _, _ := words.CalculateAndSortWordFrequencies(track.Lyrics)
+			wordCounts, _, _, _ := words.CalculateAndSortWordFrequencies(track.Lyrics, track.IgnoredWords)
 			for _, wc := range wordCounts {
 				wordFrequencyMap[wc.Word] += wc.Count
 			}
@@ -274,15 +274,15 @@ func allWordsHandler(c echo.Context) error {
 }
 
 func updateTrackHandler(c echo.Context) error {
-	var req models.UpdateLyricsRequest
+	var req models.UpdateTrackRequest
 	if err := c.Bind(&req); err != nil {
 		log.Printf("Error binding request: %v", err)
 		return c.HTML(http.StatusOK, `<div class="text-red-500">Error: Failed to process request</div>`)
 	}
 
-	if err := loader.UpdateTrackLyrics(req); err != nil {
-		log.Printf("Error updating lyrics: %v", err)
-		return c.HTML(http.StatusOK, `<div class="text-red-500">Error: Failed to update lyrics</div>`)
+	if err := loader.UpdateTrack(req); err != nil {
+		log.Printf("Error updating track: %v", err)
+		return c.HTML(http.StatusOK, `<div class="text-red-500">Error: Failed to update track</div>`)
 	}
 
 	if err := loadAlbums(); err != nil {
@@ -365,7 +365,7 @@ type AlbumTableData struct {
 func renderAlbumsTable(c echo.Context, sortField, sortDir, search string) error {
 	log.Printf("renderAlbumsTable: sortField=%s, sortDir=%s, search=%s", sortField, sortDir, search)
 
-	allAlbums, err := loader.LoadAlbumsData()
+	allAlbums, err := loader.LoadAllAlbumsData()
 	if err != nil {
 		log.Printf("Error loading albums: %v", err)
 		return err
@@ -566,15 +566,17 @@ func updateAlbumHandler(c echo.Context) error {
 }
 
 func adminHandler(c echo.Context) error {
-	log.Printf("Admin handler called")
-	err := renderTemplate(c, "admin/pages/index.html", map[string]interface{}{
+	allAlbums, err := loader.LoadAllAlbumsData()
+	if err != nil {
+		log.Printf("Error loading albums: %v", err)
+		return err
+	}
+
+	return renderTemplate(c, "admin/pages/index.html", map[string]interface{}{
 		"Title":         "Admin - Millions of Words",
 		"Authenticated": false,
+		"Albums":        allAlbums,
 	})
-	if err != nil {
-		log.Printf("Error rendering template: %v", err)
-	}
-	return err
 }
 
 func adminAuthHandler(c echo.Context) error {
@@ -598,8 +600,15 @@ func adminEditorHandler(c echo.Context) error {
 	if err := validateAuth(c); err != nil {
 		return err
 	}
+
+	allAlbums, err := loader.LoadAllAlbumsData()
+	if err != nil {
+		log.Printf("Error loading albums: %v", err)
+		return err
+	}
+
 	return renderTemplate(c, "admin/components/album-form", map[string]interface{}{
-		"Albums": albums,
+		"Albums": allAlbums,
 	})
 }
 
@@ -630,7 +639,7 @@ func adminAlbumEditorHandler(c echo.Context) error {
 	}
 
 	authKey := c.QueryParam("authKey")
-	albums, err := loader.LoadAlbumsData()
+	albums, err := loader.LoadAllAlbumsData()
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Error loading albums")
 	}

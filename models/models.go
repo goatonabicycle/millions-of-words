@@ -40,13 +40,16 @@ type BandcampAlbumData struct {
 	TotalCharacters         int                 `json:"-"`
 	TotalCharactersNoSpaces int                 `json:"-"`
 	TotalLines              int                 `json:"-"`
+	Enabled                 bool                `json:"enabled"`
 }
 
 type BandcampTrackData struct {
 	Name                    string `json:"name"`
+	TrackNumber             int    `json:"track_number"`
 	TotalLength             int    `json:"total_length"`
 	FormattedLength         string `json:"formatted_length"`
 	Lyrics                  string `json:"lyrics,omitempty"`
+	IgnoredWords            string `json:"ignored_words"`
 	TotalCharacters         int    `json:"-"`
 	TotalCharactersNoSpaces int    `json:"-"`
 	TotalLines              int    `json:"-"`
@@ -69,11 +72,13 @@ type TrackWithDetails struct {
 	TotalLines              int
 }
 
-type UpdateLyricsRequest struct {
-	AlbumID   string `json:"albumId" form:"albumId"`
-	TrackName string `json:"trackName" form:"trackName"`
-	Lyrics    string `json:"lyrics" form:"lyrics"`
-	AuthKey   string `json:"authKey" form:"authKey"`
+type UpdateTrackRequest struct {
+	AlbumID      string `json:"albumId" form:"albumId"`
+	TrackName    string `json:"trackName" form:"trackName"`
+	TrackNumber  int    `json:"trackNumber" form:"trackNumber"`
+	Lyrics       string `json:"lyrics" form:"lyrics"`
+	IgnoredWords string `json:"ignoredWords" form:"ignoredWords"`
+	AuthKey      string `json:"authKey" form:"authKey"`
 }
 
 type UpdateAlbumRequest struct {
@@ -86,4 +91,5 @@ type UpdateAlbumRequest struct {
 	IgnoredWords     string `json:"ignoredWords" form:"ignoredWords"`
 	Notes            string `json:"notes" form:"notes"`
 	AuthKey          string `json:"authKey" form:"authKey"`
+	Enabled          string `json:"enabled" form:"enabled"`
 }

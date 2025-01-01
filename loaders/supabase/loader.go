@@ -72,6 +72,28 @@ func LoadAlbumsData(limit ...int) ([]models.BandcampAlbumData, error) {
 		return nil, err
 	}
 
+	var enabledAlbums []models.BandcampAlbumData
+	for _, album := range albums {
+		if album.Enabled {
+			if err := fetchTracks(&album); err != nil {
+				log.Printf("Error fetching tracks for album %s: %v", album.ID, err)
+				continue
+			}
+			calculateAlbumMetrics(&album)
+			enabledAlbums = append(enabledAlbums, album)
+		}
+	}
+
+	return enabledAlbums, nil
+}
+
+func LoadAllAlbumsData(limit ...int) ([]models.BandcampAlbumData, error) {
+	log.Printf("Loading all albums data...")
+	albums, err := fetchAlbums(limit...)
+	if err != nil {
+		return nil, err
+	}
+
 	for i := range albums {
 		if err := fetchTracks(&albums[i]); err != nil {
 			log.Printf("Error fetching tracks for album %s: %v", albums[i].ID, err)
@@ -116,8 +138,9 @@ func fetchAlbums(limit ...int) ([]models.BandcampAlbumData, error) {
 
 func fetchTracks(album *models.BandcampAlbumData) error {
 	data, _, err := publicClient.From("tracks").
-		Select("name, total_length, formatted_length, lyrics", "exact", false).
+		Select("name, total_length, formatted_length, lyrics, track_number, ignored_words", "exact", false).
 		Eq("album_id", album.ID).
+		Order("track_number", &postgrest.OrderOpts{Ascending: true}).
 		Execute()
 
 	if err != nil {
@@ -150,7 +173,7 @@ func ValidateAuthKey(key string) (bool, error) {
 	return len(results) > 0, nil
 }
 
-func UpdateTrackLyrics(req models.UpdateLyricsRequest) error {
+func UpdateTrackLyrics(req models.UpdateTrackRequest) error {
 	valid, err := ValidateAuthKey(req.AuthKey)
 	if err != nil {
 		return fmt.Errorf("error validating auth: %w", err)
@@ -164,22 +187,27 @@ func UpdateTrackLyrics(req models.UpdateLyricsRequest) error {
 		cleanLyrics = ""
 	}
 
-	log.Printf("Updating lyrics for album: %s, track: %s", req.AlbumID, req.TrackName)
+	log.Printf("Updating track: %s, album: %s", req.TrackName, req.AlbumID)
+
+	updates := map[string]interface{}{
+		"lyrics":        cleanLyrics,
+		"track_number":  req.TrackNumber,
+		"ignored_words": req.IgnoredWords,
+	}
 
 	_, count, err := adminClient.From("tracks").
-		Update(map[string]interface{}{"lyrics": cleanLyrics}, "tracks", "id").
+		Update(updates, "tracks", "id").
 		Eq("album_id", req.AlbumID).
 		Eq("name", req.TrackName).
 		Execute()
 	if err != nil {
-		return fmt.Errorf("error updating lyrics: %w", err)
+		return fmt.Errorf("error updating track: %w", err)
 	}
 
 	if count == 0 {
 		return fmt.Errorf("no matching track found")
 	}
 
-	log.Printf("Successfully updated lyrics for album: %s, track: %s", req.AlbumID, req.TrackName)
 	return nil
 }
 
@@ -305,7 +333,7 @@ func calculateAlbumMetrics(album *models.BandcampAlbumData) {
 	wordLengths := make(map[int]int)
 
 	for i, track := range album.Tracks {
-		wordCounts, vowels, consonants, lengths := words.CalculateAndSortWordFrequencies(track.Lyrics)
+		wordCounts, vowels, consonants, lengths := words.CalculateAndSortWordFrequencies(track.Lyrics, track.IgnoredWords)
 		words := len(strings.Fields(track.Lyrics))
 
 		totalWords += words
@@ -359,6 +387,8 @@ func UpdateAlbum(req models.UpdateAlbumRequest) error {
 	log.Printf("Updating album: %s", req.AlbumID)
 	log.Printf("Update data: %+v", req)
 
+	enabled := req.Enabled == "true"
+
 	updates := map[string]interface{}{
 		"metal_archives_url": req.MetalArchivesURL,
 		"release_date":       req.ReleaseDate,
@@ -367,6 +397,7 @@ func UpdateAlbum(req models.UpdateAlbumRequest) error {
 		"label":              req.Label,
 		"ignored_words":      req.IgnoredWords,
 		"notes":              req.Notes,
+		"enabled":            enabled,
 	}
 
 	_, _, err = adminClient.From("albums").
@@ -378,7 +409,6 @@ func UpdateAlbum(req models.UpdateAlbumRequest) error {
 		return fmt.Errorf("error updating album: %w", err)
 	}
 
-	// Verify the update by fetching the album
 	data, _, err := adminClient.From("albums").
 		Select("*", "exact", false).
 		Eq("id", req.AlbumID).
@@ -395,5 +425,61 @@ func UpdateAlbum(req models.UpdateAlbumRequest) error {
 	}
 
 	log.Printf("Verified updated album values: %+v", album)
+	return nil
+}
+
+func UpdateTrack(req models.UpdateTrackRequest) error {
+	valid, err := ValidateAuthKey(req.AuthKey)
+	if err != nil {
+		return fmt.Errorf("error validating auth: %w", err)
+	}
+	if !valid {
+		return fmt.Errorf("invalid auth key")
+	}
+
+	log.Printf("Attempting to update track. Album ID: '%s', Track Name: '%s'", req.AlbumID, req.TrackName)
+
+	data, _, err := adminClient.From("tracks").
+		Select("*", "exact", false).
+		Eq("album_id", req.AlbumID).
+		Eq("name", req.TrackName).
+		Execute()
+	if err != nil {
+		return fmt.Errorf("error querying track: %w", err)
+	}
+
+	var tracks []map[string]interface{}
+	if err := json.Unmarshal(data, &tracks); err != nil {
+		return fmt.Errorf("error parsing track data: %w", err)
+	}
+
+	if len(tracks) == 0 {
+		return fmt.Errorf("no matching track found")
+	}
+
+	log.Printf("Found %d matching tracks", len(tracks))
+	log.Printf("Track data: %+v", tracks[0])
+
+	cleanLyrics := strings.TrimSpace(req.Lyrics)
+	if strings.HasPrefix(strings.ToLower(cleanLyrics), "lyrics") {
+		cleanLyrics = ""
+	}
+
+	updates := map[string]interface{}{
+		"lyrics":        cleanLyrics,
+		"track_number":  req.TrackNumber,
+		"ignored_words": req.IgnoredWords,
+	}
+
+	_, _, err = adminClient.From("tracks").
+		Update(updates, "tracks", "id").
+		Eq("album_id", req.AlbumID).
+		Eq("name", req.TrackName).
+		Execute()
+
+	if err != nil {
+		return fmt.Errorf("error updating track: %w", err)
+	}
+
 	return nil
 }

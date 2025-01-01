@@ -10,7 +10,7 @@
     >
         <option value="">Select an album to edit...</option>
         {{ range .Albums }}
-            <option value="{{ .ID }}">{{ .ArtistName }} - {{ .AlbumName }}</option>
+            <option value="{{ .ID }}">{{ .ArtistName }} - {{ .AlbumName }}{{ if not .Enabled }} [Disabled]{{ end }}</option>
         {{ end }}
     </select>
 
