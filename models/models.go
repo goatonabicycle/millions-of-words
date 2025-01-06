@@ -70,6 +70,7 @@ type TrackWithDetails struct {
 	TotalCharacters         int
 	TotalCharactersNoSpaces int
 	TotalLines              int
+	IgnoredWords            string
 }
 
 type UpdateTrackRequest struct {
