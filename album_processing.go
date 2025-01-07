@@ -68,7 +68,11 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 
 func calculateTrackDetails(track models.BandcampTrackData) models.TrackWithDetails {
 	sortedWordCounts, vowels, consonants, wordLengths := words.CalculateAndSortWordFrequencies(track.Lyrics, track.IgnoredWords)
-	wordCount := len(strings.Fields(track.Lyrics))
+
+	wordCount := 0
+	for _, wc := range sortedWordCounts {
+		wordCount += wc.Count
+	}
 
 	trackUniqueWordsMap := make(map[string]struct{}, len(sortedWordCounts))
 	for _, wc := range sortedWordCounts {

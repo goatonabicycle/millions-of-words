@@ -174,7 +174,7 @@
                     </div>
 
                     {{ if and .Track.Lyrics (ne .Track.Lyrics "Instrumental") (ne .Track.Lyrics "Unknown") }}
-                    <div id="trackDetails{{ $trackIndex }}" class="lg:flex gap-4 p-4">
+                    <div id="trackDetails{{ $trackIndex }}" class="lg:flex gap-4 p-4" data-ignored-words="{{ .Track.IgnoredWords }}">
                         <div class="lyrics p-4 rounded-lg shadow-md flex-1" id="lyricsText{{ $trackIndex }}">
                             <pre class="whitespace-pre-wrap text-xs leading-4" id="lyrics{{ $trackIndex }}">{{ .FormattedLyrics }}</pre>
                         </div>

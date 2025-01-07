@@ -3,18 +3,21 @@ const posAnalyzer = {
     return Object.keys(COLORS);
   },
 
-  analyze(text) {
+  analyze(text, ignoredWords = '') {
     const doc = nlp(text.toLowerCase());
     const results = this.categories.reduce((acc, category) => {
-      acc[category] = {
-        words: [],
-        frequencies: {}
-      };
+      acc[category] = { words: [], frequencies: {} };
       return acc;
     }, {});
 
-    const allTerms = doc.json();
+    const ignoredWordsSet = new Set(
+      ignoredWords
+        .split(',')
+        .map(w => w.trim().toLowerCase())
+        .filter(Boolean)
+    );
 
+    const allTerms = doc.json();
     let hyphenatedWord = '';
     let hyphenatedTags = new Set();
 
@@ -23,7 +26,7 @@ const posAnalyzer = {
         const word = term.text.toLowerCase().trim();
         const tags = term.tags || [];
 
-        if (!word) return;
+        if (!word || ignoredWordsSet.has(word)) return;
 
         const addToCategory = (category, word) => {
           if (!results[category].frequencies[word]) {
@@ -52,6 +55,11 @@ const posAnalyzer = {
           return;
         }
 
+        if (word === 'to') {
+          addToCategory('preposition', word);
+          return;
+        }
+
         if (tags.includes('Hyphenated')) {
           if (hyphenatedWord) {
             hyphenatedWord += '-' + word;
@@ -77,48 +85,57 @@ const posAnalyzer = {
 
           hyphenatedWord = '';
           hyphenatedTags.clear();
+          return;
         }
 
-        if (tags.includes('Pronoun') ||
-          (tags.includes('Noun') && tags.includes('Possessive'))) {
+        if (tags.includes('Determiner') || tags.includes('Article')) {
+          addToCategory('determiner', word);
+          return;
+        }
+
+        if (tags.includes('Pronoun') || (tags.includes('Noun') && tags.includes('Possessive'))) {
           addToCategory('pronoun', word);
           return;
         }
 
-        if (tags.includes('Verb') || tags.includes('Modal') ||
-          tags.includes('Auxiliary') || tags.includes('Copula')) {
+        if (tags.includes('Verb') || tags.includes('Modal') || tags.includes('Auxiliary') || tags.includes('Copula')) {
           addToCategory('verb', word);
+          return;
         }
 
         if (tags.includes('Adjective')) {
-          addToCategory('adverb', word);
+          addToCategory('adjective', word);
+          return;
         }
 
         if (tags.includes('Adverb') || tags.includes('Negative')) {
           addToCategory('adverb', word);
+          return;
         }
 
         if (tags.includes('Preposition')) {
           addToCategory('preposition', word);
+          return;
         }
 
         if (tags.includes('Conjunction')) {
           addToCategory('conjunction', word);
+          return;
         }
 
-        if (tags.includes('Determiner') || tags.includes('Article') ||
-          tags.some(tag => ['Value', 'Cardinal', 'TextValue'].includes(tag))) {
+        if (tags.includes('Value') || tags.includes('Cardinal')) {
           addToCategory('determiner', word);
+          return;
+        }
+
+        if ((tags.includes('Noun') || tags.includes('Singular') || tags.includes('Plural') || tags.includes('Uncountable')) && !tags.includes('Pronoun')) {
+          addToCategory('noun', word);
+          return;
         }
 
         if (tags.includes('Expression') || tags.includes('Interjection')) {
           addToCategory('interjection', word);
-        }
-
-        if ((tags.includes('Noun') || tags.includes('Singular') ||
-          tags.includes('Plural') || tags.includes('Uncountable')) &&
-          !tags.includes('Pronoun')) {
-          addToCategory('noun', word);
+          return;
         }
       });
     });
