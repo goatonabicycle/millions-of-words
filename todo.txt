@@ -1,7 +1,5 @@
 Todo before sharing this: 
-  - Style consistency and general vibe check. 
-  - Have some intentionality about the ordering on the main page. By order added? How should new albums be handled?
-  - Have a tooltip that explains each part of speech 
+  - Style consistency and general vibe check.   
   - More interesting bits of data:     
     - Nlp/sentiment stuff. 
     - Properties to add:   
@@ -25,6 +23,5 @@ Todo before sharing this:
     - Different lyric sources? Read from metal archives? 
     - Different categories. Rap should be distinct from metal? Also then have an overall.    
 
-Then do: 
-  - Setting to hide common words
+Then do:   
   - Add a graph of the word POS distribution per track.
