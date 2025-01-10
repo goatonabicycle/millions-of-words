@@ -5,18 +5,7 @@ Todo before sharing this:
     - Properties to add:   
       - Add percentages to the word counts    
       - Syllables
-      - Avg. word length   
-    - Finalize the POS categories: 
-      - Determiners  
-      - Interjections 
-      - Articles
-      - Numerals 
-      - Particles  
-      - Expletives  
-      - Auxiliary Verbs
-      - Possessive Pronouns
-      - Possessive Nouns
-      - Wh-words
+      - Avg. word length    
       - Profanities      
 
   - Admin page that I can use to edit/add data. 
