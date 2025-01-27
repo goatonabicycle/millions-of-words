@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"millions-of-words/models"
 	"millions-of-words/words"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/supabase-community/postgrest-go"
 	storageClient "github.com/supabase-community/storage-go"
@@ -357,6 +359,7 @@ func calculateAlbumMetrics(album *models.BandcampAlbumData) {
 		album.Tracks[i] = track
 	}
 
+	album.ReleaseDateDaysAgo = calculateReleaseDateDaysAgo(album.ReleaseDate)
 	album.TotalWords = totalWords
 	album.TotalCharacters = totalChars
 	album.TotalCharactersNoSpaces = totalCharsNoSpaces
@@ -366,6 +369,24 @@ func calculateAlbumMetrics(album *models.BandcampAlbumData) {
 	album.TotalUniqueWords = len(uniqueWords)
 	album.WordLengthDistribution = wordLengths
 	album.AverageWordsPerTrack = calculateAverage(totalWords, len(album.Tracks))
+}
+
+func calculateReleaseDateDaysAgo(releaseDate string) string {
+	if releaseDate == "" {
+		return ""
+	}
+
+	releaseDateTime, err := time.Parse("2006-01-02", releaseDate)
+	if err != nil {
+		return ""
+	}
+
+	days := math.Floor(time.Since(releaseDateTime).Hours() / 24)
+	if days < 0 {
+		return "future release"
+	}
+
+	return fmt.Sprintf("%d days ago", int(days))
 }
 
 func calculateAverage(total, count int) int {

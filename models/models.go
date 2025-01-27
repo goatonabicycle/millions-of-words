@@ -22,6 +22,7 @@ type BandcampAlbumData struct {
 	AlbumColorAverage       string              `json:"album_color_average"`
 	DateAdded               string              `json:"date_added"`
 	ReleaseDate             string              `json:"release_date"`
+	ReleaseDateDaysAgo      string              `json:"-"`
 	Genre                   string              `json:"genre"`
 	Country                 string              `json:"country"`
 	Label                   string              `json:"label"`
