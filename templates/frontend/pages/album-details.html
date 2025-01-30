@@ -157,6 +157,15 @@
                                 </div>
                                 {{ end }}
                             </div>
+                              {{ if .Track.Lyrics }}
+                                <button 
+                                id="debugButton{{ $trackIndex }}"
+                                onclick="copyDebugInfo({{ $trackIndex }})"
+                                class="px-2 py-1 text-xs bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors"
+                                >
+                                Copy Debug Info
+                                </button>
+                            {{ end }}
                         </div>
 
                         {{ if and .Track.Lyrics (ne .Track.Lyrics "Instrumental") (ne .Track.Lyrics "Unknown") }}

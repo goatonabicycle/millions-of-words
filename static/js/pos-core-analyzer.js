@@ -17,6 +17,9 @@ const posAnalyzer = {
         .filter(Boolean)
     );
 
+    const processedWords = new Set();
+    const allWords = new Set();
+
     const allTerms = doc.json();
     let hyphenatedWord = '';
     let hyphenatedTags = new Set();
@@ -27,6 +30,7 @@ const posAnalyzer = {
         const tags = term.tags || [];
 
         if (!word || ignoredWordsSet.has(word)) return;
+        allWords.add(word);
 
         const addToCategory = (category, word) => {
           if (!results[category].frequencies[word]) {
@@ -34,7 +38,13 @@ const posAnalyzer = {
             results[category].words.push(word);
           }
           results[category].frequencies[word]++;
+          processedWords.add(word);
         };
+
+        if (tags.includes('Imperative') || tags.includes('Infinitive') || tags.includes('PresentTense')) {
+          addToCategory('verb', word);
+          return;
+        }
 
         if (tags.includes('Date')) {
           addToCategory('noun', word);
@@ -147,6 +157,22 @@ const posAnalyzer = {
         total: Object.values(data.frequencies).reduce((sum, count) => sum + count, 0)
       };
     });
+
+    finalResults._debug = {
+      missedWords: Array.from(allWords).filter(word =>
+        !processedWords.has(word) &&
+        !ignoredWordsSet.has(word)
+      ).sort(),
+      allWords: Array.from(allWords).sort(),
+      processedWords: Array.from(processedWords).sort(),
+      rawTerms: allTerms.map(sentence => ({
+        text: sentence.text,
+        terms: sentence.terms.map(term => ({
+          text: term.text,
+          tags: term.tags
+        }))
+      }))
+    };
 
     return finalResults;
   }

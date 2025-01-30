@@ -104,4 +104,58 @@ const trackInitializer = {
   }
 };
 
+function getDebugInfo(trackIndex) {
+  const lyricsElement = document.getElementById(`lyrics${trackIndex}`);
+  if (!lyricsElement) return null;
+
+  const trackDetails = document.querySelector(`[id^="trackDetails${trackIndex}"]`);
+  const ignoredWords = trackDetails?.dataset.ignoredWords || '';
+  const text = lyricsElement.textContent;
+
+  const allTextWords = text.toLowerCase()
+    .split(/[\s\n]+/)
+    .map(w => w.trim())
+    .filter(w => w.length > 0);
+
+  const analysisResults = compromiseAnalyzer.analyze(text, ignoredWords);
+
+  const processedWords = new Set();
+  Object.values(analysisResults).forEach(category => {
+    if (category.unique) {
+      category.unique.forEach(word => processedWords.add(word.toLowerCase()));
+    }
+  });
+
+  const missingWords = allTextWords.filter(word =>
+    !processedWords.has(word) &&
+    !ignoredWords.includes(word)
+  );
+
+  return JSON.stringify({
+    trackIndex,
+    analysis: analysisResults,
+    text,
+    ignoredWords,
+    debug: {
+      missingWords,
+      allWords: allTextWords,
+      processedWords: Array.from(processedWords)
+    }
+  }, null, 2);
+}
+
+function copyDebugInfo(trackIndex) {
+  const debugInfo = getDebugInfo(trackIndex);
+  if (!debugInfo) return;
+
+  navigator.clipboard.writeText(debugInfo).then(() => {
+    const button = document.querySelector(`#debugButton${trackIndex}`);
+    const originalText = button.textContent;
+    button.textContent = 'Copied!';
+    setTimeout(() => {
+      button.textContent = originalText;
+    }, 2000);
+  });
+}
+window.copyDebugInfo = copyDebugInfo;
 window.trackInitializer = trackInitializer;
