@@ -1,5 +1,3 @@
-//TODO: Use this on the home page as well.
-
 function updateDisplay(item) {
   const display = document.getElementById('stats-display');
   const customContent = item.dataset.content;
