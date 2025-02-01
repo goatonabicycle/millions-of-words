@@ -3,6 +3,11 @@ const posAnalyzer = {
     return Object.keys(COLORS);
   },
 
+  questionWords: {
+    pronouns: ['who', 'whom', 'whose', 'which', 'what', "what's", 'that', 'whatever', 'whichever', 'whomever', 'whatsoever'],
+    adverbs: ['why', 'how', 'when', 'where', 'whenever', 'wherever', 'however', 'whereby', 'wherefore', 'whether']
+  },
+
   analyze(text, ignoredWords = '') {
     const doc = nlp(text.toLowerCase());
     const results = this.categories.reduce((acc, category) => {
@@ -19,13 +24,13 @@ const posAnalyzer = {
 
     const processedWords = new Set();
     const allWords = new Set();
-
     const allTerms = doc.json();
-    let hyphenatedWord = '';
-    let hyphenatedTags = new Set();
 
     allTerms.forEach(sentence => {
-      sentence.terms.forEach(term => {
+      let hyphenatedParts = [];
+      let hyphenatedTags = new Set();
+
+      sentence.terms.forEach((term, index) => {
         const word = term.text.toLowerCase().trim();
         const tags = term.tags || [];
 
@@ -41,8 +46,32 @@ const posAnalyzer = {
           processedWords.add(word);
         };
 
-        if (tags.includes('Imperative') || tags.includes('Infinitive') || tags.includes('PresentTense')) {
-          addToCategory('verb', word);
+
+        if (tags.includes('Hyphenated')) {
+          hyphenatedParts.push(word);
+          tags.forEach(tag => hyphenatedTags.add(tag));
+
+          const nextTerm = sentence.terms[index + 1];
+          if (!nextTerm || !nextTerm.tags.includes('Hyphenated')) {
+            const fullWord = hyphenatedParts.join('-');
+            const tagArray = Array.from(hyphenatedTags);
+
+            if (tagArray.includes('Verb')) {
+              addToCategory('verb', fullWord);
+            } else if (tagArray.includes('Adjective')) {
+              addToCategory('adjective', fullWord);
+            } else {
+              addToCategory('noun', fullWord);
+            }
+
+            hyphenatedParts = [];
+            hyphenatedTags.clear();
+          }
+          return;
+        }
+
+        if (tags.includes('Value') || tags.includes('Cardinal') || tags.includes('TextValue')) {
+          addToCategory('determiner', word);
           return;
         }
 
@@ -51,66 +80,33 @@ const posAnalyzer = {
           return;
         }
 
+        if (tags.includes('Expression') || tags.includes('Negative')) {
+          addToCategory('interjection', word);
+          return;
+        }
+
         if (tags.includes('There')) {
           addToCategory('adverb', word);
           return;
         }
 
-        if (tags.includes('QuestionWord')) {
-          if (['who', 'whom', 'whose', 'what'].includes(word)) {
+        if (tags.includes('QuestionWord') || this.questionWords.pronouns.includes(word) || this.questionWords.adverbs.includes(word)) {
+          if (this.questionWords.pronouns.includes(word)) {
             addToCategory('pronoun', word);
-          } else {
+          } else if (this.questionWords.adverbs.includes(word)) {
             addToCategory('adverb', word);
           }
           return;
         }
 
-        if (word === 'to') {
-          addToCategory('preposition', word);
-          return;
-        }
-
-        if (tags.includes('Hyphenated')) {
-          if (hyphenatedWord) {
-            hyphenatedWord += '-' + word;
-            tags.forEach(tag => hyphenatedTags.add(tag));
-          } else {
-            hyphenatedWord = word;
-            tags.forEach(tag => hyphenatedTags.add(tag));
+        if (tags.some(tag => [
+          'Verb', 'Infinitive', 'Gerund', 'PastTense', 'PresentTense',
+          'Modal', 'Auxiliary', 'Copula'
+        ].includes(tag))) {
+          if (!tags.includes('Possessive')) {
+            addToCategory('verb', word);
+            return;
           }
-          return;
-        } else if (hyphenatedWord) {
-          const fullWord = hyphenatedWord;
-          const tagArray = Array.from(hyphenatedTags);
-
-          if (tagArray.includes('Adjective')) {
-            addToCategory('adjective', fullWord);
-          } else if (tagArray.includes('Verb')) {
-            addToCategory('verb', fullWord);
-          } else if (tagArray.includes('Noun')) {
-            addToCategory('noun', fullWord);
-          } else if (tagArray.includes('Adverb') || tagArray.includes('Negative')) {
-            addToCategory('adverb', fullWord);
-          }
-
-          hyphenatedWord = '';
-          hyphenatedTags.clear();
-          return;
-        }
-
-        if (tags.includes('Determiner') || tags.includes('Article')) {
-          addToCategory('determiner', word);
-          return;
-        }
-
-        if (tags.includes('Pronoun') || (tags.includes('Noun') && tags.includes('Possessive'))) {
-          addToCategory('pronoun', word);
-          return;
-        }
-
-        if (tags.includes('Verb') || tags.includes('Modal') || tags.includes('Auxiliary') || tags.includes('Copula')) {
-          addToCategory('verb', word);
-          return;
         }
 
         if (tags.includes('Adjective')) {
@@ -118,7 +114,7 @@ const posAnalyzer = {
           return;
         }
 
-        if (tags.includes('Adverb') || tags.includes('Negative')) {
+        if (tags.includes('Adverb')) {
           addToCategory('adverb', word);
           return;
         }
@@ -133,18 +129,24 @@ const posAnalyzer = {
           return;
         }
 
-        if (tags.includes('Value') || tags.includes('Cardinal')) {
+        if (tags.includes('Determiner') || tags.includes('Article')) {
           addToCategory('determiner', word);
           return;
         }
 
-        if ((tags.includes('Noun') || tags.includes('Singular') || tags.includes('Plural') || tags.includes('Uncountable')) && !tags.includes('Pronoun')) {
-          addToCategory('noun', word);
+        if (tags.includes('Pronoun') || (tags.includes('Noun') && tags.includes('Possessive'))) {
+          addToCategory('pronoun', word);
           return;
         }
 
         if (tags.includes('Expression') || tags.includes('Interjection')) {
           addToCategory('interjection', word);
+          return;
+        }
+
+        if (tags.includes('Noun') || tags.includes('Singular') ||
+          tags.includes('Plural') || tags.includes('Uncountable')) {
+          addToCategory('noun', word);
           return;
         }
       });
@@ -159,10 +161,9 @@ const posAnalyzer = {
     });
 
     finalResults._debug = {
-      missedWords: Array.from(allWords).filter(word =>
-        !processedWords.has(word) &&
-        !ignoredWordsSet.has(word)
-      ).sort(),
+      missedWords: Array.from(allWords)
+        .filter(word => !processedWords.has(word) && !ignoredWordsSet.has(word))
+        .sort(),
       allWords: Array.from(allWords).sort(),
       processedWords: Array.from(processedWords).sort(),
       rawTerms: allTerms.map(sentence => ({

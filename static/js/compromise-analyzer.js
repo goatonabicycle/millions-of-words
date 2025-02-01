@@ -16,9 +16,10 @@ const compromiseAnalyzer = {
   createPOSContainer(posCategories, trackIndex) {
     const fragment = document.createDocumentFragment();
 
-    // Sort by total count
     const sortedCategories = Object.entries(posCategories)
-      .filter(([_, data]) => data.total > 0)
+      .filter(([category, data]) => {
+        return category !== '_debug' && data.total > 0;
+      })
       .sort((a, b) => b[1].total - a[1].total);
 
     sortedCategories.forEach(([category, data]) => {
@@ -34,7 +35,6 @@ const compromiseAnalyzer = {
       div.innerHTML = `
         <span class="pos-category">${category.charAt(0).toUpperCase() + category.slice(1)}</span>
         <span class="pos-count">
-          
           <span class="total-count">${data.total}</span>
         </span>
       `;
@@ -60,17 +60,18 @@ const compromiseAnalyzer = {
   attachToTrack(trackElement, trackIndex, posCategories) {
     trackElement.querySelectorAll(`.${DOM_CLASSES.word}`).forEach(wordElement => {
       const word = wordElement.getAttribute(DOM_ATTRIBUTES.word);
-      if (word) {
-        const matchingCategories = [];
-        Object.entries(posCategories).forEach(([category, data]) => {
-          if (data.unique.includes(word.toLowerCase())) {
-            matchingCategories.push(category);
-          }
-        });
+      if (!word) return;
 
-        if (matchingCategories.length > 0) {
-          wordElement.setAttribute(DOM_ATTRIBUTES.compromisePos, matchingCategories.join(','));
+      const matchingCategories = [];
+      Object.entries(posCategories).forEach(([category, data]) => {
+        if (category === '_debug') return;
+        if (data.unique && data.unique.includes(word.toLowerCase())) {
+          matchingCategories.push(category);
         }
+      });
+
+      if (matchingCategories.length > 0) {
+        wordElement.setAttribute(DOM_ATTRIBUTES.compromisePos, matchingCategories.join(','));
       }
     });
   }
