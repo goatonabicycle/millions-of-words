@@ -21,6 +21,9 @@ func filterAlbumsByQuery(query string) []models.BandcampAlbumData {
 	var filtered []models.BandcampAlbumData
 	query = strings.ToLower(query)
 	for _, album := range albums {
+		if !album.Enabled {
+			continue
+		}
 		if strings.Contains(strings.ToLower(album.ArtistName), query) ||
 			strings.Contains(strings.ToLower(album.AlbumName), query) {
 			filtered = append(filtered, album)
@@ -34,9 +37,12 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 		return cachedDetails.(map[string]interface{})
 	}
 
+	var enabledTracks []models.BandcampTrackData
 	for i := range album.Tracks {
 		album.Tracks[i].Lyrics = words.NormalizeText(album.Tracks[i].Lyrics)
+		enabledTracks = append(enabledTracks, album.Tracks[i])
 	}
+	album.Tracks = enabledTracks
 
 	album.AlbumWordFrequencies = words.AggregateWordFrequencies(album)
 	if len(album.AlbumWordFrequencies) > maxTopWords {
@@ -60,6 +66,7 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 		"DisplayTitle":      displayTitle,
 		"TracksWithDetails": tracksWithDetails,
 		"AlbumWPM":          calculateWPM(float64(album.TotalWords), float64(album.TotalLength)),
+		"Enabled":           album.Enabled,
 	}
 
 	albumDetailsCache.Store(album.ID, result)
