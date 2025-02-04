@@ -308,6 +308,7 @@ func SaveAlbum(album models.BandcampAlbumData) error {
 		trackData := map[string]interface{}{
 			"album_id":         album.ID,
 			"name":             track.Name,
+			"track_number":     track.TrackNumber,
 			"total_length":     track.TotalLength,
 			"formatted_length": track.FormattedLength,
 			"lyrics":           track.Lyrics,
