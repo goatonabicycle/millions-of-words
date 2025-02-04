@@ -2,7 +2,6 @@ function updateDisplay(item) {
   const display = document.getElementById('stats-display');
   const customContent = item.dataset.content;
 
-  console.log({ customContent })
   if (customContent) {
     display.innerHTML = customContent;
   } else {
