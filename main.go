@@ -15,7 +15,6 @@ import (
 
 	"millions-of-words/fetch"
 
-	// loader "millions-of-words/loaders/sqlite"
 	loader "millions-of-words/loaders/supabase"
 	"millions-of-words/models"
 	"millions-of-words/words"
@@ -513,7 +512,6 @@ func importAlbumHandler(c echo.Context) error {
 							Successfully imported %s - %s
 					</div>`, albumData.ArtistName, albumData.AlbumName))
 
-		// Send progress update immediately after each success
 		progressMsg := fmt.Sprintf(`
 					<div class="text-gray-400 text-sm text-right">
 							Processed %d of %d
