@@ -90,13 +90,14 @@ const posAnalyzer = {
           return;
         }
 
-        if (tags.includes('QuestionWord') || this.questionWords.pronouns.includes(word) || this.questionWords.adverbs.includes(word)) {
+        if (tags.includes('QuestionWord')) {
           if (this.questionWords.pronouns.includes(word)) {
             addToCategory('pronoun', word);
+            return;
           } else if (this.questionWords.adverbs.includes(word)) {
             addToCategory('adverb', word);
+            return;
           }
-          return;
         }
 
         if (tags.some(tag => [
