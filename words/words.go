@@ -2,6 +2,7 @@ package words
 
 import (
 	"millions-of-words/models"
+	"regexp"
 	"sort"
 	"strings"
 	"unicode"
@@ -21,13 +22,28 @@ func CalculateAndSortWordFrequencies(lyrics string, ignoredWords string) ([]mode
 	}
 
 	ignoredWordsMap := make(map[string]bool)
+	var ignoredPatterns []string
 	if ignoredWords != "" {
 		for _, word := range strings.Split(ignoredWords, ",") {
 			word = strings.TrimSpace(word)
 			if word != "" {
-				ignoredWordsMap[word] = true
+				if strings.ContainsAny(word, "()[]{}:") {
+					ignoredPatterns = append(ignoredPatterns, word)
+				} else {
+					ignoredWordsMap[word] = true
+					cleaned := CleanWord(word)
+					if cleaned != "" {
+						ignoredWordsMap[cleaned] = true
+					}
+				}
 			}
 		}
+	}
+
+	processedLyrics := lyrics
+	for _, pattern := range ignoredPatterns {
+		escapedPattern := regexp.QuoteMeta(pattern)
+		processedLyrics = regexp.MustCompile(escapedPattern).ReplaceAllString(processedLyrics, "")
 	}
 
 	wordCounts := make(map[string]int)
@@ -35,7 +51,7 @@ func CalculateAndSortWordFrequencies(lyrics string, ignoredWords string) ([]mode
 	consonantCount := 0
 	wordLengthDistribution := make(map[int]int)
 
-	words := splitLyricsIntoWords(removeItalics(lyrics))
+	words := splitLyricsIntoWords(removeItalics(processedLyrics))
 
 	for _, word := range words {
 		cleanedWord := CleanWord(word)

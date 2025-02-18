@@ -3,29 +3,54 @@ const trackInitializer = {
     if (!lyricsElement) return;
 
     const track = document.querySelector(`[id^="trackDetails${trackIndex}"]`);
-    const ignoredWordsStr = track?.dataset.ignoredWords || '';
-    const ignoredWords = ignoredWordsStr.split(',').map(w => w.trim().toLowerCase()).filter(Boolean);
-    const ignoredWordsSet = new Set(ignoredWords);
 
-    const words = lyricsElement.innerHTML
-      .split(/\n/)
-      .map(line => line.trim()
-        .split(/(\s+)/)
-        .map(word => {
-          const cleanedWord = cleanWord(word);
-          if (cleanedWord.length > 0 && ignoredWordsSet.has(cleanedWord)) {
-            return word;
-          }
-          if (cleanedWord.length > 0) {
-            return this.createWordSpan(word, cleanedWord, trackIndex);
-          }
-          return word;
-        })
-        .join('')
-      )
-      .join('\n');
+    const ignoredWords = (track?.dataset.ignoredWords || '').split(',').map(w => w.trim()).filter(Boolean);
+    const patterns = new Set(ignoredWords.filter(w => /[()[\]{}:]/.test(w)));
+    const exactWords = new Set(ignoredWords.filter(w => !/[()[\]{}:]/.test(w)));
 
-    lyricsElement.innerHTML = words;
+    const expandedIgnoredSet = new Set(exactWords);
+    exactWords.forEach(word => {
+      const cleaned = cleanWord(word);
+      if (cleaned) expandedIgnoredSet.add(cleaned);
+    });
+
+    const lines = lyricsElement.innerHTML.split(/\n/);
+    const processedLines = lines.map(line => {
+      let result = line;
+
+      patterns.forEach(ignored => {
+        const escapedIgnored = ignored.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escapedIgnored})`, 'g');
+        result = result.replace(regex, (match) => match);
+      });
+
+      const words = result.split(/(\s+)/);
+      return words.map(segment => {
+        if (!segment.trim()) return segment;
+
+        if (patterns.has(segment)) return segment;
+
+        const cleanedWord = cleanWord(segment);
+        if (!cleanedWord) return segment;
+
+        if (expandedIgnoredSet.has(cleanedWord)) return segment;
+
+        return this.createWordSpan(segment, cleanedWord, trackIndex);
+      }).join('');
+    });
+
+    lyricsElement.innerHTML = processedLines.join('\n');
+
+    const wordCountContainer = track.querySelector('.word-counts');
+    if (wordCountContainer) {
+      const wordCountElements = wordCountContainer.querySelectorAll('[id^="wordCount"]');
+      wordCountElements.forEach(element => {
+        const word = element.getAttribute('data-word');
+        if (expandedIgnoredSet.has(word)) {
+          element.remove();
+        }
+      });
+    }
   },
 
   createWordSpan(originalWord, cleanedWord, trackIndex) {
@@ -159,3 +184,34 @@ function copyDebugInfo(trackIndex) {
 }
 window.copyDebugInfo = copyDebugInfo;
 window.trackInitializer = trackInitializer;
+
+function copyIgnoredWordsInfo(trackIndex) {
+  const trackElement = document.querySelector(`[id^="trackDetails${trackIndex}"]`);
+  const ignoredWordsStr = trackElement?.dataset.ignoredWords || '';
+  const lyrics = document.getElementById(`lyrics${trackIndex}`).innerHTML;
+
+  const info = {
+    trackIndex,
+    ignoredWords: ignoredWordsStr,
+    ignoredWordsList: ignoredWordsStr.split(',').map(w => w.trim()).filter(Boolean),
+    trackHTML: lyrics,
+    wordElements: Array.from(document.querySelectorAll(`.word[data-track="${trackIndex}"]`))
+      .map(el => ({
+        word: el.getAttribute('data-word'),
+        isInteractive: true
+      })),
+    textNodes: Array.from(document.getElementById(`lyrics${trackIndex}`).childNodes)
+      .filter(node => node.nodeType === 3)
+      .map(node => node.textContent.trim())
+      .filter(text => text.length > 0)
+  };
+
+  navigator.clipboard.writeText(JSON.stringify(info, null, 2)).then(() => {
+    const button = document.querySelector(`button[onclick="copyIgnoredWordsInfo(${trackIndex})"]`);
+    button.textContent = 'Copied!';
+    setTimeout(() => {
+      button.textContent = 'Debug Ignored Words';
+    }, 2000);
+  });
+}
+window.copyIgnoredWordsInfo = copyIgnoredWordsInfo;

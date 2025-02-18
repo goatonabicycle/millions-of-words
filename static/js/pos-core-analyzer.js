@@ -32,6 +32,9 @@ const posAnalyzer = {
 
       sentence.terms.forEach((term, index) => {
         const word = term.text.toLowerCase().trim();
+        if (!word || ignoredWordsSet.has(word)) {
+          return;
+        }
         const tags = term.tags || [];
 
         if (!word || ignoredWordsSet.has(word)) return;
