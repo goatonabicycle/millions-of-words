@@ -57,12 +57,13 @@ const trackInitializer = {
     const wordCountElement = document.getElementById(`wordCount${trackIndex}-${cleanedWord}`);
     const count = wordCountElement?.getAttribute(DOM_ATTRIBUTES.count) || 0;
 
+    const displayWord = originalWord.replace(/[\u200B-\u200D\uFEFF]/g, '');
     return `<span class="${DOM_CLASSES.word}" 
       ${DOM_ATTRIBUTES.word}="${cleanedWord}" 
       ${DOM_ATTRIBUTES.track}="${trackIndex}" 
       ${DOM_ATTRIBUTES.count}="${count}" 
       onmouseover="highlightManager.toggleWordHighlight(this, true); tooltip.show(this)" 
-      onmouseout="highlightManager.toggleWordHighlight(this, false); tooltip.hide()">${originalWord}</span>`;
+      onmouseout="highlightManager.toggleWordHighlight(this, false); tooltip.hide()">${displayWord}</span>`;
   },
 
   attachWordCountListeners(trackElement) {
