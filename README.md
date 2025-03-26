@@ -12,7 +12,3 @@ Just Go at the moment.
 ## How do I run this? 
 
 `air`
-
-## Deploy: 
-
-Deploy: `flyctl deploy` 
