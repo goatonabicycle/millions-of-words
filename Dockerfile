@@ -17,6 +17,5 @@ RUN update-ca-certificates
 COPY --from=builder /run-app /usr/local/bin/
 COPY templates /templates
 COPY static /static
-COPY data data
 
 CMD ["run-app"]
