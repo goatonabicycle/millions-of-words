@@ -12,3 +12,7 @@ Just Go at the moment.
 ## How do I run this? 
 
 `air`
+
+## Where can I see this currently? 
+
+https://millions-of-words-bitter-dawn-8253.fly.dev/ 
