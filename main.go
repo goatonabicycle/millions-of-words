@@ -150,6 +150,18 @@ func aboutHandler(c echo.Context) error {
 	return c.Render(http.StatusOK, "about.html", nil)
 }
 
+func countWordOccurrences(albums []models.BandcampAlbumData, word string) int {
+	count := 0
+	word = strings.ToLower(word)
+	for _, album := range albums {
+		for _, track := range album.Tracks {
+			lyrics := strings.ToLower(track.Lyrics)
+			count += strings.Count(lyrics, word)
+		}
+	}
+	return count
+}
+
 func indexHandler(c echo.Context) error {
 	allAlbums, err := loader.LoadAlbumsData()
 	if err != nil {
@@ -205,6 +217,8 @@ func indexHandler(c echo.Context) error {
 		}
 	}
 
+	fuckCount := countWordOccurrences(allAlbums, "fuck")
+
 	return renderTemplate(c, "index.html", map[string]interface{}{
 		"albums":             displayAlbums,
 		"TotalAlbums":        albumCount,
@@ -222,6 +236,7 @@ func indexHandler(c echo.Context) error {
 		"AvgSongsPerAlbum":   avgSongsPerAlbum,
 		"WPM":                wpm,
 		"ProjectedAlbums":    projectedAlbums,
+		"FuckCount":          fuckCount,
 	})
 }
 
