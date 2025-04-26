@@ -16,3 +16,7 @@ Just Go at the moment.
 ## Where can I see this currently? 
 
 https://millions-of-words-bitter-dawn-8253.fly.dev/ 
+
+## When will this be live? 
+
+Soon. Logo and more albums pending. 
