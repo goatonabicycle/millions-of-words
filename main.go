@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"millions-of-words/fetch"
-
+	"millions-of-words/internal/admin"
 	loader "millions-of-words/loaders/supabase"
 	"millions-of-words/models"
 	"millions-of-words/words"
@@ -39,6 +39,7 @@ type TemplateRenderer struct {
 func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return t.templates.ExecuteTemplate(w, name, data)
 }
+
 func main() {
 	e := echo.New()
 	setupMiddleware(e)
@@ -48,13 +49,15 @@ func main() {
 		log.Fatalf("Error parsing templates: %v", err)
 	}
 
-	e.Renderer = &TemplateRenderer{templates: templates}
+	renderer := &TemplateRenderer{templates: templates}
+	e.Renderer = renderer
 
 	if err := loadAlbums(); err != nil {
 		e.Logger.Fatal(err)
 	}
 
 	setupRoutes(e)
+	setupAdminRoutes(e, renderer)
 
 	port := getEnv("PORT", defaultPort)
 	e.Logger.Fatal(e.Start(":" + port))
@@ -126,20 +129,11 @@ func setupRoutes(e *echo.Echo) {
 	e.GET("/search-albums", searchAlbumsHandler)
 	e.GET("/all-albums/sort", sortAlbumsHandler)
 	e.GET("/all-albums/filter", filterAlbumsHandler)
+}
 
-	admin := e.Group("/admin")
-	admin.GET("", adminHandler)
-	admin.POST("/auth", adminAuthHandler)
-	admin.GET("/content/editor", adminEditorHandler)
-	admin.GET("/content/import", adminImportHandler)
-	admin.POST("/update/album", updateAlbumHandler)
-	admin.POST("/update/track", updateTrackHandler)
-	admin.POST("/import", importAlbumHandler)
-	admin.GET("/content/editor/album", adminAlbumEditorHandler)
-
-	admin.POST("/fetch/metal-archives", fetchMetalArchivesHandler)
-	admin.POST("/validate/metal-archives-url", validateMetalArchivesUrlHandler)
-
+func setupAdminRoutes(e *echo.Echo, renderer *TemplateRenderer) {
+	adminHandler := admin.NewHandler(renderer)
+	admin.SetupRoutes(e, adminHandler)
 }
 
 func renderTemplate(c echo.Context, name string, data map[string]interface{}) error {
@@ -576,167 +570,6 @@ func updateAlbumHandler(c echo.Context) error {
 	}
 
 	return c.HTML(http.StatusOK, `<div class="text-green-500">Album updated successfully</div>`)
-}
-
-func adminHandler(c echo.Context) error {
-	allAlbums, err := loader.LoadAllAlbumsData()
-	if err != nil {
-		log.Printf("Error loading albums: %v", err)
-		return err
-	}
-
-	return renderTemplate(c, "admin/pages/index.html", map[string]interface{}{
-		"Title":         "Admin - Millions of Words",
-		"Authenticated": false,
-		"Albums":        allAlbums,
-	})
-}
-
-func adminAuthHandler(c echo.Context) error {
-	key := c.FormValue("authKey")
-	valid, err := loader.ValidateAuthKey(key)
-	if err != nil || !valid {
-		return c.HTML(http.StatusUnauthorized, `
-					<div class="text-red-500 text-center p-2">Invalid authentication key</div>
-			`)
-	}
-
-	return renderTemplate(c, "admin/pages/index.html", map[string]interface{}{
-		"Title":         "Admin - Millions of Words",
-		"Authenticated": true,
-		"AuthKey":       key,
-		"Albums":        albums,
-	})
-}
-
-func adminEditorHandler(c echo.Context) error {
-	if err := validateAuth(c); err != nil {
-		return err
-	}
-
-	allAlbums, err := loader.LoadAllAlbumsData()
-	if err != nil {
-		log.Printf("Error loading albums: %v", err)
-		return err
-	}
-
-	return renderTemplate(c, "admin/components/album-form", map[string]interface{}{
-		"Albums": allAlbums,
-	})
-}
-
-func adminImportHandler(c echo.Context) error {
-	if err := validateAuth(c); err != nil {
-		return err
-	}
-	return renderTemplate(c, "admin/components/import-form", nil)
-}
-
-func validateAuth(c echo.Context) error {
-	key := c.QueryParam("authKey")
-	valid, err := loader.ValidateAuthKey(key)
-	if err != nil || !valid {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid auth key")
-	}
-	return nil
-}
-
-func adminAlbumEditorHandler(c echo.Context) error {
-	if err := validateAuth(c); err != nil {
-		return err
-	}
-
-	albumID := c.QueryParam("albumId")
-	if albumID == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "No album ID provided")
-	}
-
-	authKey := c.QueryParam("authKey")
-	albums, err := loader.LoadAllAlbumsData()
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Error loading albums")
-	}
-
-	for _, album := range albums {
-		if album.ID == albumID {
-			return renderTemplate(c, "admin/components/album-editor-content.html", map[string]interface{}{
-				"Album":   album,
-				"AuthKey": authKey,
-			})
-		}
-	}
-
-	return echo.NewHTTPError(http.StatusNotFound, "Album not found")
-}
-
-func fetchMetalArchivesHandler(c echo.Context) error {
-	authKey := c.FormValue("authKey")
-	url := c.FormValue("metalArchivesUrl")
-
-	log.Printf("Fetching from Metal Archives: %s", url)
-
-	valid, err := loader.ValidateAuthKey(authKey)
-	if err != nil || !valid {
-		log.Printf("Auth error: %v", err)
-		return renderTemplate(c, "admin/components/metal-archives-preview.html", map[string]interface{}{
-			"Error": "Authentication failed",
-		})
-	}
-
-	if url == "" {
-		return renderTemplate(c, "admin/components/metal-archives-preview.html", map[string]interface{}{
-			"Error": "No Metal Archives URL provided",
-		})
-	}
-
-	data, err := fetch.FetchFromMetalArchives(url)
-	if err != nil {
-		log.Printf("Error fetching from Metal Archives: %v", err)
-		return renderTemplate(c, "admin/components/metal-archives-preview.html", map[string]interface{}{
-			"Error": fmt.Sprintf("Error fetching data: %v", err),
-		})
-	}
-
-	jsonData := map[string]string{
-		"releaseDate": data.ReleaseDate,
-		"genre":       data.Genre,
-		"country":     data.Country,
-		"label":       data.Label,
-	}
-
-	jsonBytes, err := json.Marshal(jsonData)
-	if err != nil {
-		return renderTemplate(c, "admin/components/metal-archives-preview.html", map[string]interface{}{
-			"Error": "Error processing data",
-		})
-	}
-
-	return renderTemplate(c, "admin/components/metal-archives-preview.html", map[string]interface{}{
-		"ReleaseDate": data.ReleaseDate,
-		"Genre":       data.Genre,
-		"Country":     data.Country,
-		"Label":       data.Label,
-		"JsonData":    template.JS(string(jsonBytes)),
-	})
-}
-
-func validateMetalArchivesUrlHandler(c echo.Context) error {
-	url := c.FormValue("metalArchivesUrl")
-	isValid := strings.Contains(url, "metal-archives.com")
-
-	if !isValid {
-		return c.HTML(http.StatusOK, `
-					<button class="px-4 py-2 bg-purple-600 text-gray-200 rounded hover:bg-purple-700 opacity-50" disabled>
-							Fetch Metal Archives Data
-					</button>
-			`)
-	}
-
-	return c.HTML(http.StatusOK, `
-			<button class="px-4 py-2 bg-purple-600 text-gray-200 rounded hover:bg-purple-700">
-					Fetch Metal Archives Data
-			</button>
-	`)
 }
 
 func partsOfSpeechHandler(c echo.Context) error {
