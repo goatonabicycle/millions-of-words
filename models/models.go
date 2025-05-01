@@ -80,7 +80,6 @@ type UpdateTrackRequest struct {
 	TrackNumber  int    `json:"trackNumber" form:"trackNumber"`
 	Lyrics       string `json:"lyrics" form:"lyrics"`
 	IgnoredWords string `json:"ignoredWords" form:"ignoredWords"`
-	AuthKey      string `json:"authKey" form:"authKey"`
 }
 
 type UpdateAlbumRequest struct {
@@ -92,6 +91,5 @@ type UpdateAlbumRequest struct {
 	Label            string `json:"label" form:"label"`
 	IgnoredWords     string `json:"ignoredWords" form:"ignoredWords"`
 	Notes            string `json:"notes" form:"notes"`
-	AuthKey          string `json:"authKey" form:"authKey"`
 	Enabled          string `json:"enabled" form:"enabled"`
 }

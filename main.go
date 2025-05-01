@@ -11,7 +11,9 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	"millions-of-words/fetch"
 	"millions-of-words/internal/admin"
@@ -450,14 +452,13 @@ func sortAlbums(albums []models.BandcampAlbumData, sortField, sortDir string) {
 }
 
 func importAlbumHandler(c echo.Context) error {
-	key := c.FormValue("authKey")
-	valid, err := loader.ValidateAuthKey(key)
-	if err != nil || !valid {
+	user := c.Get("user").(*loader.User)
+	if user == nil {
 		return c.HTML(http.StatusUnauthorized, `
-					<div class="bg-red-500/10 border border-red-500 text-red-500 p-4 rounded">
-							Invalid authentication
-					</div>
-			`)
+			<div class="bg-red-500/10 border border-red-500 text-red-500 p-4 rounded">
+				Invalid authentication
+			</div>
+		`)
 	}
 
 	urls := strings.Split(c.FormValue("bandcampUrls"), "\n")
@@ -476,56 +477,56 @@ func importAlbumHandler(c echo.Context) error {
 
 		if !strings.Contains(url, "bandcamp.com") {
 			results = append(results, fmt.Sprintf(`
-							<div class="bg-red-500/10 border border-red-500 text-red-500 p-2 rounded text-sm">
-									Invalid Bandcamp URL: %s
-							</div>`, url))
+				<div class="bg-red-500/10 border border-red-500 text-red-500 p-2 rounded text-sm">
+					Invalid Bandcamp URL: %s
+				</div>`, url))
 			continue
 		}
 
 		exists, err := loader.AlbumUrlExists(url)
 		if err != nil {
 			results = append(results, fmt.Sprintf(`
-							<div class="bg-red-500/10 border border-red-500 text-red-500 p-2 rounded text-sm">
-									Error checking database for %s: %v
-							</div>`, url, err))
+				<div class="bg-red-500/10 border border-red-500 text-red-500 p-2 rounded text-sm">
+					Error checking database for %s: %v
+				</div>`, url, err))
 			continue
 		}
 
 		if exists {
 			results = append(results, fmt.Sprintf(`
-							<div class="bg-yellow-500/10 border border-yellow-500 text-yellow-500 p-2 rounded text-sm">
-									%s has already been imported
-							</div>`, url))
+				<div class="bg-yellow-500/10 border border-yellow-500 text-yellow-500 p-2 rounded text-sm">
+					%s has already been imported
+				</div>`, url))
 			continue
 		}
 
 		albumData, err := fetch.FetchFromBandcamp(url)
 		if err != nil {
 			results = append(results, fmt.Sprintf(`
-							<div class="bg-red-500/10 border border-red-500 text-red-500 p-2 rounded text-sm">
-									Error fetching %s: %v
-							</div>`, url, err))
+				<div class="bg-red-500/10 border border-red-500 text-red-500 p-2 rounded text-sm">
+					Error fetching %s: %v
+				</div>`, url, err))
 			continue
 		}
 
 		if err := loader.SaveAlbum(albumData); err != nil {
 			results = append(results, fmt.Sprintf(`
-							<div class="bg-red-500/10 border border-red-500 text-red-500 p-2 rounded text-sm">
-									Error saving %s: %v
-							</div>`, url, err))
+				<div class="bg-red-500/10 border border-red-500 text-red-500 p-2 rounded text-sm">
+					Error saving %s: %v
+				</div>`, url, err))
 			continue
 		}
 
 		results = append(results, fmt.Sprintf(`
-					<div class="bg-green-500/10 border border-green-500 text-green-500 p-2 rounded text-sm">
-							Successfully imported %s - %s
-					</div>`, albumData.ArtistName, albumData.AlbumName))
+			<div class="bg-green-500/10 border border-green-500 text-green-500 p-2 rounded text-sm">
+				Successfully imported %s - %s
+			</div>`, albumData.ArtistName, albumData.AlbumName))
 
 		progressMsg := fmt.Sprintf(`
-					<div class="text-gray-400 text-sm text-right">
-							Processed %d of %d
-					</div>
-			`, i+1, total)
+			<div class="text-gray-400 text-sm text-right">
+				Processed %d of %d
+			</div>
+		`, i+1, total)
 
 		log.Printf("Writing progress update to response")
 		_, err = c.Response().Write([]byte(strings.Join(results, "\n") + progressMsg))
@@ -577,4 +578,66 @@ func partsOfSpeechHandler(c echo.Context) error {
 		"Title":         "Parts of Speech Analyzer",
 		"IsPOSAnalyzer": true,
 	})
+}
+
+func adminAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		session, err := c.Cookie("session")
+		if err != nil || session.Value == "" {
+			return c.Redirect(http.StatusSeeOther, "/admin/login")
+		}
+
+		// Validate session with Supabase
+		user, err := loader.ValidateSession(session.Value)
+		if err != nil {
+			c.SetCookie(&http.Cookie{
+				Name:     "session",
+				Value:    "",
+				Path:     "/",
+				Expires:  time.Now().Add(-1 * time.Hour),
+				HttpOnly: true,
+				Secure:   true,
+				SameSite: http.SameSiteStrictMode,
+			})
+			return c.Redirect(http.StatusSeeOther, "/admin/login")
+		}
+
+		c.Set("user", user)
+		return next(c)
+	}
+}
+
+func handleAdminAuth(c echo.Context) error {
+	email := c.FormValue("email")
+	password := c.FormValue("password")
+
+	user, err := loader.SignInWithEmail(email, password)
+	if err != nil {
+		return c.HTML(http.StatusUnauthorized, `<div class="text-red-500">Invalid credentials</div>`)
+	}
+
+	c.SetCookie(&http.Cookie{
+		Name:     "session",
+		Value:    user.AccessToken,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	})
+
+	return c.HTML(http.StatusOK, `<div class="text-green-500">Login successful! Redirecting...</div>
+		<script>
+			setTimeout(() => {
+				window.location.href = "/admin";
+			}, 1000);
+		</script>`)
+}
+
+func parseTrackNumber(s string) int {
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		return 0
+	}
+	return n
 }

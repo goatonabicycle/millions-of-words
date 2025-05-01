@@ -162,32 +162,7 @@ func calculateAverage(total, count int) int {
 	return 0
 }
 
-func ValidateAuthKey(key string) (bool, error) {
-	db, err := sql.Open("sqlite", dbPath)
-	if err != nil {
-		return false, fmt.Errorf("error opening database: %w", err)
-	}
-	defer db.Close()
-
-	var exists bool
-	err = db.QueryRow("SELECT EXISTS(SELECT 1 FROM auth_keys WHERE key = ?)", key).Scan(&exists)
-	if err != nil {
-		log.Printf("Error checking auth key: %v", err)
-		return false, fmt.Errorf("error checking auth key: %w", err)
-	}
-
-	return exists, nil
-}
-
 func UpdateTrackLyrics(req models.UpdateTrackRequest) error {
-	valid, err := ValidateAuthKey(req.AuthKey)
-	if err != nil {
-		return fmt.Errorf("error validating auth: %w", err)
-	}
-	if !valid {
-		return fmt.Errorf("invalid auth key")
-	}
-
 	cleanLyrics := strings.TrimSpace(req.Lyrics)
 	if strings.HasPrefix(strings.ToLower(cleanLyrics), "lyrics") {
 		cleanLyrics = ""

@@ -9,23 +9,7 @@
                     {{ block "content" . }}{{ end }}
                 </div>
             {{ else }}
-                <div class="flex flex-col items-center justify-center min-h-[50vh]">
-                    <div class="w-full max-w-md space-y-4">
-                        <h1 class="text-2xl font-bold text-center mb-8">Admin Access</h1>
-                        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                            <input 
-                                type="password" 
-                                name="authKey" 
-                                class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500" 
-                                placeholder="Enter Auth Key" 
-                                hx-post="/admin/auth" 
-                                hx-target="body"
-                                hx-trigger="keyup changed delay:500ms"
-                                hx-indicator="#loading-indicator">
-                            {{ template "loading" "Authenticating..." }}                            
-                        </div>
-                    </div>
-                </div>
+                {{ template "admin/pages/login.html" . }}
             {{ end }}
         </main>
     </body>

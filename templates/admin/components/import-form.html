@@ -1,4 +1,4 @@
-{{ define "admin/components/import-form" }}
+{{ define "admin/components/import-form.html" }}
 <div class="bg-gray-800 p-4 rounded-lg">    
     <div id="import-status" class="mt-4 space-y-2 bg-gray-900 p-4 rounded max-h-64 overflow-y-auto"></div>
 
@@ -6,7 +6,6 @@
 
     <form hx-post="/admin/import" 
           hx-target="#import-status" 
-          hx-include="[name='authKey']"
           hx-indicator="#loading-indicator">
         <div class="space-y-4">
             <div>

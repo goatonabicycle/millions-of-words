@@ -1,21 +1,82 @@
-{{ define "admin/components/album-form" }}
-<div class="">
-    <select 
-        name="albumId" 
-        hx-get="/admin/content/editor/album" 
-        hx-target="#album-editor-content" 
-        hx-include="[name='authKey']" 
-        hx-indicator="#loading-indicator"
-        class="w-full p-2 bg-gray-800 text-gray-200 rounded border border-gray-600 focus:border-blue-500"
-    >
-        <option value="">Select an album to edit...</option>
-        {{ range .Albums }}
-            <option value="{{ .ID }}">{{ .ArtistName }} - {{ .AlbumName }}{{ if not .Enabled }} [Disabled]{{ end }}</option>
-        {{ end }}
-    </select>
+{{ define "admin/components/album-form.html" }}
+<form id="album-form" hx-post="/admin/update/album" hx-target="#album-status">
+    <input type="hidden" name="albumId" value="{{ .Album.ID }}">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-300">Metal Archives URL</label>
+            <input type="text" 
+                   name="metalArchivesUrl" 
+                   value="{{ .Album.MetalArchivesURL }}" 
+                   class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500"
+                   hx-trigger="change"
+                   hx-post="/admin/validate/metal-archives-url"
+                   hx-target="#metal-archives-section">
+        </div>
 
-     {{ template "loading" "Loading album details..." }}
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-300">Release Date</label>
+            <input type="date" 
+                   name="releaseDate" 
+                   value="{{ .Album.ReleaseDate }}" 
+                   class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500">
+        </div>
 
-    <div id="album-editor-content" class="space-y-6"></div>
-</div>
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-300">Genre</label>
+            <input type="text" 
+                   name="genre" 
+                   value="{{ if .Album.Genre }}{{ .Album.Genre }}{{ else }}metal{{ end }}" 
+                   class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500" 
+                   placeholder="Separate multiple genres with commas">
+        </div>
+
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-300">Country</label>
+            <input type="text" 
+                   name="country" 
+                   value="{{ .Album.Country }}" 
+                   class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500">
+        </div>
+
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-300">Label</label>
+            <input type="text" 
+                   name="label" 
+                   value="{{ .Album.Label }}" 
+                   class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500">
+        </div>
+
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-300">Ignored Words</label>
+            <input type="text" 
+                   name="ignoredWords" 
+                   value="{{ .Album.IgnoredWords }}" 
+                   class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500" 
+                   placeholder="Separate words with commas">
+        </div>
+
+        <div class="space-y-2">
+            <label class="flex items-center space-x-2">
+                <input type="checkbox" name="enabled" value="true" {{ if .Album.Enabled }}checked{{ end }} class="w-4 h-4 accent-blue-500">
+                <span class="text-sm font-medium text-gray-300">Album Enabled</span>
+            </label>
+        </div>
+    </div>
+
+    <div class="space-y-2 mt-4 hidden">
+        <label class="block text-sm font-medium text-gray-300">Notes</label>
+        <textarea name="notes" 
+                  rows="4" 
+                  class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500"
+        >{{ .Album.Notes }}</textarea>
+    </div>
+
+    <div class="flex items-center gap-4 mt-4">
+        <button type="submit" 
+                class="px-4 py-2 bg-blue-600 text-gray-200 rounded hover:bg-blue-700">
+            Save Album Details
+        </button>
+        <div id="album-status" class="text-sm"></div>
+    </div>
+</form>
 {{ end }}

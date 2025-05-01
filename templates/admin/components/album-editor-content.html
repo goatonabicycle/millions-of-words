@@ -6,12 +6,10 @@
         <h3 class="text-lg font-bold text-gray-200 mb-4">Album Details</h3>      
         
         <div class="mb-4 space-y-4">            
-            <input type="hidden" name="authKey" value="{{ .AuthKey }}">
-                        
           <div class="flex items-center gap-2">
                 <button class="px-4 py-2 bg-purple-600 text-gray-200 rounded hover:bg-purple-700 disabled:opacity-50"
                         hx-post="/admin/fetch/metal-archives"
-                        hx-include="[name='authKey'], [name='metalArchivesUrl']"
+                        hx-include="[name='metalArchivesUrl']"
                         hx-target="#metal-archives-preview"
                         hx-indicator="#ma-fetch-loading-indicator"
                         id="ma-fetch-button">
@@ -28,7 +26,7 @@
             <div id="metal-archives-preview"></div>
         </div>
 
-        <form id="album-form" hx-post="/admin/update/album" hx-target="#album-status" hx-include="[name='authKey']">
+        <form id="album-form" hx-post="/admin/update/album" hx-target="#album-status">
             <input type="hidden" name="albumId" value="{{ .Album.ID }}">         
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="space-y-2">
@@ -113,7 +111,7 @@
     {{ range $index, $track := .Album.Tracks }}
     <div class="p-4 bg-gray-800 rounded border border-gray-600">
         <h3 class="text-lg font-bold text-gray-200 mb-2">{{ $track.Name }}</h3>
-        <form hx-post="/admin/update/track" hx-target="#track-status-{{ $index }}" hx-include="[name='authKey']">
+        <form hx-post="/admin/update/track" hx-target="#track-status-{{ $index }}">
             <input type="hidden" name="albumId" value="{{ $.Album.ArtistName }} - {{ $.Album.AlbumName }}">
             <input type="hidden" name="trackName" value="{{ $track.Name }}">
             

@@ -24,12 +24,14 @@ type SupabaseConfig struct {
 }
 
 var (
+	config       SupabaseConfig
 	publicClient *supa.Client
 	adminClient  *supa.Client
 )
 
 func init() {
-	config, err := loadConfig("auth.json")
+	var err error
+	config, err = loadConfig("auth.json")
 	if err != nil {
 		log.Fatalf("Failed to load Supabase config: %v", err)
 	}
@@ -155,61 +157,6 @@ func fetchTracks(album *models.BandcampAlbumData) error {
 	}
 
 	album.Tracks = tracks
-	return nil
-}
-
-func ValidateAuthKey(key string) (bool, error) {
-	data, _, err := adminClient.From("auth_keys").
-		Select("*", "exact", false).
-		Eq("key", key).
-		Execute()
-	if err != nil {
-		return false, fmt.Errorf("error checking auth key: %w", err)
-	}
-
-	var results []map[string]interface{}
-	if err := json.Unmarshal(data, &results); err != nil {
-		return false, fmt.Errorf("error scanning auth key result: %w", err)
-	}
-
-	return len(results) > 0, nil
-}
-
-func UpdateTrackLyrics(req models.UpdateTrackRequest) error {
-	valid, err := ValidateAuthKey(req.AuthKey)
-	if err != nil {
-		return fmt.Errorf("error validating auth: %w", err)
-	}
-	if !valid {
-		return fmt.Errorf("invalid auth key")
-	}
-
-	cleanLyrics := strings.TrimSpace(req.Lyrics)
-	if strings.HasPrefix(strings.ToLower(cleanLyrics), "lyrics") {
-		cleanLyrics = ""
-	}
-
-	log.Printf("Updating track: %s, album: %s", req.TrackName, req.AlbumID)
-
-	updates := map[string]interface{}{
-		"lyrics":        cleanLyrics,
-		"track_number":  req.TrackNumber,
-		"ignored_words": req.IgnoredWords,
-	}
-
-	_, count, err := adminClient.From("tracks").
-		Update(updates, "tracks", "id").
-		Eq("album_id", req.AlbumID).
-		Eq("name", req.TrackName).
-		Execute()
-	if err != nil {
-		return fmt.Errorf("error updating track: %w", err)
-	}
-
-	if count == 0 {
-		return fmt.Errorf("no matching track found")
-	}
-
 	return nil
 }
 
@@ -397,66 +344,10 @@ func calculateAverage(total, count int) int {
 	return 0
 }
 
-func UpdateAlbum(req models.UpdateAlbumRequest) error {
-	valid, err := ValidateAuthKey(req.AuthKey)
-	if err != nil {
-		return fmt.Errorf("error validating auth: %w", err)
-	}
-	if !valid {
-		return fmt.Errorf("invalid auth key")
-	}
-
-	log.Printf("Updating album: %s", req.AlbumID)
-	log.Printf("Update data: %+v", req)
-
-	enabled := req.Enabled == "true"
-
-	updates := map[string]interface{}{
-		"metal_archives_url": req.MetalArchivesURL,
-		"release_date":       req.ReleaseDate,
-		"genre":              req.Genre,
-		"country":            req.Country,
-		"label":              req.Label,
-		"ignored_words":      req.IgnoredWords,
-		"notes":              req.Notes,
-		"enabled":            enabled,
-	}
-
-	_, _, err = adminClient.From("albums").
-		Update(updates, "albums", "id").
-		Eq("id", req.AlbumID).
-		Execute()
-
-	if err != nil {
-		return fmt.Errorf("error updating album: %w", err)
-	}
-
-	data, _, err := adminClient.From("albums").
-		Select("*", "exact", false).
-		Eq("id", req.AlbumID).
-		Single().
-		Execute()
-
-	if err != nil {
-		return fmt.Errorf("error verifying update: %w", err)
-	}
-
-	var album models.BandcampAlbumData
-	if err := json.Unmarshal(data, &album); err != nil {
-		return fmt.Errorf("error scanning updated album: %w", err)
-	}
-
-	log.Printf("Verified updated album values: %+v", album)
-	return nil
-}
-
 func UpdateTrack(req models.UpdateTrackRequest) error {
-	valid, err := ValidateAuthKey(req.AuthKey)
-	if err != nil {
-		return fmt.Errorf("error validating auth: %w", err)
-	}
-	if !valid {
-		return fmt.Errorf("invalid auth key")
+	cleanLyrics := strings.TrimSpace(req.Lyrics)
+	if strings.HasPrefix(strings.ToLower(cleanLyrics), "lyrics") {
+		cleanLyrics = ""
 	}
 
 	log.Printf("Attempting to update track. Album ID: '%s', Track Name: '%s'", req.AlbumID, req.TrackName)
@@ -482,11 +373,6 @@ func UpdateTrack(req models.UpdateTrackRequest) error {
 	log.Printf("Found %d matching tracks", len(tracks))
 	log.Printf("Track data: %+v", tracks[0])
 
-	cleanLyrics := strings.TrimSpace(req.Lyrics)
-	if strings.HasPrefix(strings.ToLower(cleanLyrics), "lyrics") {
-		cleanLyrics = ""
-	}
-
 	updates := map[string]interface{}{
 		"lyrics":        cleanLyrics,
 		"track_number":  req.TrackNumber,
@@ -503,5 +389,50 @@ func UpdateTrack(req models.UpdateTrackRequest) error {
 		return fmt.Errorf("error updating track: %w", err)
 	}
 
+	return nil
+}
+
+func UpdateAlbum(req models.UpdateAlbumRequest) error {
+	log.Printf("Updating album: %s", req.AlbumID)
+	log.Printf("Update data: %+v", req)
+
+	enabled := req.Enabled == "true"
+
+	updates := map[string]interface{}{
+		"metal_archives_url": req.MetalArchivesURL,
+		"release_date":       req.ReleaseDate,
+		"genre":              req.Genre,
+		"country":            req.Country,
+		"label":              req.Label,
+		"ignored_words":      req.IgnoredWords,
+		"notes":              req.Notes,
+		"enabled":            enabled,
+	}
+
+	_, _, err := adminClient.From("albums").
+		Update(updates, "albums", "id").
+		Eq("id", req.AlbumID).
+		Execute()
+
+	if err != nil {
+		return fmt.Errorf("error updating album: %w", err)
+	}
+
+	data, _, err := adminClient.From("albums").
+		Select("*", "exact", false).
+		Eq("id", req.AlbumID).
+		Single().
+		Execute()
+
+	if err != nil {
+		return fmt.Errorf("error verifying update: %w", err)
+	}
+
+	var album models.BandcampAlbumData
+	if err := json.Unmarshal(data, &album); err != nil {
+		return fmt.Errorf("error scanning updated album: %w", err)
+	}
+
+	log.Printf("Verified updated album values: %+v", album)
 	return nil
 }
