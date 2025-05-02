@@ -78,7 +78,8 @@ func (h *Handler) AdminAuthHandler(c echo.Context) error {
 		MaxAge:   86400, // 24 hours
 	})
 
-	return c.Redirect(http.StatusFound, "/admin")
+	c.Response().Header().Set("HX-Redirect", "/admin")
+	return c.NoContent(http.StatusOK)
 }
 
 func (h *Handler) AdminEditorHandler(c echo.Context) error {
