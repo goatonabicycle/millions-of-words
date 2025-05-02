@@ -10,6 +10,8 @@ func SetupRoutes(e *echo.Echo, h *Handler) {
 	admin.POST("/auth", h.AdminAuthHandler)
 	admin.GET("/content/import", h.AdminImportHandler)
 	admin.POST("/import", h.ImportAlbumHandler)
+	admin.POST("/import/start", h.ImportStartHandler)
+	admin.POST("/import/process", h.ImportProcessHandler)
 	admin.POST("/fetch/metal-archives", h.FetchMetalArchivesHandler)
 	admin.POST("/validate/metal-archives-url", h.ValidateMetalArchivesUrlHandler)
 	admin.GET("/logout", h.LogoutHandler)

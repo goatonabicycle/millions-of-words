@@ -8,6 +8,7 @@
                 <div class="bg-gray-800 rounded-lg shadow-lg p-6">
                     {{ block "content" . }}{{ end }}
                 </div>
+                <div id="import-progress-global" class="mt-6"></div>
             {{ else }}
                 {{ template "admin/pages/login.html" . }}
             {{ end }}

@@ -1,16 +1,11 @@
 {{ define "admin/components/import-form.html" }}
-<div class="bg-gray-800 p-4 rounded-lg">    
-    <div id="import-status" class="mt-4 space-y-2 bg-gray-900 p-4 rounded max-h-64 overflow-y-auto"></div>
-
-    {{ template "loading" "Importing albums..." }}
-
-    <form hx-post="/admin/import" 
-          hx-target="#import-status" 
-          hx-indicator="#loading-indicator">
+<div class="bg-gray-800 p-4 rounded-lg">
+    <div id="import-status-message"></div>
+    <form id="import-form" hx-post="/admin/import/start" hx-target="#import-progress-global" hx-swap="innerHTML">
         <div class="space-y-4">
             <div>
                 <label class="block text-sm font-medium mb-2">Bandcamp URLs (one per line)</label>
-                <textarea name="bandcampUrls" rows="5" 
+                <textarea name="bandcampUrls" rows="5"
                     class="w-full p-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500"
                     placeholder="https://artist1.bandcamp.com/album/name1&#10;https://artist2.bandcamp.com/album/name2"
                     required></textarea>

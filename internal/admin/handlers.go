@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -244,6 +245,125 @@ func (h *Handler) AlbumListHandler(c echo.Context) error {
 	}
 	sb.WriteString("</ul>")
 	return c.HTML(200, sb.String())
+}
+
+func (h *Handler) ImportStartHandler(c echo.Context) error {
+	if err := validateAuth(c); err != nil {
+		return err
+	}
+	urls := strings.Split(c.FormValue("bandcampUrls"), "\n")
+	var albumRows strings.Builder
+	var urlList []string
+	for i, url := range urls {
+		url = strings.TrimSpace(url)
+		if url == "" {
+			continue
+		}
+		urlList = append(urlList, url)
+		albumRows.WriteString(`<div id="album-status-` + fmt.Sprint(i) + `" class="flex items-center gap-2 py-2 border-b border-gray-700">`)
+		albumRows.WriteString(`<span class="w-8 h-8 flex items-center justify-center bg-gray-700 rounded-full text-gray-400">`)
+		albumRows.WriteString(fmt.Sprint(i + 1))
+		albumRows.WriteString(`</span>`)
+		albumRows.WriteString(`<span class="flex-1 text-gray-200">` + template.HTMLEscapeString(url) + `</span>`)
+		albumRows.WriteString(`<span class="text-yellow-400">Pending</span>`)
+		albumRows.WriteString(`</div>`)
+	}
+	progressBar := `<div class="w-full bg-gray-700 rounded-full h-4 mb-4">
+	  <div id="import-progress-bar" class="bg-blue-600 h-4 rounded-full" style="width:0%"></div>
+	</div>`
+	html := `<div id="import-progress-container">` + progressBar + `<div id="import-album-status-list">` + albumRows.String() + `</div></div>`
+	// Add a script to trigger the first import if there are any URLs
+	if len(urlList) > 0 {
+		html += `<div hx-post="/admin/import/process"
+					 hx-target="#album-status-0"
+					 hx-swap="outerHTML"
+					 hx-vals='{"albumIndex":0,"total":` + fmt.Sprint(len(urlList)) + `,"bandcampUrls":"` + template.JSEscapeString(strings.Join(urlList, "\\n")) + `"}'
+					 hx-trigger="load"></div>`
+		// Add a script to reload the import tab after a delay (when all are done)
+		html += `<div id="import-finish-trigger"></div>`
+		html += `<script>
+		  function checkImportDone() {
+			var lastRow = document.getElementById('album-status-` + fmt.Sprint(len(urlList)-1) + `');
+			if (lastRow && lastRow.querySelector('.text-green-400, .text-red-400, .text-yellow-400')) {
+			  setTimeout(function() {
+				htmx.ajax('GET', '/admin/content/import', {target: '#admin-content', swap: 'innerHTML'});
+				document.getElementById('import-progress-global').innerHTML = '';
+				setTimeout(function() {
+				  var msg = document.getElementById('import-status-message');
+				  if (msg) msg.innerHTML = '<div class="bg-green-700 text-white p-2 rounded mb-2">Import complete!</div>';
+				}, 500);
+			  }, 1000);
+			} else {
+			  setTimeout(checkImportDone, 500);
+			}
+		  }
+		  checkImportDone();
+		</script>`
+	}
+	return c.HTML(200, html)
+}
+
+func (h *Handler) ImportProcessHandler(c echo.Context) error {
+	if err := validateAuth(c); err != nil {
+		return err
+	}
+	albumIndex, _ := strconv.Atoi(c.FormValue("albumIndex"))
+	total, _ := strconv.Atoi(c.FormValue("total"))
+	urls := strings.Split(c.FormValue("bandcampUrls"), "\n")
+	if albumIndex >= len(urls) {
+		return nil
+	}
+	url := strings.TrimSpace(urls[albumIndex])
+	status := ""
+	color := ""
+	icon := ""
+	if url == "" {
+		status = "Skipped"
+		color = "text-gray-400"
+		icon = "-"
+	} else if !strings.Contains(url, "bandcamp.com") {
+		status = "Invalid URL"
+		color = "text-red-400"
+		icon = "✗"
+	} else {
+		exists, err := loader.AlbumUrlExists(url)
+		if err != nil {
+			status = "Error"
+			color = "text-red-400"
+			icon = "✗"
+		} else if exists {
+			status = "Already Imported"
+			color = "text-yellow-400"
+			icon = "!"
+		} else {
+			albumData, err := fetch.FetchFromBandcamp(url)
+			if err != nil {
+				status = "Fetch Error"
+				color = "text-red-400"
+				icon = "✗"
+			} else if err := loader.SaveAlbum(albumData); err != nil {
+				status = "Save Error"
+				color = "text-red-400"
+				icon = "✗"
+			} else {
+				status = "Imported"
+				color = "text-green-400"
+				icon = "✓"
+			}
+		}
+	}
+	row := `<div id="album-status-` + fmt.Sprint(albumIndex) + `" class="flex items-center gap-2 py-2 border-b border-gray-700" hx-swap-oob="true">`
+	row += `<span class="w-8 h-8 flex items-center justify-center bg-gray-700 rounded-full ` + color + `">` + icon + `</span>`
+	row += `<span class="flex-1 text-gray-200">` + template.HTMLEscapeString(url) + `</span>`
+	row += `<span class="` + color + `">` + status + `</span>`
+	row += `</div>`
+	progress := int(float64(albumIndex+1) / float64(total) * 100)
+	progressBar := `<div id="import-progress-bar" class="bg-blue-600 h-4 rounded-full" style="width:` + fmt.Sprint(progress) + `%;" hx-swap-oob="true"></div>`
+	triggerNext := ""
+	if albumIndex+1 < total {
+		triggerNext = `<div hx-post=\"/admin/import/process\" hx-target=\"#album-status-` + fmt.Sprint(albumIndex+1) + `\" hx-swap=\"outerHTML\" hx-vals='{"albumIndex":` + fmt.Sprint(albumIndex+1) + `,"total":` + fmt.Sprint(total) + `,"bandcampUrls":"` + template.JSEscapeString(strings.Join(urls, "\\n")) + `"}' hx-trigger=\"load\"></div>`
+	}
+	return c.HTML(200, row+progressBar+triggerNext)
 }
 
 func validateAuth(c echo.Context) error {
