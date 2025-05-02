@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"millions-of-words/fetch"
 	loader "millions-of-words/loaders/supabase"
@@ -285,6 +286,20 @@ func (h *Handler) ValidateMetalArchivesUrlHandler(c echo.Context) error {
 	}
 
 	return c.HTML(http.StatusOK, "")
+}
+
+func (h *Handler) LogoutHandler(c echo.Context) error {
+	// Clear the session cookie
+	c.SetCookie(&http.Cookie{
+		Name:     "session",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Now().Add(-1 * time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	})
+	return c.Redirect(http.StatusSeeOther, "/admin")
 }
 
 func validateAuth(c echo.Context) error {
