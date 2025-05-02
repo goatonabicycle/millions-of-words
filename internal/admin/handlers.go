@@ -10,7 +10,6 @@ import (
 
 	"millions-of-words/fetch"
 	loader "millions-of-words/loaders/supabase"
-	"millions-of-words/models"
 
 	"github.com/labstack/echo/v4"
 )
@@ -82,22 +81,6 @@ func (h *Handler) AdminAuthHandler(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *Handler) AdminEditorHandler(c echo.Context) error {
-	if err := validateAuth(c); err != nil {
-		return err
-	}
-
-	allAlbums, err := loader.LoadAllAlbumsData()
-	if err != nil {
-		log.Printf("Error loading albums: %v", err)
-		return err
-	}
-
-	return h.templates.Render(c.Response().Writer, "admin/components/album-form.html", map[string]interface{}{
-		"Albums": allAlbums,
-	}, c)
-}
-
 func (h *Handler) AdminImportHandler(c echo.Context) error {
 	if err := validateAuth(c); err != nil {
 		return err
@@ -106,64 +89,55 @@ func (h *Handler) AdminImportHandler(c echo.Context) error {
 	return h.templates.Render(c.Response().Writer, "admin/components/import-form.html", nil, c)
 }
 
-func (h *Handler) AdminAlbumEditorHandler(c echo.Context) error {
+func (h *Handler) FetchMetalArchivesHandler(c echo.Context) error {
 	if err := validateAuth(c); err != nil {
 		return err
 	}
 
-	albumID := c.QueryParam("albumId")
-	if albumID == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "No album ID provided")
+	url := c.FormValue("metalArchivesUrl")
+	if url == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "Metal Archives URL is required")
 	}
 
-	albums, err := loader.LoadAllAlbumsData()
+	data, err := fetch.FetchFromMetalArchives(url)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Error loading albums")
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to fetch data: %v", err))
 	}
 
-	for _, album := range albums {
-		if album.ID == albumID {
-			return h.templates.Render(c.Response().Writer, "admin/components/album-editor-content.html", map[string]interface{}{
-				"Album": album,
-			}, c)
-		}
-	}
-
-	return echo.NewHTTPError(http.StatusNotFound, "Album not found")
+	return h.templates.Render(c.Response().Writer, "admin/components/metal-archives-preview.html", map[string]interface{}{
+		"Data": data,
+	}, c)
 }
 
-func (h *Handler) UpdateAlbumHandler(c echo.Context) error {
+func (h *Handler) ValidateMetalArchivesUrlHandler(c echo.Context) error {
 	if err := validateAuth(c); err != nil {
 		return err
 	}
 
-	var updateReq models.UpdateAlbumRequest
-	if err := c.Bind(&updateReq); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid album data")
+	url := c.FormValue("metalArchivesUrl")
+	if url == "" {
+		return c.HTML(http.StatusOK, "")
 	}
 
-	if err := loader.UpdateAlbum(updateReq); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to update album: %v", err))
+	if !strings.HasPrefix(url, "https://www.metal-archives.com/albums/") {
+		return c.HTML(http.StatusOK, `<div class="text-red-500">Invalid Metal Archives URL format</div>`)
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"status": "success"})
+	return c.HTML(http.StatusOK, "")
 }
 
-func (h *Handler) UpdateTrackHandler(c echo.Context) error {
-	if err := validateAuth(c); err != nil {
-		return err
-	}
-
-	var updateReq models.UpdateTrackRequest
-	if err := c.Bind(&updateReq); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid track data")
-	}
-
-	if err := loader.UpdateTrack(updateReq); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to update track: %v", err))
-	}
-
-	return c.JSON(http.StatusOK, map[string]string{"status": "success"})
+func (h *Handler) LogoutHandler(c echo.Context) error {
+	// Clear the session cookie
+	c.SetCookie(&http.Cookie{
+		Name:     "session",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Now().Add(-1 * time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	})
+	return c.Redirect(http.StatusSeeOther, "/admin")
 }
 
 func (h *Handler) ImportAlbumHandler(c echo.Context) error {
@@ -250,57 +224,6 @@ func (h *Handler) ImportAlbumHandler(c echo.Context) error {
 
 	log.Printf("Import complete")
 	return c.HTML(http.StatusOK, strings.Join(results, "\n"))
-}
-
-func (h *Handler) FetchMetalArchivesHandler(c echo.Context) error {
-	if err := validateAuth(c); err != nil {
-		return err
-	}
-
-	url := c.FormValue("metalArchivesUrl")
-	if url == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "Metal Archives URL is required")
-	}
-
-	data, err := fetch.FetchFromMetalArchives(url)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to fetch data: %v", err))
-	}
-
-	return h.templates.Render(c.Response().Writer, "admin/components/metal-archives-preview.html", map[string]interface{}{
-		"Data": data,
-	}, c)
-}
-
-func (h *Handler) ValidateMetalArchivesUrlHandler(c echo.Context) error {
-	if err := validateAuth(c); err != nil {
-		return err
-	}
-
-	url := c.FormValue("metalArchivesUrl")
-	if url == "" {
-		return c.HTML(http.StatusOK, "")
-	}
-
-	if !strings.HasPrefix(url, "https://www.metal-archives.com/albums/") {
-		return c.HTML(http.StatusOK, `<div class="text-red-500">Invalid Metal Archives URL format</div>`)
-	}
-
-	return c.HTML(http.StatusOK, "")
-}
-
-func (h *Handler) LogoutHandler(c echo.Context) error {
-	// Clear the session cookie
-	c.SetCookie(&http.Cookie{
-		Name:     "session",
-		Value:    "",
-		Path:     "/",
-		Expires:  time.Now().Add(-1 * time.Hour),
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
-	})
-	return c.Redirect(http.StatusSeeOther, "/admin")
 }
 
 func validateAuth(c echo.Context) error {
