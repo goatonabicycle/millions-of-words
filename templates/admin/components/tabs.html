@@ -2,12 +2,28 @@
 <div class="border-b border-gray-700 mb-6">
     <nav class="flex space-x-4" aria-label="Tabs">
         <button 
-            class="px-4 py-2 text-sm font-medium rounded-t-lg hover:bg-gray-700 hover:text-white" 
+            class="tab-btn px-4 py-2 text-sm font-medium rounded-t-lg hover:bg-gray-700 hover:text-white"
             hx-get="/admin/content/import" 
             hx-target="#admin-content" 
+            hx-indicator="#tab-loading-indicator"
+            hx-push-url="/admin?tab=import"
             id="import-tab"
+            data-tab="import"
+            aria-selected="true"
         >
             Import Albums
+        </button>
+        <button 
+            class="tab-btn px-4 py-2 text-sm font-medium rounded-t-lg hover:bg-gray-700 hover:text-white"
+            hx-get="/admin/content/albums" 
+            hx-target="#admin-content" 
+            hx-indicator="#tab-loading-indicator"
+            hx-push-url="/admin?tab=album-editor"
+            id="album-editor-tab"
+            data-tab="album-editor"
+            aria-selected="false"
+        >
+            Album Editor
         </button>
         <a 
             href="/admin/logout"
@@ -17,9 +33,41 @@
             Logout
         </a>
     </nav>
+    <div id="tab-loading-indicator" class="hidden text-center py-2 text-gray-400">Loading...</div>
 </div>
 
 <div id="tab-status" class="mb-4"></div>
+<div id="admin-content" class="mt-4"
+     hx-get="/admin/content/import"
+     hx-trigger="load"
+     hx-target="this"
+     hx-indicator="#tab-loading-indicator"
+     hx-swap="innerHTML show:top">
+</div>
 
-<div id="admin-content" class="mt-4"></div>
+<script>
+  document.body.addEventListener('htmx:beforeRequest', function(evt) {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => btn.setAttribute('aria-selected', 'false'));
+    if (evt.target && evt.target.classList.contains('tab-btn')) {
+      evt.target.setAttribute('aria-selected', 'true');
+    }
+  });
+  document.body.addEventListener('htmx:configRequest', function(evt) {
+    document.getElementById('tab-loading-indicator').classList.remove('hidden');
+    document.getElementById('admin-content').classList.add('hidden');
+  });
+  document.body.addEventListener('htmx:afterSwap', function(evt) {
+    document.getElementById('tab-loading-indicator').classList.add('hidden');
+    document.getElementById('admin-content').classList.remove('hidden');
+  });
+  document.addEventListener('DOMContentLoaded', function() {
+    document.body.addEventListener('htmx:afterSwap', function handler(evt) {
+      if (evt.target.id === 'admin-content') {
+        document.getElementById('import-tab').setAttribute('aria-selected', 'true');
+        document.body.removeEventListener('htmx:afterSwap', handler);
+      }
+    });
+  });
+</script>
 {{ end }}

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"text/template"
 	"time"
 
 	"millions-of-words/fetch"
@@ -224,6 +225,25 @@ func (h *Handler) ImportAlbumHandler(c echo.Context) error {
 
 	log.Printf("Import complete")
 	return c.HTML(http.StatusOK, strings.Join(results, "\n"))
+}
+
+func (h *Handler) AlbumListHandler(c echo.Context) error {
+	if err := validateAuth(c); err != nil {
+		return err
+	}
+	albums, err := loader.LoadAllAlbumsData()
+	if err != nil {
+		return c.HTML(500, "Failed to load albums")
+	}
+	var sb strings.Builder
+	sb.WriteString(`<ul class="list-disc pl-6">`)
+	for _, album := range albums {
+		sb.WriteString("<li>")
+		sb.WriteString(template.HTMLEscapeString(album.ArtistName + " - " + album.AlbumName))
+		sb.WriteString("</li>")
+	}
+	sb.WriteString("</ul>")
+	return c.HTML(200, sb.String())
 }
 
 func validateAuth(c echo.Context) error {
