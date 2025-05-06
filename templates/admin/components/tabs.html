@@ -45,7 +45,27 @@
      hx-swap="innerHTML show:top">
 </div>
 
+<style>
+  .tab-btn[aria-selected="true"] {
+    background-color: #374151; /* Tailwind gray-700 */
+    color: #fff;
+  }
+</style>
+
 <script>
+  function getTabFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('tab') || 'import';
+  }
+
+  function setActiveTab(tabName) {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => {
+      const isActive = btn.dataset.tab === tabName;
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+  }
+
   document.body.addEventListener('htmx:beforeRequest', function(evt) {
     const tabBtns = document.querySelectorAll('.tab-btn');
     tabBtns.forEach(btn => btn.setAttribute('aria-selected', 'false'));
@@ -60,14 +80,11 @@
   document.body.addEventListener('htmx:afterSwap', function(evt) {
     document.getElementById('tab-loading-indicator').classList.add('hidden');
     document.getElementById('admin-content').classList.remove('hidden');
+    // Set active tab after swap based on URL
+    setActiveTab(getTabFromUrl());
   });
   document.addEventListener('DOMContentLoaded', function() {
-    document.body.addEventListener('htmx:afterSwap', function handler(evt) {
-      if (evt.target.id === 'admin-content') {
-        document.getElementById('import-tab').setAttribute('aria-selected', 'true');
-        document.body.removeEventListener('htmx:afterSwap', handler);
-      }
-    });
+    setActiveTab(getTabFromUrl());
   });
 </script>
 {{ end }}
