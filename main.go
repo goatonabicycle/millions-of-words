@@ -32,6 +32,27 @@ const (
 
 var (
 	albums []models.BandcampAlbumData
+	// Add a cache for home page stats
+	homePageCache struct {
+		Albums             []models.BandcampAlbumData
+		TotalAlbums        int
+		TotalSongs         int
+		TotalWords         int
+		TotalChars         int
+		TotalCharsNoSpaces int
+		TotalVowels        int
+		TotalConsonants    int
+		TotalLines         int
+		TotalDuration      int
+		AvgWordsPerAlbum   int
+		AvgCharsPerAlbum   int
+		AvgWordLength      float64
+		AvgSongsPerAlbum   float64
+		WPM                int
+		ProjectedAlbums    float64
+		FuckCount          int
+		DisplayAlbums      []models.BandcampAlbumData
+	}
 )
 
 type TemplateRenderer struct {
@@ -55,6 +76,9 @@ func main() {
 	e.Renderer = renderer
 
 	if err := loadAlbums(); err != nil {
+		e.Logger.Fatal(err)
+	}
+	if err := refreshHomePageCache(); err != nil {
 		e.Logger.Fatal(err)
 	}
 
@@ -158,7 +182,7 @@ func countWordOccurrences(albums []models.BandcampAlbumData, word string) int {
 	return count
 }
 
-func indexHandler(c echo.Context) error {
+func refreshHomePageCache() error {
 	allAlbums, err := loader.LoadAlbumsData()
 	if err != nil {
 		return err
@@ -215,24 +239,67 @@ func indexHandler(c echo.Context) error {
 
 	fuckCount := countWordOccurrences(allAlbums, "fuck")
 
+	homePageCache = struct {
+		Albums             []models.BandcampAlbumData
+		TotalAlbums        int
+		TotalSongs         int
+		TotalWords         int
+		TotalChars         int
+		TotalCharsNoSpaces int
+		TotalVowels        int
+		TotalConsonants    int
+		TotalLines         int
+		TotalDuration      int
+		AvgWordsPerAlbum   int
+		AvgCharsPerAlbum   int
+		AvgWordLength      float64
+		AvgSongsPerAlbum   float64
+		WPM                int
+		ProjectedAlbums    float64
+		FuckCount          int
+		DisplayAlbums      []models.BandcampAlbumData
+	}{
+		Albums:             allAlbums,
+		TotalAlbums:        albumCount,
+		TotalSongs:         totalSongs,
+		TotalWords:         totalWords,
+		TotalChars:         totalChars,
+		TotalCharsNoSpaces: totalCharsNoSpaces,
+		TotalVowels:        totalVowels,
+		TotalConsonants:    totalConsonants,
+		TotalLines:         totalLines,
+		TotalDuration:      totalDuration / 60,
+		AvgWordsPerAlbum:   avgWordsPerAlbum,
+		AvgCharsPerAlbum:   totalChars / max(albumCount, 1),
+		AvgWordLength:      avgWordLength,
+		AvgSongsPerAlbum:   avgSongsPerAlbum,
+		WPM:                wpm,
+		ProjectedAlbums:    projectedAlbums,
+		FuckCount:          fuckCount,
+		DisplayAlbums:      displayAlbums,
+	}
+	return nil
+}
+
+func indexHandler(c echo.Context) error {
 	return renderTemplate(c, "index.html", map[string]interface{}{
-		"albums":             displayAlbums,
-		"TotalAlbums":        albumCount,
-		"TotalSongs":         totalSongs,
-		"TotalWords":         totalWords,
-		"TotalChars":         totalChars,
-		"TotalCharsNoSpaces": totalCharsNoSpaces,
-		"TotalVowels":        totalVowels,
-		"TotalConsonants":    totalConsonants,
-		"TotalLines":         totalLines,
-		"TotalDuration":      totalDuration / 60,
-		"AvgWordsPerAlbum":   avgWordsPerAlbum,
-		"AvgCharsPerAlbum":   totalChars / max(albumCount, 1),
-		"AvgWordLength":      avgWordLength,
-		"AvgSongsPerAlbum":   avgSongsPerAlbum,
-		"WPM":                wpm,
-		"ProjectedAlbums":    projectedAlbums,
-		"FuckCount":          fuckCount,
+		"albums":             homePageCache.DisplayAlbums,
+		"TotalAlbums":        homePageCache.TotalAlbums,
+		"TotalSongs":         homePageCache.TotalSongs,
+		"TotalWords":         homePageCache.TotalWords,
+		"TotalChars":         homePageCache.TotalChars,
+		"TotalCharsNoSpaces": homePageCache.TotalCharsNoSpaces,
+		"TotalVowels":        homePageCache.TotalVowels,
+		"TotalConsonants":    homePageCache.TotalConsonants,
+		"TotalLines":         homePageCache.TotalLines,
+		"TotalDuration":      homePageCache.TotalDuration,
+		"AvgWordsPerAlbum":   homePageCache.AvgWordsPerAlbum,
+		"AvgCharsPerAlbum":   homePageCache.AvgCharsPerAlbum,
+		"AvgWordLength":      homePageCache.AvgWordLength,
+		"AvgSongsPerAlbum":   homePageCache.AvgSongsPerAlbum,
+		"WPM":                homePageCache.WPM,
+		"ProjectedAlbums":    homePageCache.ProjectedAlbums,
+		"FuckCount":          homePageCache.FuckCount,
 	})
 }
 
@@ -540,6 +607,9 @@ func importAlbumHandler(c echo.Context) error {
 
 	if err := loadAlbums(); err != nil {
 		log.Printf("Error reloading albums after import: %v", err)
+	}
+	if err := refreshHomePageCache(); err != nil {
+		log.Printf("Error refreshing home page cache after import: %v", err)
 	}
 
 	log.Printf("Import complete")

@@ -45,7 +45,8 @@ func (h *Handler) AdminHandler(c echo.Context) error {
 		}, c)
 	}
 
-	allAlbums, err := loader.LoadAllAlbumsData()
+	// Only fetch artist and album names for all albums (fast)
+	allAlbums, err := loader.FetchAlbumNamesOnly()
 	if err != nil {
 		log.Printf("Error loading albums: %v", err)
 		return err
@@ -232,7 +233,8 @@ func (h *Handler) AlbumListHandler(c echo.Context) error {
 	if err := validateAuth(c); err != nil {
 		return err
 	}
-	albums, err := loader.LoadAllAlbumsData()
+	// Only fetch artist and album names for all albums
+	albums, err := loader.FetchAlbumNamesOnly()
 	if err != nil {
 		return c.HTML(500, "Failed to load albums")
 	}

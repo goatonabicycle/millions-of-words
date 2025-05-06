@@ -436,3 +436,24 @@ func UpdateAlbum(req models.UpdateAlbumRequest) error {
 	log.Printf("Verified updated album values: %+v", album)
 	return nil
 }
+
+func FetchAlbumNamesOnly() ([]models.BandcampAlbumData, error) {
+	query := publicClient.From("albums").
+		Select("artist_name, album_name", "exact", false).
+		Order("date_added", &postgrest.OrderOpts{
+			Ascending:  false,
+			NullsFirst: false,
+		})
+
+	data, _, err := query.Execute()
+	if err != nil {
+		return nil, fmt.Errorf("error querying albums: %w", err)
+	}
+
+	var albums []models.BandcampAlbumData
+	if err := json.Unmarshal(data, &albums); err != nil {
+		return nil, fmt.Errorf("error scanning album rows: %w", err)
+	}
+
+	return albums, nil
+}

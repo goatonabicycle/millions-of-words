@@ -298,3 +298,29 @@ func SaveAlbum(album models.BandcampAlbumData) error {
 
 	return tx.Commit()
 }
+
+func FetchAlbumNamesOnly() ([]models.BandcampAlbumData, error) {
+	db, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("error opening database at %s: %w", dbPath, err)
+	}
+	defer db.Close()
+
+	query := `SELECT artist_name, album_name FROM albums ORDER BY date_added DESC`
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying albums: %w", err)
+	}
+	defer rows.Close()
+
+	var albums []models.BandcampAlbumData
+	for rows.Next() {
+		var album models.BandcampAlbumData
+		if err := rows.Scan(&album.ArtistName, &album.AlbumName); err != nil {
+			return nil, fmt.Errorf("error scanning album row: %w", err)
+		}
+		albums = append(albums, album)
+	}
+
+	return albums, nil
+}
