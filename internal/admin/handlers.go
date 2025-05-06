@@ -238,15 +238,9 @@ func (h *Handler) AlbumListHandler(c echo.Context) error {
 	if err != nil {
 		return c.HTML(500, "Failed to load albums")
 	}
-	var sb strings.Builder
-	sb.WriteString(`<ul class="list-disc pl-6">`)
-	for _, album := range albums {
-		sb.WriteString("<li>")
-		sb.WriteString(template.HTMLEscapeString(album.ArtistName + " - " + album.AlbumName))
-		sb.WriteString("</li>")
-	}
-	sb.WriteString("</ul>")
-	return c.HTML(200, sb.String())
+	return h.templates.Render(c.Response().Writer, "admin/components/album-list", map[string]interface{}{
+		"Albums": albums,
+	}, c)
 }
 
 func (h *Handler) ImportStartHandler(c echo.Context) error {
@@ -366,6 +360,20 @@ func (h *Handler) ImportProcessHandler(c echo.Context) error {
 		triggerNext = `<div hx-post=\"/admin/import/process\" hx-target=\"#album-status-` + fmt.Sprint(albumIndex+1) + `\" hx-swap=\"outerHTML\" hx-vals='{"albumIndex":` + fmt.Sprint(albumIndex+1) + `,"total":` + fmt.Sprint(total) + `,"bandcampUrls":"` + template.JSEscapeString(strings.Join(urls, "\\n")) + `"}' hx-trigger=\"load\"></div>`
 	}
 	return c.HTML(200, row+progressBar+triggerNext)
+}
+
+func (h *Handler) AlbumEditFormHandler(c echo.Context) error {
+	if err := validateAuth(c); err != nil {
+		return err
+	}
+	albumID := c.Param("id")
+	album, err := loader.GetAlbumByID(albumID)
+	if err != nil {
+		return c.HTML(404, "Album not found")
+	}
+	return h.templates.Render(c.Response().Writer, "admin/components/album-edit-form", map[string]interface{}{
+		"Album": album,
+	}, c)
 }
 
 func validateAuth(c echo.Context) error {

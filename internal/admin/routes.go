@@ -16,4 +16,5 @@ func SetupRoutes(e *echo.Echo, h *Handler) {
 	admin.POST("/validate/metal-archives-url", h.ValidateMetalArchivesUrlHandler)
 	admin.GET("/logout", h.LogoutHandler)
 	admin.GET("/content/albums", h.AlbumListHandler)
+	admin.GET("/content/album-edit/:id", h.AlbumEditFormHandler)
 }

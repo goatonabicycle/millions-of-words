@@ -1,0 +1,41 @@
+{{ define "admin/components/album-list" }}
+<div>
+  <table class="min-w-full bg-gray-800 rounded-lg overflow-hidden">
+    <thead>
+      <tr class="bg-gray-700 text-gray-300">
+        <th class="px-4 py-2 text-left">Artist</th>
+        <th class="px-4 py-2 text-left">Album</th>
+        <th class="px-4 py-2"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range .Albums }}
+      <tr class="border-b border-gray-700 hover:bg-gray-700">
+        <td class="px-4 py-2">{{ .ArtistName }}</td>
+        <td class="px-4 py-2">{{ .AlbumName }}</td>
+        <td class="px-4 py-2 text-right">
+          <button 
+            class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            hx-get="/admin/content/album-edit/{{ .ID }}"
+            hx-target="#album-edit-modal-content"
+            hx-trigger="click"
+            hx-swap="innerHTML"
+            _="on htmx:afterSwap add .block to #album-edit-modal remove .hidden from #album-edit-modal"
+          >Edit</button>
+        </td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal for editing -->
+<div id="album-edit-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+  <div class="bg-gray-900 rounded-lg shadow-lg p-6 w-full max-w-lg relative">
+    <button class="absolute top-2 right-2 text-gray-400 hover:text-white" onclick="document.getElementById('album-edit-modal').classList.add('hidden')">&times;</button>
+    <div id="album-edit-modal-content">
+      <!-- Edit form will be loaded here via HTMX -->
+    </div>
+  </div>
+</div>
+{{ end }} 

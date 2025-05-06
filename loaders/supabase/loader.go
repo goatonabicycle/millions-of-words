@@ -188,6 +188,34 @@ func GetAlbumBySlug(slug string) (models.BandcampAlbumData, error) {
 	return album, nil
 }
 
+func GetAlbumByID(id string) (models.BandcampAlbumData, error) {
+	data, _, err := publicClient.From("albums").
+		Select("*", "exact", false).
+		Eq("id", id).
+		Single().
+		Execute()
+	if err != nil {
+		return models.BandcampAlbumData{}, fmt.Errorf("error fetching album: %w", err)
+	}
+
+	var album models.BandcampAlbumData
+	if err := json.Unmarshal(data, &album); err != nil {
+		return models.BandcampAlbumData{}, fmt.Errorf("error scanning album data: %w", err)
+	}
+
+	if album.ImageStoragePath != "" {
+		publicURL := adminClient.Storage.GetPublicUrl("album-covers", album.ImageStoragePath)
+		album.ImageUrl = publicURL.SignedURL
+	}
+
+	if err := fetchTracks(&album); err != nil {
+		return models.BandcampAlbumData{}, fmt.Errorf("error fetching tracks: %w", err)
+	}
+
+	calculateAlbumMetrics(&album)
+	return album, nil
+}
+
 func AlbumUrlExists(url string) (bool, error) {
 	data, _, err := publicClient.From("albums").
 		Select("id", "exact", false).
@@ -439,7 +467,7 @@ func UpdateAlbum(req models.UpdateAlbumRequest) error {
 
 func FetchAlbumNamesOnly() ([]models.BandcampAlbumData, error) {
 	query := publicClient.From("albums").
-		Select("artist_name, album_name", "exact", false).
+		Select("id, artist_name, album_name", "exact", false).
 		Order("date_added", &postgrest.OrderOpts{
 			Ascending:  false,
 			NullsFirst: false,

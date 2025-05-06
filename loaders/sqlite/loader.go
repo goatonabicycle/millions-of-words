@@ -241,6 +241,50 @@ func GetAlbumBySlug(slug string) (models.BandcampAlbumData, error) {
 	return album, nil
 }
 
+func GetAlbumByID(id string) (models.BandcampAlbumData, error) {
+	db, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		return models.BandcampAlbumData{}, fmt.Errorf("error opening database: %w", err)
+	}
+	defer db.Close()
+
+	var album models.BandcampAlbumData
+	var ampwallURL, metalArchivesURL sql.NullString
+
+	err = db.QueryRow(`
+		SELECT id, slug, artist_name, album_name, image_url, image_data, 
+				 album_color_average, bandcamp_url, ampwall_url, metal_archives_url,
+				 total_length, formatted_length, date_added 
+		FROM albums WHERE id = ?`, id).Scan(
+		&album.ID,
+		&album.Slug,
+		&album.ArtistName,
+		&album.AlbumName,
+		&album.ImageUrl,
+		&album.ImageData,
+		&album.AlbumColorAverage,
+		&album.BandcampUrl,
+		&ampwallURL,
+		&metalArchivesURL,
+		&album.TotalLength,
+		&album.FormattedLength,
+		&album.DateAdded)
+	if err != nil {
+		return models.BandcampAlbumData{}, fmt.Errorf("error fetching album: %w", err)
+	}
+
+	album.AmpwallUrl = ampwallURL.String
+	album.MetalArchivesURL = metalArchivesURL.String
+	album.ImageDataBase64 = base64.StdEncoding.EncodeToString(album.ImageData)
+
+	if err := fetchTracks(db, &album); err != nil {
+		return models.BandcampAlbumData{}, fmt.Errorf("error fetching tracks: %w", err)
+	}
+
+	calculateAlbumMetrics(&album)
+	return album, nil
+}
+
 func AlbumUrlExists(url string) (bool, error) {
 	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
@@ -306,7 +350,7 @@ func FetchAlbumNamesOnly() ([]models.BandcampAlbumData, error) {
 	}
 	defer db.Close()
 
-	query := `SELECT artist_name, album_name FROM albums ORDER BY date_added DESC`
+	query := `SELECT id, artist_name, album_name FROM albums ORDER BY date_added DESC`
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("error querying albums: %w", err)
@@ -316,7 +360,7 @@ func FetchAlbumNamesOnly() ([]models.BandcampAlbumData, error) {
 	var albums []models.BandcampAlbumData
 	for rows.Next() {
 		var album models.BandcampAlbumData
-		if err := rows.Scan(&album.ArtistName, &album.AlbumName); err != nil {
+		if err := rows.Scan(&album.ID, &album.ArtistName, &album.AlbumName); err != nil {
 			return nil, fmt.Errorf("error scanning album row: %w", err)
 		}
 		albums = append(albums, album)
