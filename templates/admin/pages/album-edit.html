@@ -1,0 +1,78 @@
+{{ define "admin/pages/album-edit" }}
+<!DOCTYPE html>
+<html lang="en">
+{{ template "header" . }}
+<body class="bg-gray-900 text-gray-200 min-h-screen">
+  <div class="container mx-auto py-8 max-w-4xl">
+    <div class="mb-6 flex items-center gap-4">
+      <a href="/admin/content/albums" class="inline-flex items-center px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Albums
+      </a>
+      <h1 class="text-2xl font-bold">Edit Album</h1>
+    </div>
+    <form 
+      method="POST"
+      action="/admin/content/album-edit/{{ .Album.ID }}"
+      class="space-y-6 bg-gray-800 p-6 rounded-lg shadow-lg"
+    >
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium mb-1">Artist Name</label>
+          <input type="text" name="artist_name" value="{{ .Album.ArtistName }}" class="w-full p-2 rounded bg-gray-900 text-gray-200 border border-gray-600 focus:border-blue-500" required />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Album Name</label>
+          <input type="text" name="album_name" value="{{ .Album.AlbumName }}" class="w-full p-2 rounded bg-gray-900 text-gray-200 border border-gray-600 focus:border-blue-500" required />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Release Date</label>
+          <input type="text" name="release_date" value="{{ .Album.ReleaseDate }}" class="w-full p-2 rounded bg-gray-900 text-gray-200 border border-gray-600 focus:border-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Genre</label>
+          <input type="text" name="genre" value="{{ .Album.Genre }}" class="w-full p-2 rounded bg-gray-900 text-gray-200 border border-gray-600 focus:border-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Country</label>
+          <input type="text" name="country" value="{{ .Album.Country }}" class="w-full p-2 rounded bg-gray-900 text-gray-200 border border-gray-600 focus:border-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Label</label>
+          <input type="text" name="label" value="{{ .Album.Label }}" class="w-full p-2 rounded bg-gray-900 text-gray-200 border border-gray-600 focus:border-blue-500" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Notes</label>
+        <textarea name="notes" rows="2" class="w-full p-2 rounded bg-gray-900 text-gray-200 border border-gray-600 focus:border-blue-500">{{ .Album.Notes }}</textarea>
+      </div>
+      <div class="flex justify-end gap-2">
+        <a href="/admin/content/albums" class="px-4 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Cancel</a>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save Album</button>
+      </div>
+    </form>
+    <div class="mt-10">
+      <h2 class="text-xl font-semibold mb-4">Tracks</h2>
+      <div class="space-y-6">
+        {{ range .Album.Tracks }}
+        <div class="bg-gray-800 rounded-lg p-4 shadow">
+          <div class="flex flex-col md:flex-row md:items-center md:gap-6 mb-2">
+            <div class="flex-1">
+              <div class="font-semibold text-lg">{{ .TrackNumber }}. {{ .Name }}</div>
+              <div class="text-gray-400 text-sm">Length: {{ .FormattedLength }}</div>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Lyrics</label>
+            <textarea name="lyrics_{{ .TrackNumber }}" rows="3" class="w-full p-2 rounded bg-gray-900 text-gray-200 border border-gray-600 focus:border-blue-500">{{ .Lyrics }}</textarea>
+          </div>
+        </div>
+        {{ end }}
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+{{ end }} 

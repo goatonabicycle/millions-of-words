@@ -1,0 +1,20 @@
+{{ define "admin/pages/albums" }}
+<!DOCTYPE html>
+<html lang="en">
+{{ template "header" . }}
+<body class="bg-gray-900 text-gray-200 min-h-screen">
+  <div class="container mx-auto py-8 max-w-4xl">
+    <div class="mb-6 flex items-center gap-4">
+      <a href="/admin" class="inline-flex items-center px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Admin Home
+      </a>
+      <h1 class="text-2xl font-bold">Albums</h1>
+    </div>
+    {{ template "admin/components/album-list" . }}
+  </div>
+</body>
+</html>
+{{ end }} 

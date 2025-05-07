@@ -238,7 +238,7 @@ func (h *Handler) AlbumListHandler(c echo.Context) error {
 	if err != nil {
 		return c.HTML(500, "Failed to load albums")
 	}
-	return h.templates.Render(c.Response().Writer, "admin/components/album-list", map[string]interface{}{
+	return h.templates.Render(c.Response().Writer, "admin/pages/albums", map[string]interface{}{
 		"Albums": albums,
 	}, c)
 }
@@ -371,7 +371,7 @@ func (h *Handler) AlbumEditFormHandler(c echo.Context) error {
 	if err != nil {
 		return c.HTML(404, "Album not found")
 	}
-	return h.templates.Render(c.Response().Writer, "admin/components/album-edit-form", map[string]interface{}{
+	return h.templates.Render(c.Response().Writer, "admin/pages/album-edit", map[string]interface{}{
 		"Album": album,
 	}, c)
 }

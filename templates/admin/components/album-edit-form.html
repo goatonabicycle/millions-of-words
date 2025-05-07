@@ -1,8 +1,9 @@
 {{ define "admin/components/album-edit-form" }}
+<div id="edit-form-container">
 <form 
   hx-post="/admin/content/album-edit/{{ .Album.ID }}" 
-  hx-target="#album-edit-modal-content" 
-  hx-swap="innerHTML" 
+  hx-target="#edit-form-container" 
+  hx-swap="outerHTML" 
   class="space-y-4">
   <div>
     <label class="block text-sm font-medium mb-1">Artist Name</label>
@@ -12,10 +13,10 @@
     <label class="block text-sm font-medium mb-1">Album Name</label>
     <input type="text" name="album_name" value="{{ .Album.AlbumName }}" class="w-full p-2 rounded bg-gray-800 text-gray-200 border border-gray-600 focus:border-blue-500" required />
   </div>
-  <!-- Add more fields as needed -->
   <div class="flex justify-end gap-2">
-    <button type="button" class="px-4 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="document.getElementById('album-edit-modal').classList.add('hidden')">Cancel</button>
+    <a href="/admin/content/albums" class="px-4 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Cancel</a>
     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
   </div>
 </form>
+</div>
 {{ end }} 
