@@ -61,12 +61,19 @@ func prepareAlbumDetails(album models.BandcampAlbumData) map[string]interface{} 
 		tracksWithDetails = append(tracksWithDetails, trackDetails)
 	}
 
+	fuckCount := 0
+	for _, track := range album.Tracks {
+		lyrics := strings.ToLower(track.Lyrics)
+		fuckCount += strings.Count(lyrics, "fuck")
+	}
+
 	result := map[string]interface{}{
 		"Album":             album,
 		"DisplayTitle":      displayTitle,
 		"TracksWithDetails": tracksWithDetails,
 		"AlbumWPM":          calculateWPM(float64(album.TotalWords), float64(album.TotalLength)),
 		"Enabled":           album.Enabled,
+		"FuckCount":         fuckCount,
 	}
 
 	albumDetailsCache.Store(album.ID, result)
