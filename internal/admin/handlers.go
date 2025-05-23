@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -12,6 +13,7 @@ import (
 
 	"millions-of-words/fetch"
 	loader "millions-of-words/loaders/supabase"
+	"millions-of-words/models"
 
 	"github.com/labstack/echo/v4"
 )
@@ -374,6 +376,104 @@ func (h *Handler) AlbumEditFormHandler(c echo.Context) error {
 	return h.templates.Render(c.Response().Writer, "admin/pages/album-edit", map[string]interface{}{
 		"Album": album,
 	}, c)
+}
+
+func (h *Handler) AlbumEditPostHandler(c echo.Context) error {
+	if err := validateAuth(c); err != nil {
+		return err
+	}
+	albumID := c.Param("id")
+
+	releaseDate := c.FormValue("release_date")
+	genre := c.FormValue("genre")
+	country := c.FormValue("country")
+	label := c.FormValue("label")
+	notes := c.FormValue("notes")
+
+	albumReq := models.UpdateAlbumRequest{
+		AlbumID:     albumID,
+		ReleaseDate: releaseDate,
+		Genre:       genre,
+		Country:     country,
+		Label:       label,
+		Notes:       notes,
+	}
+
+	if err := loader.UpdateAlbum(albumReq); err != nil {
+		log.Printf("Error updating album: %v", err)
+		return c.HTML(http.StatusOK, `<div class="text-red-500">Error: Failed to update album</div>`)
+	}
+
+	album, err := loader.GetAlbumByID(albumID)
+	if err == nil {
+		for _, track := range album.Tracks {
+			lyricsField := "lyrics_" + strconv.Itoa(track.TrackNumber)
+			lyrics := c.FormValue(lyricsField)
+			if lyrics != track.Lyrics {
+				trackReq := models.UpdateTrackRequest{
+					AlbumID:     albumID,
+					TrackName:   track.Name,
+					TrackNumber: track.TrackNumber,
+					Lyrics:      lyrics,
+				}
+				if err := loader.UpdateTrack(trackReq); err != nil {
+					log.Printf("Error updating track %d: %v", track.TrackNumber, err)
+				}
+			}
+		}
+	}
+
+	return c.Redirect(http.StatusSeeOther, "/admin/content/album-edit/"+albumID)
+}
+
+func (h *Handler) TrackEditPostHandler(c echo.Context) error {
+	if err := validateAuth(c); err != nil {
+		return err
+	}
+	albumID := c.Param("album_id")
+	trackNumberStr := c.Param("track_number")
+	trackNumber, err := strconv.Atoi(trackNumberStr)
+	if err != nil {
+		return c.HTML(http.StatusBadRequest, "Invalid track number")
+	}
+
+	trackName := c.FormValue("track_name")
+	lyrics := c.FormValue("lyrics")
+
+	trackReq := models.UpdateTrackRequest{
+		AlbumID:     albumID,
+		TrackName:   trackName,
+		TrackNumber: trackNumber,
+		Lyrics:      lyrics,
+	}
+	if err := loader.UpdateTrack(trackReq); err != nil {
+		log.Printf("Error updating track %d: %v", trackNumber, err)
+		return c.HTML(http.StatusOK, `<div class=\"text-red-500\">Error: Failed to update track</div>`)
+	}
+
+	album, err := loader.GetAlbumByID(albumID)
+	if err != nil {
+		return c.HTML(http.StatusOK, `<div class=\"text-red-500\">Error: Failed to reload album</div>`)
+	}
+	var updatedTrack models.BandcampTrackData
+	for _, t := range album.Tracks {
+		if t.TrackNumber == trackNumber {
+			updatedTrack = t
+			break
+		}
+	}
+
+	var buf bytes.Buffer
+	err = h.templates.Render(&buf, "components/track-card", map[string]interface{}{
+		"Track":   updatedTrack,
+		"AlbumID": albumID,
+	}, c)
+	if err != nil {
+		log.Printf("Error rendering track card template: %v", err)
+		return c.HTML(http.StatusInternalServerError, `<div class="text-red-500">Error: Failed to render track card</div>`)
+	}
+
+	return c.HTML(http.StatusOK, buf.String())
 }
 
 func validateAuth(c echo.Context) error {

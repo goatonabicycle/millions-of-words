@@ -17,4 +17,6 @@ func SetupRoutes(e *echo.Echo, h *Handler) {
 	admin.GET("/logout", h.LogoutHandler)
 	admin.GET("/content/albums", h.AlbumListHandler)
 	admin.GET("/content/album-edit/:id", h.AlbumEditFormHandler)
+	admin.POST("/content/album-edit/:id", h.AlbumEditPostHandler)
+	admin.POST("/content/track-edit/:album_id/:track_number", h.TrackEditPostHandler)
 }
